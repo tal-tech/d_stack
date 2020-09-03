@@ -1,0 +1,46 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="tal.com.d_stack_example">
+    <!-- io.flutter.app.FlutterApplication is an android.app.Application that
+         calls FlutterMain.startInitialization(this); in its onCreate method.
+         In most cases you can leave this as-is, but you if you want to provide
+         additional functionality it is fine to subclass or reimplement
+         FlutterApplication and put your custom class here. -->
+    <application
+        android:name=".DStackApplication"
+        android:icon="@mipmap/ic_launcher"
+        android:label="d_stack_example">
+
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+
+        <activity
+            android:name=".FlutterContainerActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:theme="@style/LaunchTheme"
+            android:windowSoftInputMode="adjustResize">
+
+            <meta-data
+                android:name="io.flutter.embedding.android.SplashScreenDrawable"
+                android:resource="@color/transparent" />
+
+        </activity>
+
+        <activity
+            android:name=".NativeOneActivity"
+            android:theme="@style/Theme.AppCompat">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".NativeTwoActivity"
+            android:theme="@style/Theme.AppCompat" />
+        <activity
+            android:name=".NativeThreeActivity"
+            android:theme="@style/Theme.AppCompat" />
+    </application>
+</manifest>

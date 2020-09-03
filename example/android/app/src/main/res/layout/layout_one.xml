@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:text="native页面"
+        android:textSize="30sp"></TextView>
+
+    <Button
+        android:id="@+id/btn_open_native"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="打开新的native页面"></Button>
+
+    <Button
+        android:id="@+id/btn_open_flutter"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="打开新的flutter页面"></Button>
+
+</LinearLayout>
