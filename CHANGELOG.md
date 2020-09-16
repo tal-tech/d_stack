@@ -1,3 +1,17 @@
+## 1.2.2
+* 优化iOS节点去重
+## 1.2.1
+* 修复android华为推送bug
+## 1.2.0
+* 修复android 出栈bug
+## 1.1.9
+* 修复android 第三方activity bug
+## 1.1.8
+* 修复ios bug
+## 1.1.7
+* 修复ios bug
+## 1.1.6
+* 修复可能的android类名错误
 ## 1.1.5
 * 修复 iOS的homePage不能刷新的异常
 ## 1.1.4

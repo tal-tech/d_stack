@@ -86,8 +86,20 @@
             node.action == DNodeActionTypeGesture ||
             node.action == DNodeActionTypeDidPop) {
             if (!node.canRemoveNode) {
-                if (self.nodeList.lastObject) {
-                    subArray = @[self.nodeList.lastObject];
+                DNode *lastNode = self.nodeList.lastObject;
+                if (lastNode) {
+                    if (node.action == DNodeActionTypePop ||
+                        node.action == DNodeActionTypeDismiss) {
+                        if (node.fromFlutter) {
+                            subArray = @[lastNode];
+                        } else {
+                            if ([lastNode.target isEqualToString:node.target]) {
+                                subArray = @[lastNode];
+                            }
+                        }
+                    } else {
+                        subArray = @[lastNode];
+                    }
                 }
             } else {
                 if (node.target) {
@@ -214,6 +226,7 @@
 
 - (void)outStackWithNode:(DNode *)node nodeArray:(NSArray *)subArray
 {
+    if (!subArray.count) { return;}
     [self.nodeList removeObjectsInArray:subArray];
     self.removedNodes = [subArray copy];
     self.pageCount = self.pageCount - subArray.count;

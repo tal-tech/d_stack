@@ -66,6 +66,7 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
 @property (nonatomic, assign) BOOL isBeginPoped;
 /// 是否为手势出发的返回
 @property (nonatomic, assign) BOOL isGesturePoped;
+@property (nonatomic, strong) NSNumber *dStackFlutterNodeMessage;
 @property (nonatomic, copy) _DStackViewControllerWillAppearInjectBlock dStack_willAppearInjectBlock;
 
 /// 是否为FlutterViewController
@@ -103,16 +104,27 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
 {
     // 入栈管理，present时记录一下VC
     if (!controller.isFlutterViewController) {
+        __block UIViewController *targetController = controller;
         // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
+        BOOL (^checkBlock)(UIViewController *target) = ^BOOL(UIViewController *target) {
+            if ([target isKindOfClass:UINavigationController.class]) {
+                UINavigationController *navi = (UINavigationController *)target;
+                targetController = navi.topViewController;
+                if (navi.dStackRootViewController.isFlutterViewController) {
+                    return NO;
+                }
+            }
+            return YES;
+        };
+        
         BOOL canCheckNode = YES;
         if ([controller isKindOfClass:UINavigationController.class]) {
-            UINavigationController *navi = (UINavigationController *)controller;
-            if (navi.dStackRootViewController.isFlutterViewController) {
-                canCheckNode = NO;
-            }
+            canCheckNode = checkBlock(controller);
+        } else if ([controller isKindOfClass:UITabBarController.class]) {
+            canCheckNode = checkBlock([(UITabBarController *)controller selectedViewController]);
         }
-        if (canCheckNode) {
-            NSString *scheme = NSStringFromClass(controller.class);
+        if (canCheckNode && ![targetController isKindOfClass:UIAlertController.class]) {
+            NSString *scheme = NSStringFromClass(targetController.class);
             DNode *node = [[DNodeManager sharedInstance] nextPageScheme:scheme
                                                                pageType:DNodePageTypeNative
                                                                  action:DNodeActionTypePresent
@@ -134,9 +146,10 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
 - (void)d_stackDismissViewControllerAnimated:(BOOL)flag completion:(void (^)(void))completion
 {
     // 出栈管理
-    if (!self.isFlutterViewController) {
+    if (![self.dStackFlutterNodeMessage boolValue] && ![self isKindOfClass:UIAlertController.class]) {
         checkNode(self, DNodeActionTypeDismiss);
     }
+    self.dStackFlutterNodeMessage = @(NO);
     [self d_stackDismissViewControllerAnimated:flag completion:completion];
 }
 
@@ -196,6 +209,19 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
     return NO;
 }
 
+- (void)setDStackFlutterNodeMessage:(NSNumber *)dStackFlutterNodeMessage
+{
+    objc_setAssociatedObject(self,
+                             @selector(dStackFlutterNodeMessage),
+                             dStackFlutterNodeMessage,
+                             OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (NSNumber *)dStackFlutterNodeMessage
+{
+    return objc_getAssociatedObject(self, @selector(dStackFlutterNodeMessage));
+}
+
 @end
 
 
@@ -216,6 +242,7 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
     if (self.isGesturePoped && self.isBeginPoped) {
         DNode *node = [[DNode alloc] init];
         node.action = DNodeActionTypeGesture;
+        node.target = NSStringFromClass(self.class);
         [[DNodeManager sharedInstance] checkNode:node];
     }
 }
@@ -365,38 +392,40 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
     // 手势返回也会触发这个函数注意手势返回的情况，手势一开始滑动就会触发，这时有可能手势滑动了一部分就停掉了
     // 这时该页面并没有被pop出去，要注意这种情况，这情况在d_stackViewDidDisappear处理
     UIViewController *controller = self.topViewController;
-    if (!controller.isFlutterViewController) {
+    if (![self.dStackFlutterNodeMessage boolValue]) {
         // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
         if (!controller.isGesturePoped) {
             // 手势返回的需要特殊处理，手势返回的在 viewDidDisappear 里面处理了
             DNode *node = [[DNode alloc] init];
             node.action = DNodeActionTypePop;
+            node.target = NSStringFromClass(controller.class);
             [[DNodeManager sharedInstance] checkNode:node];
         }
     }
     controller.isBeginPoped = YES;
+    self.dStackFlutterNodeMessage = @(NO);
     return [self d_stackPopViewControllerAnimated:animated];
 }
 
 - (NSArray<UIViewController *> *)d_stackPopToViewController:(UIViewController *)viewController animated:(BOOL)animated
 {
     // 出栈管理，要注意移除掉当前controller到viewController之间的controller
-    UIViewController *controller = self.topViewController;
-    if (!controller.isFlutterViewController) {
+    if (![self.dStackFlutterNodeMessage boolValue]) {
         // 如果是FlutterViewController，会在消息通道里面checkNode
         checkNode(viewController, DNodeActionTypePopTo);
     }
+    self.dStackFlutterNodeMessage = @(NO);
     return [self d_stackPopToViewController:viewController animated:animated];
 }
 
 - (NSArray<UIViewController *> *)d_stackPopToRootViewControllerAnimated:(BOOL)animated
 {
     // 出栈管理，要注意移除掉当前controller到RootViewController之间的controller
-    UIViewController *controller = self.topViewController;
-    if (!controller.isFlutterViewController) {
+    if (![self.dStackFlutterNodeMessage boolValue]) {
         // 如果是FlutterViewController，会在消息通道里面checkNode
         checkNode(self.viewControllers.firstObject, DNodeActionTypePopToRoot);
     }
+    self.dStackFlutterNodeMessage = @(NO);
     return [self d_stackPopToRootViewControllerAnimated:animated];
 }
 
@@ -496,3 +525,4 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
 
 @end
 
+ 

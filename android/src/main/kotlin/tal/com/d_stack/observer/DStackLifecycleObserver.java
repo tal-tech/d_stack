@@ -28,6 +28,10 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
+        boolean canAdd = FilterActivityManager.getInstance().canAdd(activity);
+        if (!canAdd) {
+            return;
+        }
         activeActivity = activity;
         Activity bottomActivity = DStackActivityManager.getInstance().getBottomActivity();
         appCreate = bottomActivity == null;
@@ -72,6 +76,10 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityResumed(@NonNull Activity activity) {
+        boolean canAdd = FilterActivityManager.getInstance().canAdd(activity);
+        if (!canAdd) {
+            return;
+        }
         if (activeActivity == activity) {
             //正在执行创建activity的逻辑，打开新页面操作，onCreate，onResumed方法是同一个activity
             DStackActivityManager.getInstance().setTopActivity(activity);
@@ -111,6 +119,10 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityDestroyed(@NonNull Activity activity) {
+        boolean canAdd = FilterActivityManager.getInstance().canAdd(activity);
+        if (!canAdd) {
+            return;
+        }
         boolean isPopTo = DStackActivityManager.getInstance().isPopTo();
         DStackActivityManager.getInstance().removeActivity(activity);
         if (DStackActivityManager.getInstance().isFlutterActivity(activity)) {

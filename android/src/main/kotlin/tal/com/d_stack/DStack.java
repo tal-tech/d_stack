@@ -178,6 +178,7 @@ public class DStack {
             return;
         }
         node.setAction(DNodeActionType.DNodeActionTypePopTo);
+        node.setParams(params);
         DNodeManager.getInstance().checkNode(node);
     }
 
@@ -188,6 +189,16 @@ public class DStack {
         DNode rootNode = DNodeManager.getInstance().createNode(""
                 , "", "", DNodeActionType.DNodeActionTypePopToRoot
                 , null, false);
+        DNodeManager.getInstance().checkNode(rootNode);
+    }
+
+    /**
+     * 返回根页面，带参数
+     */
+    public void popToRoot(Map<String, Object> params) {
+        DNode rootNode = DNodeManager.getInstance().createNode(""
+                , "", "", DNodeActionType.DNodeActionTypePopToRoot
+                , params, false);
         DNodeManager.getInstance().checkNode(rootNode);
     }
 

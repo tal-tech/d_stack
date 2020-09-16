@@ -267,11 +267,13 @@
             }
         }
         if (target) {
+            [navigation setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
             [navigation popToViewController:target animated:animation];
         } else {
             DStackError(@"%@", @"没有找到需要关闭的controller");
         }
     } else if (node.action == DNodeActionTypePopToRoot) {
+        [navigation setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
         [navigation popToRootViewControllerAnimated:YES];
     }
 }
@@ -299,7 +301,9 @@
 + (void)closeViewControllerWithNode:(DNode *)node
 {
     if (node.action == DNodeActionTypePop) {
-        [[self currentNavigationControllerWithNode:node] popViewControllerAnimated:YES];
+        UINavigationController *controller = [self currentNavigationControllerWithNode:node];
+        [controller setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
+        [controller popViewControllerAnimated:YES];
     } else if (node.action == DNodeActionTypeDismiss) {
         [self dismissViewController];
     }
@@ -308,6 +312,7 @@
 + (void)dismissViewController
 {
     UIViewController *currentVC = self.currentController;
+    [currentVC setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
     [currentVC dismissViewControllerAnimated:YES completion:nil];
 }
 
