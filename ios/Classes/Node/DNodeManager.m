@@ -196,21 +196,13 @@
 
 - (NSArray *)inStackWithNode:(DNode *)node
 {
-    if (node.pageType == DNodePageTypeFlutter) {
-        BOOL isFlutterHomePage = YES;
-        for (NSInteger i = self.nodeList.count - 1; i >= 0; i --) {
-            DNode *obj = self.nodeList[i];
-            if (obj.pageType == DNodePageTypeFlutter) {
-                isFlutterHomePage = NO;
-                break;
-            } else {
-                isFlutterHomePage = NO;
-            }
-        }
-        node.isFlutterHomePage = isFlutterHomePage;
-    }
     NSArray *subArray = @[node];
     [self.nodeList addObject:node];
+    for (DNode *node in self.nodeList) {
+        if (node.pageType == DNodePageTypeFlutter) {
+            node.isFlutterHomePage = YES; break;
+        }
+    }
     self.pageCount = self.nodeList.count;
     [self dStackDelegateSafeWithSEL:@selector(dStack:inStack:) exe:^(DStack *stack) {
         DStackNode *stackNode = [DActionManager stackNodeFromNode:node];

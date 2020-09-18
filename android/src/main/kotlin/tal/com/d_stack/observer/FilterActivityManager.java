@@ -28,6 +28,7 @@ public class FilterActivityManager {
 
     private FilterActivityManager() {
         filterActivities.add("rom.huawei");
+        filterActivities.add("rom.oppo");
     }
 
     private List<String> filterActivities = new ArrayList<>();

@@ -30,30 +30,28 @@ class Page1 extends StatefulWidget {
 class _Page1 extends State<Page1> {
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      child: Scaffold(
-        appBar: AppBar(
-            title: Text('flutter page1'),
-            leading: RaisedButton(
-              child: Text('返回'),
-              onPressed: () {
-                DStack.pop();
-              },
-            )),
-        backgroundColor: Colors.white,
-        body: Center(
-          child: RaisedButton(
-            child: Text('打开 flutter page 2'),
+    return Scaffold(
+      appBar: AppBar(
+          title: Text('flutter page1'),
+          leading: RaisedButton(
+            child: Text('返回'),
             onPressed: () {
-              Student student = Student();
-              student.name = '😁🍎111';
-              student.age = 12;
-              DStack.push('page2', PageType.flutter, params: {'key1': 12})
-                  .then((data) {
-                return print('pop to Page1 result ${data}');
-              });
+              DStack.pop();
             },
-          ),
+          )),
+      backgroundColor: Colors.white,
+      body: Center(
+        child: RaisedButton(
+          child: Text('push flutter page 2'),
+          onPressed: () {
+            Student student = Student();
+            student.name = '😁🍎111';
+            student.age = 12;
+            DStack.push('page2', PageType.flutter, params: {'key1': 12})
+                .then((data) {
+              return print('pop to Page1 result $data');
+            });
+          },
         ),
       ),
     );
@@ -69,28 +67,26 @@ class Page2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map args = ModalRoute.of(context).settings.arguments;
-    print(' ==page2收到前一个页面传来的参数=====  ${args}');
+    print(' ==page2收到前一个页面传来的参数=====  $args');
 
-    return WillPopScope(
-      child: Scaffold(
-        appBar: AppBar(
-            title: Text('flutter page2'),
-            leading: RaisedButton(
-              child: Text('返回'),
-              onPressed: () {
-                Student student = Student();
-                student.name = '😁🍎33333';
-                student.age = 12;
-                DStack.pop(result: {'params': 'value222'});
-              },
-            )),
-        body: Center(
-          child: RaisedButton(
-            child: Text('打开 flutter page 3'),
+    return Scaffold(
+      appBar: AppBar(
+          title: Text('flutter page2'),
+          leading: RaisedButton(
+            child: Text('返回'),
             onPressed: () {
-              DStack.push('page3', PageType.flutter);
+              Student student = Student();
+              student.name = '😁🍎33333';
+              student.age = 12;
+              DStack.pop(result: {'params': 'value222'});
             },
-          ),
+          )),
+      body: Center(
+        child: RaisedButton(
+          child: Text('present flutter page 3'),
+          onPressed: () {
+            DStack.present('page3', PageType.flutter);
+          },
         ),
       ),
     );
@@ -114,17 +110,16 @@ class Page3 extends StatelessWidget {
       return Container();
     }
 
-    return WillPopScope(
-      child: Scaffold(
-        appBar: AppBar(
-            title: Text('flutter page3'),
-            leading: RaisedButton(
-              child: Text('返回'),
-              onPressed: () {
-                DStack.pop();
-              },
-            )),
-        body: Center(
+    return Scaffold(
+      appBar: AppBar(
+          title: Text('flutter page3'),
+          leading: RaisedButton(
+            child: Text('返回'),
+            onPressed: () {
+              DStack.pop();
+            },
+          )),
+      body: Center(
           child: Column(
             children: <Widget>[
               RaisedButton(
@@ -137,7 +132,6 @@ class Page3 extends StatelessWidget {
               present(),
             ],
           )
-        ),
       ),
     );
   }
@@ -146,8 +140,7 @@ class Page3 extends StatelessWidget {
 class Page4 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-        child: Scaffold(
+    return Scaffold(
       appBar: AppBar(
         title: Text('flutter page4'),
         leading: RaisedButton(
@@ -175,7 +168,7 @@ class Page4 extends StatelessWidget {
           ],
         ),
       ),
-    ));
+    );
   }
 }
 

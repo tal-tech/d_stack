@@ -21,45 +21,93 @@ import 'package:flutter/material.dart';
 class DNavigatorManager {
   /// 1.发送节点信息到Native
   /// routeName 路由名，pageType native或者flutter, params 参数
-  static Future push(String routeName, PageType pageType,
-      [Map params, String storyboard, String identifier]) {
-    if (pageType == PageType.flutter) {
-      DNavigatorManager.nodeHandle(
-          routeName, pageType, 'push', {}, storyboard, identifier);
 
-      MaterialPageRoute route =
-      DNavigatorManager.materialRoute(routeName: routeName, params: params);
-      return DStack.instance.navigator.push(route);
+  // 获取navigator
+  static NavigatorState get _navigator => DStack.instance.navigatorKey.currentState;
+
+  static Future push(String routeName, PageType pageType,
+      [Map params, bool maintainState]) {
+    if (pageType == PageType.flutter) {
+      DNavigatorManager.nodeHandle(routeName, pageType, 'push', {});
+
+      MaterialPageRoute route = DNavigatorManager.materialRoute(
+          routeName: routeName, params: params, maintainState: maintainState);
+      return _navigator.push(route);
     } else {
-      DNavigatorManager.nodeHandle(
-          routeName, pageType, 'push', params, storyboard, identifier);
+      DNavigatorManager.nodeHandle(routeName, pageType, 'push');
     }
+  }
+
+  static Future present(String routeName, PageType pageType,
+      [Map params, bool maintainState]) {
+    if (pageType == PageType.flutter) {
+      DNavigatorManager.nodeHandle(routeName, pageType, 'present', {});
+      MaterialPageRoute route = DNavigatorManager.materialRoute(
+          routeName: routeName,
+          params: params,
+          maintainState: maintainState,
+          fullscreenDialog: true);
+      return _navigator.push(route);
+    } else {
+      DNavigatorManager.nodeHandle(routeName, pageType, 'present', params);
+    }
+  }
+
+  static Future animationPage(
+    String routeName,
+    PageType pageType,
+    AnimatedPageBuilder animatedBuilder, [
+    Map params,
+    Duration transitionDuration,
+    bool opaque = true,
+    bool barrierDismissible = false,
+    Color barrierColor,
+    String barrierLabel,
+    bool maintainState = true,
+    bool fullscreenDialog = false,
+  ]) {
+    if (pageType == PageType.native) return Future.error('not flutter page');
+
+    DNavigatorManager.nodeHandle(routeName, pageType, 'push', {});
+    PageRouteBuilder route = DNavigatorManager.animationRoute(
+      animatedBuilder: animatedBuilder,
+      routeName: routeName,
+      params: params,
+      transitionDuration: transitionDuration,
+      opaque: opaque,
+      barrierDismissible: barrierDismissible,
+      barrierColor: barrierColor,
+      barrierLabel: barrierLabel,
+      maintainState: maintainState,
+      fullscreenDialog: fullscreenDialog,
+    );
+    return _navigator.push(route);
   }
 
   /// 提供外界直接传builder的能力
   static Future pushBuild(String routeName, WidgetBuilder builder,
-      [Map params]) {
-    DNavigatorManager.nodeHandle(routeName, PageType.flutter, 'push', params);
+      [Map params, bool maintainState, bool fullscreenDialog]) {
+    DNavigatorManager.nodeHandle(routeName, PageType.flutter, 'push', {});
 
     RouteSettings userSettings =
-    RouteSettings(name: routeName, arguments: params);
+        RouteSettings(name: routeName, arguments: params);
     MaterialPageRoute route = MaterialPageRoute(
-      settings: userSettings,
-      builder: builder,
-    );
-    return DStack.instance.navigator.push(route);
+        settings: userSettings,
+        builder: builder,
+        maintainState: maintainState,
+        fullscreenDialog: fullscreenDialog);
+    return _navigator.push(route);
   }
 
   /// 目前只支持flutter使用，替换flutter页面
   static Future replace(String routeName, PageType pageType,
-      [Map params, String storyboard, String identifier]) {
-    DNavigatorManager.nodeHandle(
-        routeName, pageType, 'replace', params, storyboard, identifier);
+      [Map params, bool maintainState]) {
+    DNavigatorManager.nodeHandle(routeName, pageType, 'replace', params);
 
     if (pageType == PageType.flutter) {
-      MaterialPageRoute route =
-      DNavigatorManager.materialRoute(routeName: routeName, params: params);
-      return DStack.instance.navigator.pushReplacement(route);
+      MaterialPageRoute route = DNavigatorManager.materialRoute(
+          routeName: routeName, params: params, maintainState: maintainState);
+      return _navigator.pushReplacement(route);
     }
   }
 
@@ -85,27 +133,21 @@ class DNavigatorManager {
     DNavigatorManager.nodeHandle(skipName, null, 'popSkip', result);
   }
 
-  static void present(String routeName, PageType pageType,
-      [Map params, String storyboard, String identifier]) {
-    DNavigatorManager.nodeHandle(
-        routeName, pageType, 'present', params, storyboard, identifier);
-  }
-
   static void dismiss([Map result]) {
     DNavigatorManager.nodeHandle(null, null, 'dismiss', result);
   }
 
-  static void nodeHandle(String target, PageType pageType, String actionType,
-      [Map result, String storyboard, String identifier]) {
+  static void nodeHandle(
+    String target,
+    PageType pageType,
+    String actionType, [
+    Map result,
+  ]) {
     Map arguments = {
       'target': target,
-      'pageType': '$pageType'
-          .split('.')
-          .last,
+      'pageType': '$pageType'.split('.').last,
       'params': (result != null) ? result : {},
       'actionType': actionType,
-      'storyboard': storyboard,
-      'identifier': identifier
     };
     DStack.instance.channel.sendNodeToNative(arguments);
   }
@@ -126,15 +168,15 @@ class DNavigatorManager {
     if (DStackNavigatorObserver.instance.routerCount < minCount) {
       return Future.value('已经是首页，不再出栈');
     }
-    DStack.instance.navigator.pop(params);
+    _navigator.pop(params);
     return Future.value(true);
   }
 
   /// iOS 特有：重置homePage
   static Future resetHomePage() {
-    if (DStackWidgetStream.instance.hasSetFlutterHomePage == false && Platform.isIOS) {
-      StackWidgetStreamItem item =
-      StackWidgetStreamItem(route: "homePage");
+    if (DStackWidgetStream.instance.hasSetFlutterHomePage == false &&
+        Platform.isIOS) {
+      StackWidgetStreamItem item = StackWidgetStreamItem(route: "homePage");
       DStackWidgetStream.instance.pageStreamController.sink.add(item);
     }
     return Future.value(true);
@@ -145,38 +187,37 @@ class DNavigatorManager {
   static Future handleActionToFlutter(Map arguments) {
     // 处理实际跳转
     print(
-        "收到【sendActionToFlutter】消息，参数：$arguments, navigator == ${DStack.instance
-            .navigator}");
+        "收到【sendActionToFlutter】消息，参数：$arguments, navigator == $_navigator");
     final String action = arguments['action'];
     final List nodes = arguments['nodes'];
     final Map params = arguments['params'];
     bool homePage = arguments["homePage"];
     switch (action) {
       case 'push':
+        continue Present;
+      Present:
+      case 'present':
         {
-          if (homePage != null && homePage == true &&
+          if (homePage != null &&
+              homePage == true &&
               DStackWidgetStream.instance.hasSetFlutterHomePage == false) {
             StackWidgetStreamItem item =
-            StackWidgetStreamItem(route: nodes.first, params: params);
+                StackWidgetStreamItem(route: nodes.first, params: params);
             DStackWidgetStream.instance.pageStreamController.sink.add(item);
           } else {
             bool animated = arguments['animated'];
             if (animated != null && animated == true) {
               MaterialPageRoute route = DNavigatorManager.materialRoute(
-                  routeName: nodes.first, params: params);
-              return DStack.instance.navigator.push(route);
+                  routeName: nodes.first,
+                  params: params,
+                  fullscreenDialog: action == 'present');
+              return _navigator.push(route);
             } else {
               PageRouteBuilder route = DNavigatorManager.slideRoute(
                   routeName: nodes.first, params: params, milliseconds: 0);
-              return DStack.instance.navigator.push(route);
+              return _navigator.push(route);
             }
           }
-        }
-        break;
-      case 'present':
-        {
-          return DStack.instance.navigator
-              .pushNamed(nodes.first, arguments: params);
         }
         break;
       case 'pop':
@@ -215,48 +256,79 @@ class DNavigatorManager {
     return null;
   }
 
-  // 创建PageRoute
+  // 创建slide动画
   static PageRouteBuilder slideRoute(
       {String routeName, Map params, int milliseconds}) {
-    RouteSettings userSettings =
-    RouteSettings(name: routeName, arguments: params);
+    return animationRoute(
+        routeName: routeName,
+        animatedBuilder: (BuildContext context, Animation<double> animation,
+            Animation<double> secondaryAnimation, WidgetBuilder widgetBuilder) {
+          Offset startOffset = const Offset(1.0, 0.0);
+          Offset endOffset = const Offset(0.0, 0.0);
+          return SlideTransition(
+            position: new Tween<Offset>(
+              begin: startOffset,
+              end: endOffset,
+            ).animate(animation),
+            child: widgetBuilder(context),
+          );
+        },
+        transitionDuration: Duration(milliseconds: milliseconds));
+  }
+
+  // 用户自定义flutter页面转场动画
+  static PageRouteBuilder animationRoute({
+    @required AnimatedPageBuilder animatedBuilder,
+    @required String routeName,
+    Map params,
+    Duration transitionDuration = const Duration(milliseconds: 300),
+    bool opaque = true,
+    bool barrierDismissible = false,
+    Color barrierColor,
+    String barrierLabel,
+    bool maintainState = true,
+    bool fullscreenDialog = false,
+  }) {
+    RouteSettings settings = RouteSettings(name: routeName, arguments: params);
     PageRouteBuilder pageRoute = PageRouteBuilder<dynamic>(
-      settings: userSettings,
+      settings: settings,
+      transitionDuration: transitionDuration,
+      opaque: opaque,
+      barrierColor: barrierColor,
+      barrierDismissible: barrierDismissible,
+      barrierLabel: barrierLabel,
+      fullscreenDialog: fullscreenDialog,
+      maintainState: maintainState,
       pageBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> secondaryAnimation) {
-        Offset startOffset = const Offset(1.0, 0.0);
-        Offset endOffset = const Offset(0.0, 0.0);
-
         DStackWidgetBuilder stackWidgetBuilder =
-        DStack.instance.pageBuilder(routeName);
-        WidgetBuilder widgetBuilder = stackWidgetBuilder(params);
+            DStack.instance.pageBuilder(routeName);
 
-        return SlideTransition(
-          position: new Tween<Offset>(
-            begin: startOffset,
-            end: endOffset,
-          ).animate(animation),
-          child: widgetBuilder(context),
-        );
+        return animatedBuilder(
+            context, animation, secondaryAnimation, stackWidgetBuilder(params));
       },
-      transitionDuration: Duration(milliseconds: milliseconds),
     );
     return pageRoute;
   }
 
   // 创建materialRoute
-  static MaterialPageRoute materialRoute({String routeName, Map params}) {
+  static MaterialPageRoute materialRoute(
+      {String routeName,
+      Map params,
+      bool maintainState = true,
+      bool fullscreenDialog = false}) {
     RouteSettings userSettings =
-    RouteSettings(name: routeName, arguments: params);
+        RouteSettings(name: routeName, arguments: params);
 
     DStackWidgetBuilder stackWidgetBuilder =
-    DStack.instance.pageBuilder(routeName);
+        DStack.instance.pageBuilder(routeName);
     WidgetBuilder widgetBuilder = stackWidgetBuilder(params);
 
     MaterialPageRoute materialRoute = MaterialPageRoute(
-      settings: userSettings,
-      builder: widgetBuilder,
-    );
+        settings: userSettings,
+        builder: widgetBuilder,
+        maintainState: maintainState,
+        fullscreenDialog: fullscreenDialog);
     return materialRoute;
   }
 }

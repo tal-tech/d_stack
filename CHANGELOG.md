@@ -1,3 +1,5 @@
+## 1.2.3
+* 修复android oppo推送bug，iOS13 dismiss兼容，开放present及自定义动画
 ## 1.2.2
 * 优化iOS节点去重
 ## 1.2.1

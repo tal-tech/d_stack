@@ -25,7 +25,6 @@
 
 - (instancetype)initWithCoder:(NSCoder *)coder
 {
-    self = [super initWithCoder:coder];
     if(self = [super initWithEngine:[DStack sharedInstance].engine
                             nibName:nil
                              bundle:nil]) {

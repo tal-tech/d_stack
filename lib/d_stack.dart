@@ -17,6 +17,11 @@ import 'package:flutter/services.dart';
 enum PageType { native, flutter }
 
 typedef DStackWidgetBuilder = WidgetBuilder Function(Map params);
+typedef AnimatedPageBuilder = AnimatedWidget Function(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    WidgetBuilder widgetBuilder);
 
 class DStack {
   static DChannel _stackChannel;
@@ -32,9 +37,6 @@ class DStack {
 
   // 全局无context
   GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-  // 获取navigator
-  NavigatorState get navigator => navigatorKey.currentState;
 
   // 用来监听手势
   final DStackNavigatorObserver dStackNavigatorObserver =
@@ -71,22 +73,55 @@ class DStack {
 
   /// routeName 路由名，pageType native或者flutter, params 参数
   static Future push(String routeName, PageType pageType,
-      {Map params, String storyboard, String identifier}) {
-    return DNavigatorManager.push(
-        routeName, pageType, params, storyboard, identifier);
+      {Map params, bool maintainState = true}) {
+    return DNavigatorManager.push(routeName, pageType, params, maintainState);
+  }
+
+  static Future present(String routeName, PageType pageType,
+      {Map params, bool maintainState = true}) {
+    return DNavigatorManager.present(routeName, pageType, params, maintainState);
+  }
+
+  /// 支持用户自定义Flutter页面间转场动画
+  static Future animationPage(
+    String routeName,
+    PageType pageType,
+    AnimatedPageBuilder animatedBuilder, {
+    Map params,
+    Duration transitionDuration,
+    bool opaque = true,
+    bool barrierDismissible = false,
+    Color barrierColor,
+    String barrierLabel,
+    bool maintainState = true,
+    bool fullscreenDialog = false,
+  }) {
+    return DNavigatorManager.animationPage(
+        routeName,
+        pageType,
+        animatedBuilder,
+        params,
+        transitionDuration,
+        opaque,
+        barrierDismissible,
+        barrierColor,
+        barrierLabel,
+        maintainState,
+        fullscreenDialog);
   }
 
   /// 提供外界直接传builder的能力
   static Future pushBuild(String routeName, WidgetBuilder builder,
-      {Map params}) {
-    return DNavigatorManager.pushBuild(routeName, builder, params);
+      {Map params, bool maintainState = true, bool fullscreenDialog = false}) {
+    return DNavigatorManager.pushBuild(
+        routeName, builder, params, maintainState, fullscreenDialog);
   }
 
   /// 只支持flutter使用，替换flutter页面
   static Future replace(String routeName, PageType pageType,
-      {Map params, String storyboard, String identifier}) {
+      {Map params, bool maintainState = true, bool fullscreenDialog = false}) {
     return DNavigatorManager.replace(
-        routeName, pageType, params, storyboard, identifier);
+        routeName, pageType, params, maintainState);
   }
 
   /// result 返回值，可为空
@@ -109,12 +144,6 @@ class DStack {
 
   static void popSkip(String skipName, {Map result}) {
     DNavigatorManager.popSkip(skipName, result);
-  }
-
-  static void present(String routeName, PageType pageType,
-      {Map params, String storyboard, String identifier}) {
-    DNavigatorManager.present(
-        routeName, pageType, params, storyboard, identifier);
   }
 
   static void dismiss([Map result]) {

@@ -1,9 +1,9 @@
   name: d_stack
   description: 混合栈
-  version: 1.2.2
+  version: 1.2.3
   author: peter<maxu@tal.com>
   homepage: https://github.com/xes1v1
-  publish_to: http://pub.100tal.com:8282/
+#  publish_to: http://pub.tal.com:8282/
 
   environment:
     sdk: ">=2.7.0 <3.0.0"

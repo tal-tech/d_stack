@@ -60,7 +60,7 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 
 typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *viewController, BOOL animated);
 
-@interface UIViewController (DStackUIViewControllerCategory)
+@interface UIViewController (DStackUIViewControllerCategory) <UIAdaptivePresentationControllerDelegate>
 
 /// 开始pop
 @property (nonatomic, assign) BOOL isBeginPoped;
@@ -75,6 +75,9 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
 @end
 
 @implementation UIViewController (DStackUIViewControllerCategory)
+
+static BOOL exchangePresentationControllerDelegate = NO;
+
 
 + (void)load
 {
@@ -132,14 +135,31 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
             [[DNodeManager sharedInstance] checkNode:node];
         }
     }
-    
-    // 区分iOS13 以后的全屏和非全屏（非全面有手势返回）
     if (@available(iOS 13.0, *)) {
-        if (controller.modalPresentationStyle != UIModalPresentationOverFullScreen) {
-            controller.modalPresentationStyle = UIModalPresentationOverFullScreen;
+        UIPresentationController *presentationController = controller.presentationController;
+        if (presentationController) {
+            id <UIAdaptivePresentationControllerDelegate> delegate = presentationController.delegate;
+            if (!delegate) {
+                presentationController.delegate = controller;
+            } else {
+                static dispatch_once_t onceToken;
+                dispatch_once(&onceToken, ^{
+                    Class cls = [delegate class];
+                    SEL sel = @selector(presentationControllerDidDismiss:);
+                    SEL newSEL = @selector(d_stackPresentationControllerDidDismiss:);
+                    Method newMethod = class_getInstanceMethod([controller class], newSEL);
+                    IMP newImp = method_getImplementation(newMethod);
+                    const char *types = method_getTypeEncoding(newMethod);
+                    if (class_respondsToSelector(cls, sel)) {
+                        exchangePresentationControllerDelegate = YES;
+                        method_exchangeImplementations(class_getInstanceMethod(cls, sel), newMethod);
+                    } else {
+                        class_addMethod(cls, sel, newImp, types);
+                    }
+                });
+            }
         }
     }
-    
     [self d_stackPresentViewController:controller animated:flag completion:completion];
 }
 
@@ -151,6 +171,37 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
     }
     self.dStackFlutterNodeMessage = @(NO);
     [self d_stackDismissViewControllerAnimated:flag completion:completion];
+}
+
+- (void)presentationControllerDidDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
+{
+    UIViewController *presented = presentationController.presentedViewController;
+    UIViewController *target = presented;
+    if ([presented isKindOfClass:UINavigationController.class]) {
+        target = [[(UINavigationController *)presented viewControllers] firstObject];
+        checkNode(target, DNodeActionTypePopTo);
+    }
+    checkNode(target, DNodeActionTypeGesture);
+    if ([target isKindOfClass:NSClassFromString(@"FlutterViewController")]) {
+        [[DNodeManager sharedInstance] resetHomePage];
+    }
+}
+
+- (void)d_stackPresentationControllerDidDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
+{
+    UIViewController *presented = presentationController.presentedViewController;
+    UIViewController *target = presented;
+    if ([presented isKindOfClass:UINavigationController.class]) {
+        target = [[(UINavigationController *)presented viewControllers] firstObject];
+        checkNode(target, DNodeActionTypePopTo);
+    }
+    checkNode(target, DNodeActionTypeGesture);
+    if ([target isKindOfClass:NSClassFromString(@"FlutterViewController")]) {
+        [[DNodeManager sharedInstance] resetHomePage];
+    }
+    if (exchangePresentationControllerDelegate) {
+        [(id)presentationController.presentedViewController d_stackPresentationControllerDidDismiss:presentationController];
+    }
 }
 
 - (void)d_stackViewWillAppear:(BOOL)animated
@@ -378,7 +429,11 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
         }
         [self dStack_setupViewControllerBasedNavigationBarAppearanceIfNeeded:controller];
     }
-    controller.hidesBottomBarWhenPushed = YES;
+    
+    if ([controller isFlutterViewController]) {
+        controller.hidesBottomBarWhenPushed = YES;
+    }
+    
     if (!controller.isFlutterViewController && self.dStackRootViewController != controller) {
         // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
         checkNode(controller, DNodeActionTypePush);
