@@ -88,6 +88,3 @@ d_stack:
 
 issue: https://github.com/tal-tech/d_stack/issues
 
-加群请加微信：
-
-<img src="https://magicmadegithub.github.io/img/wechat.jpg" alt="wechat" style="zoom:50%;" />
