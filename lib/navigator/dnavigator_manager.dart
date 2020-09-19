@@ -34,7 +34,7 @@ class DNavigatorManager {
           routeName: routeName, params: params, maintainState: maintainState);
       return _navigator.push(route);
     } else {
-      DNavigatorManager.nodeHandle(routeName, pageType, 'push');
+      DNavigatorManager.nodeHandle(routeName, pageType, 'push', params);
     }
   }
 
