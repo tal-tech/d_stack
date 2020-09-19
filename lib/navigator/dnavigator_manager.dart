@@ -262,6 +262,7 @@ class DNavigatorManager {
       {String routeName, Map params, int milliseconds}) {
     return animationRoute(
         routeName: routeName,
+        params: params,
         animatedBuilder: (BuildContext context, Animation<double> animation,
             Animation<double> secondaryAnimation, WidgetBuilder widgetBuilder) {
           Offset startOffset = const Offset(1.0, 0.0);
