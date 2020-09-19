@@ -32,9 +32,7 @@ class DStackNavigatorObserver extends NavigatorObserver {
 
   // 标识手势引起的pop事件
   String _gesturingRouteName;
-
   String get gesturingRouteName => this._gesturingRouteName;
-
   void setGesturingRouteName(String gesturingRouteName) {
     this._gesturingRouteName = gesturingRouteName;
   }
@@ -57,12 +55,16 @@ class DStackNavigatorObserver extends NavigatorObserver {
     super.didPop(route, previousRoute);
     routerCount -= 1;
     print('didPop 🍎🍎🍎🍎🍎🍎🍎  ${route.settings.name}');
-    if (gesturingRouteName == route.settings.name &&
-        gesturingRouteName != null) {
+    if (gesturingRouteName != null && gesturingRouteName == route.settings.name) {
       // 由手势导致的pop事件
       print('didPop gesturingRouteName ${route.settings.name}');
       DNavigatorManager.popWithGesture();
+    } else if (gesturingRouteName != null && gesturingRouteName == 'NATIVEGESTURE') {
+      // native手势引起的didpop，native侧已经删除节点，flutter侧不再removeFlutterNode
+      print('didPop gesturingRouteName $gesturingRouteName');
+      DStackNavigatorObserver.instance.setGesturingRouteName(null);
     } else {
+      print('除了手势导致的didPop native处理删除节点 ${route.settings.name}');
       if (route.settings.name != null) {
         DNavigatorManager.removeFlutterNode(route.settings.name);
       }

@@ -249,6 +249,7 @@ class DNavigatorManager {
       case 'gesture':
         {
           // native发消息过来时，需要处理返回至上一页
+          DStackNavigatorObserver.instance.setGesturingRouteName('NATIVEGESTURE');
           return DNavigatorManager.gardPop(params);
         }
         break;
