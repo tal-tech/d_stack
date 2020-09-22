@@ -12,6 +12,14 @@ DStack是为了解决在使用Flutter进行混合开发时，不同类型的页�
 
 开源并不是我们的终点，我们希望能有更多小伙伴和我们共建DStack，我们一起为Flutter社区做更多的贡献。
 
+
+
+## DStack详细文档
+
+[中文文档](https://www.yuque.com/tal-tech/ag1kaf)
+
+
+
 ## 设计方向
 
 DStack是基于**节点**进行管理的，**使用简单，易于集成，性能优秀**的混合开发框架。
@@ -33,10 +41,6 @@ DStack是基于**节点**进行管理的，**使用简单，易于集成，性�
 - iOS侧滑返回和android返回键返回
 
 - 提供一致的页面路由方案
-
-
-
-## [接入与详细的使用文档](https://www.yuque.com/tal-tech/ag1kaf)
 
 
 
