@@ -2,7 +2,7 @@
   description: 混合栈
   version: 1.2.5
   author: peter<maxu@tal.com>
-  homepage: https://github.com/xes1v1
+  homepage: https://github.com/tal-tech/d_stack
 
   environment:
     sdk: ">=2.7.0 <3.0.0"
