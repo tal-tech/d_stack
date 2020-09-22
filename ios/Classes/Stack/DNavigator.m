@@ -91,11 +91,9 @@ static BOOL exchangePresentationControllerDelegate = NO;
         SEL newDismiss = @selector(d_stackDismissViewControllerAnimated:completion:);
         dStackSelectorSwizzling([self class], dismiss, newDismiss);
         
-        if (hasFDClass()) {
-            SEL willAppear = @selector(viewWillAppear:);
-            SEL newWillAppear = @selector(d_stackViewWillAppear:);
-            dStackSelectorSwizzling([self class], willAppear, newWillAppear);
-        }
+        SEL willAppear = @selector(viewWillAppear:);
+        SEL newWillAppear = @selector(d_stackViewWillAppear:);
+        dStackSelectorSwizzling([self class], willAppear, newWillAppear);
         
         SEL didDisappear = @selector(viewDidDisappear:);
         SEL newDidDisappear = @selector(d_stackViewDidDisappear:);
@@ -207,8 +205,12 @@ static BOOL exchangePresentationControllerDelegate = NO;
 - (void)d_stackViewWillAppear:(BOOL)animated
 {
     [self d_stackViewWillAppear:animated];
-    if (self.dStack_willAppearInjectBlock) {
-        self.dStack_willAppearInjectBlock(self, animated);
+    self.isBeginPoped = NO;
+    self.isGesturePoped = NO;
+    if (hasFDClass()) {
+        if (self.dStack_willAppearInjectBlock) {
+            self.dStack_willAppearInjectBlock(self, animated);
+        }
     }
 }
  
