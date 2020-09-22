@@ -1,3 +1,7 @@
+## 1.2.5
+* 修复iOS手势页面滑动取消问题
+## 1.2.4
+* 修复iOS flutter打开native传参
 ## 1.2.3
 * 修复android oppo推送bug，iOS13 dismiss兼容，开放present及自定义动画
 ## 1.2.2
