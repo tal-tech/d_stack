@@ -147,36 +147,44 @@ static BOOL exchangePresentationControllerDelegate = NO;
     });
 }
 
+- (BOOL)isCustomClass
+{
+    NSBundle *bundle = [NSBundle bundleForClass:self.class];
+    return bundle == [NSBundle mainBundle];
+}
+
 - (void)d_stackPresentViewController:(UIViewController *)controller animated:(BOOL)flag completion:(void (^)(void))completion
 {
     // 入栈管理，present时记录一下VC
-    if (!controller.isFlutterViewController) {
-        __block UIViewController *targetController = controller;
-        // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
-        BOOL (^checkBlock)(UIViewController *target) = ^BOOL(UIViewController *target) {
-            if ([target isKindOfClass:UINavigationController.class]) {
-                UINavigationController *navi = (UINavigationController *)target;
-                targetController = navi.topViewController;
-                if (navi.dStackRootViewController.isFlutterViewController) {
-                    return NO;
+    if ([controller isCustomClass]) {
+        if (!controller.isFlutterViewController) {
+            __block UIViewController *targetController = controller;
+            // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
+            BOOL (^checkBlock)(UIViewController *target) = ^BOOL(UIViewController *target) {
+                if ([target isKindOfClass:UINavigationController.class]) {
+                    UINavigationController *navi = (UINavigationController *)target;
+                    targetController = navi.topViewController;
+                    if (navi.dStackRootViewController.isFlutterViewController) {
+                        return NO;
+                    }
                 }
+                return YES;
+            };
+            
+            BOOL canCheckNode = YES;
+            if ([controller isKindOfClass:UINavigationController.class]) {
+                canCheckNode = checkBlock(controller);
+            } else if ([controller isKindOfClass:UITabBarController.class]) {
+                canCheckNode = checkBlock([(UITabBarController *)controller selectedViewController]);
             }
-            return YES;
-        };
-        
-        BOOL canCheckNode = YES;
-        if ([controller isKindOfClass:UINavigationController.class]) {
-            canCheckNode = checkBlock(controller);
-        } else if ([controller isKindOfClass:UITabBarController.class]) {
-            canCheckNode = checkBlock([(UITabBarController *)controller selectedViewController]);
-        }
-        if (canCheckNode && ![targetController isKindOfClass:UIAlertController.class]) {
-            NSString *scheme = NSStringFromClass(targetController.class);
-            DNode *node = [[DNodeManager sharedInstance] nextPageScheme:scheme
-                                                               pageType:DNodePageTypeNative
-                                                                 action:DNodeActionTypePresent
-                                                                 params:nil];
-            [[DNodeManager sharedInstance] checkNode:node];
+            if (canCheckNode) {
+                NSString *scheme = NSStringFromClass(targetController.class);
+                DNode *node = [[DNodeManager sharedInstance] nextPageScheme:scheme
+                                                                   pageType:DNodePageTypeNative
+                                                                     action:DNodeActionTypePresent
+                                                                     params:nil];
+                [[DNodeManager sharedInstance] checkNode:node];
+            }
         }
     }
     void (^block)(void) = ^(void) {
@@ -205,7 +213,7 @@ static BOOL exchangePresentationControllerDelegate = NO;
                             class_addMethod(cls, sel, newImp, types);
                         }
                         [[DStackNavigator instance].dismissDelegateClass addObject:name];
-                    }
+                    };
                 }
             }
         }
@@ -216,10 +224,12 @@ static BOOL exchangePresentationControllerDelegate = NO;
 - (void)d_stackDismissViewControllerAnimated:(BOOL)flag completion:(void (^)(void))completion
 {
     // 出栈管理
-    if (![self.dStackFlutterNodeMessage boolValue] && ![self isKindOfClass:UIAlertController.class]) {
-        checkNode(self, DNodeActionTypeDismiss);
+    if ([self isCustomClass]) {
+        if (![self.dStackFlutterNodeMessage boolValue]) {
+            checkNode(self, DNodeActionTypeDismiss);
+        }
+        self.dStackFlutterNodeMessage = @(NO);
     }
-    self.dStackFlutterNodeMessage = @(NO);
     [self d_stackDismissViewControllerAnimated:flag completion:completion];
 }
 
@@ -456,27 +466,29 @@ static BOOL exchangePresentationControllerDelegate = NO;
 - (void)d_stackPushViewController:(UIViewController *)controller animated:(BOOL)animated
 {
     // 入栈管理
-    if (!hasFDClass()) {
-        // 没有FDClass，自己加入一份
-        if (![self.interactivePopGestureRecognizer.view.gestureRecognizers containsObject:self.dStack_fullscreenPopGestureRecognizer]) {
-            [self.interactivePopGestureRecognizer.view addGestureRecognizer:self.dStack_fullscreenPopGestureRecognizer];
-            NSArray *internalTargets = [self.interactivePopGestureRecognizer valueForKey:@"targets"];
-            id internalTarget = [internalTargets.firstObject valueForKey:@"target"];
-            SEL internalAction = NSSelectorFromString(@"handleNavigationTransition:");
-            self.dStack_fullscreenPopGestureRecognizer.delegate = self.dStack_popGestureRecognizerDelegate;
-            [self.dStack_fullscreenPopGestureRecognizer addTarget:internalTarget action:internalAction];
-            self.interactivePopGestureRecognizer.enabled = NO;
+    if ([controller isCustomClass]) {
+        if (!hasFDClass()) {
+            // 没有FDClass，自己加入一份
+            if (![self.interactivePopGestureRecognizer.view.gestureRecognizers containsObject:self.dStack_fullscreenPopGestureRecognizer]) {
+                [self.interactivePopGestureRecognizer.view addGestureRecognizer:self.dStack_fullscreenPopGestureRecognizer];
+                NSArray *internalTargets = [self.interactivePopGestureRecognizer valueForKey:@"targets"];
+                id internalTarget = [internalTargets.firstObject valueForKey:@"target"];
+                SEL internalAction = NSSelectorFromString(@"handleNavigationTransition:");
+                self.dStack_fullscreenPopGestureRecognizer.delegate = self.dStack_popGestureRecognizerDelegate;
+                [self.dStack_fullscreenPopGestureRecognizer addTarget:internalTarget action:internalAction];
+                self.interactivePopGestureRecognizer.enabled = NO;
+            }
+            [self dStack_setupViewControllerBasedNavigationBarAppearanceIfNeeded:controller];
         }
-        [self dStack_setupViewControllerBasedNavigationBarAppearanceIfNeeded:controller];
-    }
-    
-    if ([controller isFlutterViewController]) {
-        controller.hidesBottomBarWhenPushed = YES;
-    }
-    
-    if (!controller.isFlutterViewController && self.dStackRootViewController != controller) {
-        // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
-        checkNode(controller, DNodeActionTypePush);
+        
+        if ([controller isFlutterViewController]) {
+            controller.hidesBottomBarWhenPushed = YES;
+        }
+        
+        if (!controller.isFlutterViewController && self.dStackRootViewController != controller) {
+            // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
+            checkNode(controller, DNodeActionTypePush);
+        }
     }
     [self d_stackPushViewController:controller animated:animated];
 }
@@ -487,29 +499,33 @@ static BOOL exchangePresentationControllerDelegate = NO;
     // 手势返回也会触发这个函数注意手势返回的情况，手势一开始滑动就会触发，这时有可能手势滑动了一部分就停掉了
     // 这时该页面并没有被pop出去，要注意这种情况，这情况在d_stackViewDidDisappear处理
     UIViewController *controller = self.topViewController;
-    if (![self.dStackFlutterNodeMessage boolValue]) {
-        // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
-        if (!controller.isGesturePoped) {
-            // 手势返回的需要特殊处理，手势返回的在 viewDidDisappear 里面处理了
-            DNode *node = [[DNode alloc] init];
-            node.action = DNodeActionTypePop;
-            node.target = NSStringFromClass(controller.class);
-            [[DNodeManager sharedInstance] checkNode:node];
+    if ([controller isCustomClass]) {
+        if (![self.dStackFlutterNodeMessage boolValue]) {
+            // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
+            if (!controller.isGesturePoped) {
+                // 手势返回的需要特殊处理，手势返回的在 viewDidDisappear 里面处理了
+                DNode *node = [[DNode alloc] init];
+                node.action = DNodeActionTypePop;
+                node.target = NSStringFromClass(controller.class);
+                [[DNodeManager sharedInstance] checkNode:node];
+            }
         }
+        controller.isBeginPoped = YES;
+        self.dStackFlutterNodeMessage = @(NO);
     }
-    controller.isBeginPoped = YES;
-    self.dStackFlutterNodeMessage = @(NO);
     return [self d_stackPopViewControllerAnimated:animated];
 }
 
 - (NSArray<UIViewController *> *)d_stackPopToViewController:(UIViewController *)viewController animated:(BOOL)animated
 {
     // 出栈管理，要注意移除掉当前controller到viewController之间的controller
-    if (![self.dStackFlutterNodeMessage boolValue]) {
-        // 如果是FlutterViewController，会在消息通道里面checkNode
-        checkNode(viewController, DNodeActionTypePopTo);
+    if ([viewController isCustomClass]) {
+        if (![self.dStackFlutterNodeMessage boolValue]) {
+            // 如果是FlutterViewController，会在消息通道里面checkNode
+            checkNode(viewController, DNodeActionTypePopTo);
+        }
+        self.dStackFlutterNodeMessage = @(NO);
     }
-    self.dStackFlutterNodeMessage = @(NO);
     return [self d_stackPopToViewController:viewController animated:animated];
 }
 
