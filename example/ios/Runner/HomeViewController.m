@@ -93,7 +93,9 @@
         case 0:
         {
             SecondViewController *secondVC = [[SecondViewController alloc] init];
-            [self.navigationController pushViewController:secondVC animated:YES];
+//            [self.navigationController pushViewController:secondVC animated:YES];
+            
+            [self presentViewController:secondVC animated:YES completion:nil];
             break;
         }
         default:

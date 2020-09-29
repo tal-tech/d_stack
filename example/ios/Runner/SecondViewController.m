@@ -7,8 +7,9 @@
 //
 
 #import "SecondViewController.h"
+#import "ThirdViewController.h"
 
-@interface SecondViewController ()
+@interface SecondViewController () <UIAdaptivePresentationControllerDelegate>
 
 @end
 
@@ -30,13 +31,21 @@
     [button setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
     [button addTarget:self action:@selector(back:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:button];
+    
+    self.presentationController.delegate = self;
 }
 
 - (void)back:(UIButton *)button
 {
-    [self.navigationController popViewControllerAnimated:YES];
+//    [self.navigationController popViewControllerAnimated:YES];
+    ThirdViewController *third = [[ThirdViewController alloc] init];
+    [self presentViewController:third animated:YES completion:nil];
 }
 
+- (void)presentationControllerDidDismiss:(UIPresentationController *)presentationController
+{
+    NSLog(@"self == %@", self);
+}
 
 
 @end

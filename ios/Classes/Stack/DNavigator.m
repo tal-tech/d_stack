@@ -44,10 +44,33 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
     [[DNodeManager sharedInstance] checkNode:node];
 }
 
+
+
+@interface NSObject (DStackDismissGestureCategory)
+
+@property (nonatomic, copy) NSString *oldDismissDelegateName;
+
+@end
+
+@implementation NSObject (DStackDismissGestureCategory)
+
+- (void)setOldDismissDelegateName:(NSString *)oldDismissDelegateName
+{
+    objc_setAssociatedObject(self, @selector(oldDismissDelegateName), oldDismissDelegateName, OBJC_ASSOCIATION_COPY_NONATOMIC);
+}
+
+- (NSString *)oldDismissDelegateName
+{
+    return objc_getAssociatedObject(self, @selector(oldDismissDelegateName));
+}
+
+@end
+
+
 @interface DStackNavigator : NSObject <UIAdaptivePresentationControllerDelegate>
 
 /// dismiss手势代理类列表
-@property (nonatomic, strong) NSMutableArray <NSString *>*dismissDelegateClass;
+@property (nonatomic, strong) NSMutableDictionary <NSString *, id>*dismissDelegateClass;
 
 + (instancetype)instance;
 
@@ -65,6 +88,25 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
     return navigator;
 }
 
+- (BOOL)presentationControllerShouldDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
+{
+    NSString *name = presentationController.oldDismissDelegateName;
+    id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationControllerShouldDismiss:)]) {
+        return [oldDelegate presentationControllerShouldDismiss:presentationController];
+    }
+    return YES;
+}
+
+- (void)presentationControllerWillDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
+{
+    NSString *name = presentationController.oldDismissDelegateName;
+    id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationControllerWillDismiss:)]) {
+        [oldDelegate presentationControllerWillDismiss:presentationController];
+    }
+}
+
 - (void)presentationControllerDidDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
 {
     UIViewController *presented = presentationController.presentedViewController;
@@ -77,18 +119,53 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
     if ([target isKindOfClass:NSClassFromString(@"FlutterViewController")]) {
         [[DNodeManager sharedInstance] resetHomePage];
     }
+    NSString *name = presentationController.oldDismissDelegateName;
+    id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationControllerDidDismiss:)]) {
+        [oldDelegate presentationControllerDidDismiss:presentationController];
+        [self.dismissDelegateClass removeObjectForKey:name];
+    }
 }
 
-- (NSMutableArray<NSString *> *)dismissDelegateClass
+- (void)presentationControllerDidAttemptToDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
+{
+    NSString *name = presentationController.oldDismissDelegateName;
+    id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationControllerDidAttemptToDismiss:)]) {
+        [oldDelegate presentationControllerDidAttemptToDismiss:presentationController];
+    }
+}
+
+
+
+
+//- (void)d_stackPresentationControllerDidDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
+//{
+//    UIViewController *presented = presentationController.presentedViewController;
+//    UIViewController *target = presented;
+//    if ([presented isKindOfClass:UINavigationController.class]) {
+//        target = [[(UINavigationController *)presented viewControllers] firstObject];
+//        checkNode(target, DNodeActionTypePopTo);
+//    }
+//    checkNode(target, DNodeActionTypeGesture);
+//    if ([target isKindOfClass:NSClassFromString(@"FlutterViewController")]) {
+//        [[DNodeManager sharedInstance] resetHomePage];
+//    }
+//    if (exchangePresentationControllerDelegate) {
+//        [(id)presentationController.presentedViewController d_stackPresentationControllerDidDismiss:presentationController];
+//    }
+//}
+
+
+- (NSMutableDictionary<NSString *,id> *)dismissDelegateClass
 {
     if (!_dismissDelegateClass) {
-        _dismissDelegateClass = [[NSMutableArray alloc] init];
+        _dismissDelegateClass = [[NSMutableDictionary alloc] init];
     }
     return _dismissDelegateClass;
 }
 
 @end
-
 
 
 #pragma mark ########### DStackNavigationControllerCategory ###########
@@ -121,9 +198,6 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
 @end
 
 @implementation UIViewController (DStackUIViewControllerCategory)
-
-static BOOL exchangePresentationControllerDelegate = NO;
-
 
 + (void)load
 {
@@ -199,21 +273,25 @@ static BOOL exchangePresentationControllerDelegate = NO;
                     presentationController.delegate = [DStackNavigator instance];
                 } else {
                     NSString *name = NSStringFromClass([delegate class]);
-                    if (![[DStackNavigator instance].dismissDelegateClass containsObject:name]) {
-                        Class cls = [delegate class];
-                        SEL sel = @selector(presentationControllerDidDismiss:);
-                        SEL newSEL = @selector(d_stackPresentationControllerDidDismiss:);
-                        Method newMethod = class_getInstanceMethod([controller class], newSEL);
-                        IMP newImp = method_getImplementation(newMethod);
-                        const char *types = method_getTypeEncoding(newMethod);
-                        if (class_respondsToSelector(cls, sel)) {
-                            exchangePresentationControllerDelegate = YES;
-                            method_exchangeImplementations(class_getInstanceMethod(cls, sel), newMethod);
-                        } else {
-                            class_addMethod(cls, sel, newImp, types);
-                        }
-                        [[DStackNavigator instance].dismissDelegateClass addObject:name];
-                    };
+                    presentationController.oldDismissDelegateName = name;
+                    [[DStackNavigator instance].dismissDelegateClass setValue:delegate forKey:name];
+                    presentationController.delegate = [DStackNavigator instance];
+                    
+//                    if (![[DStackNavigator instance].dismissDelegateClass containsObject:name]) {
+//                        Class cls = [delegate class];
+//                        SEL sel = @selector(presentationControllerDidDismiss:);
+//                        SEL newSEL = @selector(d_stackPresentationControllerDidDismiss:);
+//                        Method newMethod = class_getInstanceMethod([controller class], newSEL);
+//                        IMP newImp = method_getImplementation(newMethod);
+//                        const char *types = method_getTypeEncoding(newMethod);
+//                        if (class_respondsToSelector(cls, sel)) {
+//                            exchangePresentationControllerDelegate = YES;
+//                            method_exchangeImplementations(class_getInstanceMethod(cls, sel), newMethod);
+//                        } else {
+//                            class_addMethod(cls, sel, newImp, types);
+//                        }
+//                        [[DStackNavigator instance].dismissDelegateClass addObject:name];
+//                    };
                 }
             }
         }
@@ -231,23 +309,6 @@ static BOOL exchangePresentationControllerDelegate = NO;
         self.dStackFlutterNodeMessage = @(NO);
     }
     [self d_stackDismissViewControllerAnimated:flag completion:completion];
-}
-
-- (void)d_stackPresentationControllerDidDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
-{
-    UIViewController *presented = presentationController.presentedViewController;
-    UIViewController *target = presented;
-    if ([presented isKindOfClass:UINavigationController.class]) {
-        target = [[(UINavigationController *)presented viewControllers] firstObject];
-        checkNode(target, DNodeActionTypePopTo);
-    }
-    checkNode(target, DNodeActionTypeGesture);
-    if ([target isKindOfClass:NSClassFromString(@"FlutterViewController")]) {
-        [[DNodeManager sharedInstance] resetHomePage];
-    }
-    if (exchangePresentationControllerDelegate) {
-        [(id)presentationController.presentedViewController d_stackPresentationControllerDidDismiss:presentationController];
-    }
 }
 
 - (void)d_stackViewWillAppear:(BOOL)animated

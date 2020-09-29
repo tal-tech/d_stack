@@ -9,7 +9,7 @@
 #import "ThirdViewController.h"
 #import <DStack.h>
 
-@interface ThirdViewController ()
+@interface ThirdViewController ()<UIAdaptivePresentationControllerDelegate>
 
 @end
 
@@ -38,6 +38,7 @@
     [button1 setTitleColor:[UIColor blueColor] forState:UIControlStateNormal];
     [button1 addTarget:self action:@selector(open:) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:button1];
+    self.presentationController.delegate = self;
 }
 
 - (void)back:(UIButton *)button
@@ -49,6 +50,11 @@
 {
     [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DFlutterViewController.class
                                                        route:@"page4"];
+}
+
+- (void)presentationControllerDidDismiss:(UIPresentationController *)presentationController
+{
+    NSLog(@"self == %@", self);
 }
 
 @end
