@@ -5,6 +5,7 @@ import android.app.Activity;
 import java.lang.reflect.Field;
 
 import io.flutter.embedding.android.FlutterActivity;
+import io.flutter.embedding.android.FlutterFragmentActivity;
 import io.flutter.embedding.android.FlutterView;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.embedding.engine.FlutterEngineCache;
@@ -23,21 +24,36 @@ public class DStackUtils {
         if (activity == null) {
             return null;
         }
-        FlutterActivity flutterActivity = null;
         FlutterView flutterView = null;
-        if (activity instanceof FlutterActivity) {
-            flutterActivity = (FlutterActivity) activity;
-        }
-        if (flutterActivity == null) {
-            return null;
-        }
+        Class c = activity.getClass();
         try {
-            Field fieldDelegate = (flutterActivity).getClass().getSuperclass().getDeclaredField("delegate");
-            fieldDelegate.setAccessible(true);
-            Object objectDelegate = fieldDelegate.get(flutterActivity);
-            Field flutterViewDelegate = objectDelegate.getClass().getDeclaredField("flutterView");
-            flutterViewDelegate.setAccessible(true);
-            flutterView = (FlutterView) flutterViewDelegate.get(objectDelegate);
+            // 处理FlutterActivity
+            if (activity instanceof FlutterActivity) {
+                while (c != FlutterActivity.class) {
+                    c = c.getSuperclass();
+                }
+                Field fieldDelegate = c.getDeclaredField("delegate");
+                fieldDelegate.setAccessible(true);
+                Object objectDelegate = fieldDelegate.get(activity);
+                Field flutterViewDelegate = objectDelegate.getClass().getDeclaredField("flutterView");
+                flutterViewDelegate.setAccessible(true);
+                flutterView = (FlutterView) flutterViewDelegate.get(objectDelegate);
+            }
+            // 处理FlutterFragmentActivity
+            else if (activity instanceof FlutterFragmentActivity) {
+                while (c != FlutterFragmentActivity.class) {
+                    c = c.getSuperclass();
+                }
+                Field fieldFragment = c.getDeclaredField("flutterFragment");
+                fieldFragment.setAccessible(true);
+                Object objectFragment = fieldFragment.get(activity);
+                Field fieldDelegate = objectFragment.getClass().getDeclaredField("delegate");
+                fieldDelegate.setAccessible(true);
+                Object objectDelegate = fieldDelegate.get(objectFragment);
+                Field flutterViewDelegate = objectDelegate.getClass().getDeclaredField("flutterView");
+                flutterViewDelegate.setAccessible(true);
+                flutterView = (FlutterView) flutterViewDelegate.get(objectDelegate);
+            }
         } catch (Exception e) {
             DLog.logE(e.getMessage());
         } finally {

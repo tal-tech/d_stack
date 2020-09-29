@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.flutter.embedding.android.FlutterActivity;
+import io.flutter.embedding.android.FlutterFragmentActivity;
 import tal.com.d_stack.node.DNode;
 import tal.com.d_stack.utils.DLog;
 
@@ -143,7 +144,9 @@ public class DStackActivityManager {
             return;
         }
         if (topActivity instanceof FlutterActivity ||
-                topActivity.getParent() instanceof FlutterActivity) {
+                topActivity.getParent() instanceof FlutterActivity ||
+                topActivity instanceof FlutterFragmentActivity ||
+                topActivity.getParent() instanceof FlutterFragmentActivity) {
             topActivity.finish();
         }
     }
@@ -248,7 +251,9 @@ public class DStackActivityManager {
             return true;
         }
         if (bottomActivity instanceof FlutterActivity ||
-                bottomActivity.getParent() instanceof FlutterActivity) {
+                bottomActivity.getParent() instanceof FlutterActivity ||
+                bottomActivity instanceof FlutterFragmentActivity ||
+                bottomActivity.getParent() instanceof FlutterFragmentActivity) {
             return true;
         }
         return false;
@@ -258,16 +263,16 @@ public class DStackActivityManager {
      * 判断是否是FlutterActivity
      */
     public boolean isFlutterActivity(Activity activity) {
-        return activity instanceof FlutterActivity;
+        return activity instanceof FlutterActivity || activity instanceof FlutterFragmentActivity;
     }
 
     /**
      * 关闭过一个flutterActivity，并且栈里还有flutterActivity，需要重新attach引擎
      */
     public void handleReAttachEngine(Activity activity) {
-        if (activity instanceof FlutterActivity) {
+        if (activity instanceof FlutterActivity || activity instanceof FlutterFragmentActivity) {
             for (Activity tempActivity : activities) {
-                if (tempActivity instanceof FlutterActivity) {
+                if (tempActivity instanceof FlutterActivity || tempActivity instanceof FlutterFragmentActivity) {
                     needReAttachEngine = true;
                     break;
                 }
