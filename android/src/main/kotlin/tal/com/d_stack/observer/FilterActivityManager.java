@@ -29,6 +29,8 @@ public class FilterActivityManager {
     private FilterActivityManager() {
         filterActivities.add("rom.huawei");
         filterActivities.add("rom.oppo");
+        filterActivities.add("com.tencent");
+        filterActivities.add("com.sina");
     }
 
     private List<String> filterActivities = new ArrayList<>();
