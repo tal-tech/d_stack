@@ -47,4 +47,25 @@ public class FilterActivityManager {
         }
         return true;
     }
+
+    /**
+     * 添加过滤器
+     * 某些功能性Activity，不需要做节点管理的，添加至过滤
+     *
+     * @param filterString 过滤字符串
+     * @return
+     */
+    public boolean addFilter(String filterString) {
+        return filterActivities.add(filterString);
+    }
+
+    /**
+     * 移除已添加的过滤器
+     *
+     * @param filterString
+     * @return
+     */
+    public boolean removeFilter(String filterString) {
+        return filterActivities.remove(filterString);
+    }
 }
