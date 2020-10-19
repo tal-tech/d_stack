@@ -366,21 +366,11 @@ public class DNodeManager {
         if (node.isPopTo()) {
             return;
         }
-        //如果当前节点和已经关闭的native页面的节点target相同，则把节点数据清除
-        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeNative)) {
-            if (currentNode.getTarget().equals(node.getTarget())) {
-                nodeList.remove(nodeList.size() - 1);
-                PageLifecycleManager.pageDisappear(node);
-            }
-        } else {
-            //native侧有可能快速关闭两个页面，导致顺序有问题，所以需要判断倒是第二个页面的target
-            if (nodeList.size() >= 2) {
-                DNode nodeTwo = nodeList.get(nodeList.size() - 2);
-                if (node.getTarget().equals(nodeTwo.getTarget())) {
-                    nodeList.remove(nodeTwo);
-                    PageLifecycleManager.pageDisappear(node);
-                }
-            }
+        //从节点集合反向遍历第一个匹配的节点信息并移除
+        DNode needRemoveNode = findNodeByRouter(node.getTarget());
+        if (needRemoveNode != null) {
+            nodeList.remove(needRemoveNode);
+            PageLifecycleManager.pageDisappear(node);
         }
         updateNodes();
         DLog.logD("----------handleNeedRemoveNativeNode方法开始----------");
