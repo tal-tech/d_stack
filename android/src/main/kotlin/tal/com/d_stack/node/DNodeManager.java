@@ -372,6 +372,15 @@ public class DNodeManager {
                 nodeList.remove(nodeList.size() - 1);
                 PageLifecycleManager.pageDisappear(node);
             }
+        } else {
+            //native侧有可能快速关闭两个页面，导致顺序有问题，所以需要判断倒是第二个页面的target
+            if (nodeList.size() >= 2) {
+                DNode nodeTwo = nodeList.get(nodeList.size() - 2);
+                if (node.getTarget().equals(nodeTwo.getTarget())) {
+                    nodeList.remove(nodeTwo);
+                    PageLifecycleManager.pageDisappear(node);
+                }
+            }
         }
         updateNodes();
         DLog.logD("----------handleNeedRemoveNativeNode方法开始----------");
