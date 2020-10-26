@@ -228,8 +228,8 @@ static BOOL exchangePresentationControllerDelegate = NO;
         if (![self.dStackFlutterNodeMessage boolValue]) {
             checkNode(self, DNodeActionTypeDismiss);
         }
-        self.dStackFlutterNodeMessage = @(NO);
     }
+    self.dStackFlutterNodeMessage = @(NO);
     [self d_stackDismissViewControllerAnimated:flag completion:completion];
 }
 
@@ -511,8 +511,8 @@ static BOOL exchangePresentationControllerDelegate = NO;
             }
         }
         controller.isBeginPoped = YES;
-        self.dStackFlutterNodeMessage = @(NO);
     }
+    self.dStackFlutterNodeMessage = @(NO);
     return [self d_stackPopViewControllerAnimated:animated];
 }
 
@@ -524,8 +524,8 @@ static BOOL exchangePresentationControllerDelegate = NO;
             // 如果是FlutterViewController，会在消息通道里面checkNode
             checkNode(viewController, DNodeActionTypePopTo);
         }
-        self.dStackFlutterNodeMessage = @(NO);
     }
+    self.dStackFlutterNodeMessage = @(NO);
     return [self d_stackPopToViewController:viewController animated:animated];
 }
 
