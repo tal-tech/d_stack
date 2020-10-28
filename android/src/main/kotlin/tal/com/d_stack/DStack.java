@@ -3,6 +3,7 @@ package tal.com.d_stack;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.text.TextUtils;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -19,6 +20,7 @@ import tal.com.d_stack.node.constants.DNodeActionType;
 import tal.com.d_stack.node.constants.DNodePageType;
 import tal.com.d_stack.observer.DStackActivityManager;
 import tal.com.d_stack.observer.DStackLifecycleObserver;
+import tal.com.d_stack.observer.FilterActivityManager;
 import tal.com.d_stack.router.INativeRouter;
 import tal.com.d_stack.utils.DLog;
 
@@ -207,5 +209,30 @@ public class DStack {
      */
     public boolean isFlutterApp() {
         return DStackActivityManager.getInstance().isFlutterApp();
+    }
+
+    /**
+     * 添加过滤器
+     * 某些功能性Activity，不需要做节点管理的，添加至过滤
+     *
+     * @param filterString 过滤字符串
+     */
+    public void addFilter(String filterString) {
+        if (TextUtils.isEmpty(filterString)) {
+            return;
+        }
+        FilterActivityManager.getInstance().addFilter(filterString);
+    }
+
+    /**
+     * 移除已添加的过滤器
+     *
+     * @param filterString
+     */
+    public void removeFilter(String filterString) {
+        if (TextUtils.isEmpty(filterString)) {
+            return;
+        }
+        FilterActivityManager.getInstance().removeFilter(filterString);
     }
 }
