@@ -88,6 +88,49 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
     return navigator;
 }
 
+- (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller
+{
+    NSString *name = controller.oldDismissDelegateName;
+    id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    if (oldDelegate && [oldDelegate respondsToSelector:@selector(adaptivePresentationStyleForPresentationController:)]) {
+        return [oldDelegate adaptivePresentationStyleForPresentationController:controller];
+    }
+    return controller.presentationStyle;
+}
+
+- (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller traitCollection:(UITraitCollection *)traitCollection API_AVAILABLE(ios(8.3))
+{
+    NSString *name = controller.oldDismissDelegateName;
+    id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    if (oldDelegate && [oldDelegate respondsToSelector:@selector(adaptivePresentationStyleForPresentationController:traitCollection:)]) {
+        return [oldDelegate adaptivePresentationStyleForPresentationController:controller
+                                                               traitCollection:traitCollection];
+    }
+    return controller.presentationStyle;
+}
+
+- (nullable UIViewController *)presentationController:(UIPresentationController *)controller viewControllerForAdaptivePresentationStyle:(UIModalPresentationStyle)style
+{
+    NSString *name = controller.oldDismissDelegateName;
+    id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationController:viewControllerForAdaptivePresentationStyle:)]) {
+        return [oldDelegate presentationController:controller
+        viewControllerForAdaptivePresentationStyle:style];
+    }
+    return nil;
+}
+
+- (void)presentationController:(UIPresentationController *)presentationController willPresentWithAdaptiveStyle:(UIModalPresentationStyle)style transitionCoordinator:(nullable id <UIViewControllerTransitionCoordinator>)transitionCoordinator API_AVAILABLE(ios(8.3))
+{
+    [self checkSelectorToDelegate:@selector(presentationController:willPresentWithAdaptiveStyle:transitionCoordinator:)
+                       controller:presentationController
+                          forward:^(id<UIAdaptivePresentationControllerDelegate> delegate) {
+        [delegate presentationController:presentationController
+            willPresentWithAdaptiveStyle:style
+                   transitionCoordinator:transitionCoordinator];
+    }];
+}
+
 - (BOOL)presentationControllerShouldDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
 {
     NSString *name = presentationController.oldDismissDelegateName;
@@ -100,11 +143,11 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 
 - (void)presentationControllerWillDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
 {
-    NSString *name = presentationController.oldDismissDelegateName;
-    id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
-    if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationControllerWillDismiss:)]) {
-        [oldDelegate presentationControllerWillDismiss:presentationController];
-    }
+    [self checkSelectorToDelegate:@selector(presentationControllerWillDismiss:)
+                       controller:presentationController
+                          forward:^(id<UIAdaptivePresentationControllerDelegate> delegate) {
+        [delegate presentationControllerWillDismiss:presentationController];
+    }];
 }
 
 - (void)presentationControllerDidDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
@@ -119,43 +162,36 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
     if ([target isKindOfClass:NSClassFromString(@"FlutterViewController")]) {
         [[DNodeManager sharedInstance] resetHomePage];
     }
-    NSString *name = presentationController.oldDismissDelegateName;
-    id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
-    if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationControllerDidDismiss:)]) {
-        [oldDelegate presentationControllerDidDismiss:presentationController];
-        [self.dismissDelegateClass removeObjectForKey:name];
-    }
+    
+    [self checkSelectorToDelegate:@selector(presentationControllerDidDismiss:)
+                       controller:presentationController
+                          forward:^(id<UIAdaptivePresentationControllerDelegate> delegate) {
+        [delegate presentationControllerDidDismiss:presentationController];
+        [self.dismissDelegateClass removeObjectForKey:presentationController.oldDismissDelegateName];
+    }];
 }
 
 - (void)presentationControllerDidAttemptToDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
 {
-    NSString *name = presentationController.oldDismissDelegateName;
-    id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
-    if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationControllerDidAttemptToDismiss:)]) {
-        [oldDelegate presentationControllerDidAttemptToDismiss:presentationController];
-    }
+    [self checkSelectorToDelegate:@selector(presentationControllerDidAttemptToDismiss:)
+                       controller:presentationController
+                          forward:^(id<UIAdaptivePresentationControllerDelegate> delegate) {
+        [delegate presentationControllerDidAttemptToDismiss:presentationController];
+    }];
 }
 
-
-
-
-//- (void)d_stackPresentationControllerDidDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
-//{
-//    UIViewController *presented = presentationController.presentedViewController;
-//    UIViewController *target = presented;
-//    if ([presented isKindOfClass:UINavigationController.class]) {
-//        target = [[(UINavigationController *)presented viewControllers] firstObject];
-//        checkNode(target, DNodeActionTypePopTo);
-//    }
-//    checkNode(target, DNodeActionTypeGesture);
-//    if ([target isKindOfClass:NSClassFromString(@"FlutterViewController")]) {
-//        [[DNodeManager sharedInstance] resetHomePage];
-//    }
-//    if (exchangePresentationControllerDelegate) {
-//        [(id)presentationController.presentedViewController d_stackPresentationControllerDidDismiss:presentationController];
-//    }
-//}
-
+- (void)checkSelectorToDelegate:(SEL)selector
+                     controller:(UIPresentationController *)controller
+                        forward:(void(^)(id <UIAdaptivePresentationControllerDelegate> delegate))forward
+{
+    NSString *name = controller.oldDismissDelegateName;
+    id <UIAdaptivePresentationControllerDelegate> delegate = self.dismissDelegateClass[name];
+    if (delegate && [delegate respondsToSelector:selector]) {
+        if (forward) {
+            forward(delegate);
+        }
+    }
+}
 
 - (NSMutableDictionary<NSString *,id> *)dismissDelegateClass
 {
@@ -276,22 +312,6 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
                     presentationController.oldDismissDelegateName = name;
                     [[DStackNavigator instance].dismissDelegateClass setValue:delegate forKey:name];
                     presentationController.delegate = [DStackNavigator instance];
-                    
-//                    if (![[DStackNavigator instance].dismissDelegateClass containsObject:name]) {
-//                        Class cls = [delegate class];
-//                        SEL sel = @selector(presentationControllerDidDismiss:);
-//                        SEL newSEL = @selector(d_stackPresentationControllerDidDismiss:);
-//                        Method newMethod = class_getInstanceMethod([controller class], newSEL);
-//                        IMP newImp = method_getImplementation(newMethod);
-//                        const char *types = method_getTypeEncoding(newMethod);
-//                        if (class_respondsToSelector(cls, sel)) {
-//                            exchangePresentationControllerDelegate = YES;
-//                            method_exchangeImplementations(class_getInstanceMethod(cls, sel), newMethod);
-//                        } else {
-//                            class_addMethod(cls, sel, newImp, types);
-//                        }
-//                        [[DStackNavigator instance].dismissDelegateClass addObject:name];
-//                    };
                 }
             }
         }
