@@ -67,6 +67,8 @@
         if (node.fromFlutter) {
             // 从flutter过来的节点
             if (node.pageType == DNodePageTypeFlutter) {
+                // 根节点被replace时，不进栈
+                if (self.nodeList.count == 0) {return subArray;}
                 // 下一个页面是flutter，直接入栈
                 DStackLog(@"被Replace的节点 === %@", self.nodeList.lastObject);
                 [self.nodeList removeLastObject];
