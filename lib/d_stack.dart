@@ -111,10 +111,10 @@ class DStack {
   }
 
   /// 提供外界直接传builder的能力
-  static Future pushBuild(String routeName, WidgetBuilder builder,
+  static Future pushBuild(String routeName, PageType pageType, WidgetBuilder builder,
       {Map params, bool maintainState = true, bool fullscreenDialog = false}) {
     return DNavigatorManager.pushBuild(
-        routeName, builder, params, maintainState, fullscreenDialog);
+        routeName, pageType, builder, params, maintainState, fullscreenDialog);
   }
 
   /// 只支持flutter使用，替换flutter页面

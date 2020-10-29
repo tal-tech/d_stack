@@ -35,6 +35,7 @@ class DNavigatorManager {
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(routeName, pageType, 'push', params);
+      return Future.value(true);
     }
   }
 
@@ -50,6 +51,7 @@ class DNavigatorManager {
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(routeName, pageType, 'present', params);
+      return Future.value(true);
     }
   }
 
@@ -66,37 +68,46 @@ class DNavigatorManager {
     bool maintainState = true,
     bool fullscreenDialog = false,
   ]) {
-    if (pageType == PageType.native) return Future.error('not flutter page');
-
-    DNavigatorManager.nodeHandle(routeName, pageType, 'push', {});
-    PageRouteBuilder route = DNavigatorManager.animationRoute(
-      animatedBuilder: animatedBuilder,
-      routeName: routeName,
-      params: params,
-      transitionDuration: transitionDuration,
-      opaque: opaque,
-      barrierDismissible: barrierDismissible,
-      barrierColor: barrierColor,
-      barrierLabel: barrierLabel,
-      maintainState: maintainState,
-      fullscreenDialog: fullscreenDialog,
-    );
-    return _navigator.push(route);
+    if (pageType == PageType.flutter) {
+      DNavigatorManager.nodeHandle(routeName, pageType, 'push', {});
+      PageRouteBuilder route = DNavigatorManager.animationRoute(
+        animatedBuilder: animatedBuilder,
+        routeName: routeName,
+        params: params,
+        transitionDuration: transitionDuration,
+        opaque: opaque,
+        barrierDismissible: barrierDismissible,
+        barrierColor: barrierColor,
+        barrierLabel: barrierLabel,
+        maintainState: maintainState,
+        fullscreenDialog: fullscreenDialog,
+      );
+      return _navigator.push(route);
+    } else {
+      DNavigatorManager.nodeHandle(routeName, pageType, 'push', params);
+      return Future.value(true);
+    }
   }
 
   /// 提供外界直接传builder的能力
-  static Future pushBuild(String routeName, WidgetBuilder builder,
+  static Future pushBuild(String routeName, PageType pageType, WidgetBuilder builder,
       [Map params, bool maintainState, bool fullscreenDialog]) {
-    DNavigatorManager.nodeHandle(routeName, PageType.flutter, 'push', {});
 
-    RouteSettings userSettings =
-        RouteSettings(name: routeName, arguments: params);
-    MaterialPageRoute route = MaterialPageRoute(
-        settings: userSettings,
-        builder: builder,
-        maintainState: maintainState,
-        fullscreenDialog: fullscreenDialog);
-    return _navigator.push(route);
+    if (pageType == PageType.flutter) {
+      DNavigatorManager.nodeHandle(routeName, PageType.flutter, 'push', {});
+
+      RouteSettings userSettings =
+      RouteSettings(name: routeName, arguments: params);
+      MaterialPageRoute route = MaterialPageRoute(
+          settings: userSettings,
+          builder: builder,
+          maintainState: maintainState,
+          fullscreenDialog: fullscreenDialog);
+      return _navigator.push(route);
+    } else {
+      DNavigatorManager.nodeHandle(routeName, pageType, 'push', params);
+      return Future.value(true);
+    }
   }
 
   /// 目前只支持flutter使用，替换flutter页面
@@ -108,6 +119,8 @@ class DNavigatorManager {
       MaterialPageRoute route = DNavigatorManager.materialRoute(
           routeName: routeName, params: params, maintainState: maintainState);
       return _navigator.pushReplacement(route);
+    } else {
+      return Future.error('not flutter page');
     }
   }
 
