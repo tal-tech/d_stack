@@ -104,6 +104,18 @@
     return action;
 }
 
+- (void)copyWithNode:(DNode *)node
+{
+    self.action = node.action;
+    self.pageType = node.pageType;
+    self.target = node.target;
+    self.params = node.params;
+    self.fromFlutter = node.fromFlutter;
+    self.canRemoveNode = node.canRemoveNode;
+    self.isFlutterHomePage = node.isFlutterHomePage; 
+    self.animated = node.animated;
+}
+
 + (DNodePageType)pageTypeWithString:(NSString *)string
 {
     if (!string || [string isEqual:NSNull.null]  || !string.length) {
