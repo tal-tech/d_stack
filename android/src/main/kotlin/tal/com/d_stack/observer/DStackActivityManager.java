@@ -10,6 +10,7 @@ import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.android.FlutterFragmentActivity;
 import tal.com.d_stack.node.DNode;
 import tal.com.d_stack.utils.DLog;
+import tal.com.d_stack.utils.DStackUtils;
 
 /**
  * activity的栈管理
@@ -147,6 +148,8 @@ public class DStackActivityManager {
                 topActivity.getParent() instanceof FlutterActivity ||
                 topActivity instanceof FlutterFragmentActivity ||
                 topActivity.getParent() instanceof FlutterFragmentActivity) {
+            // 关闭栈顶flutter控制器activity之前，使用截图替换flutter展示
+            DStackUtils.coverActivityWithFlutterScreenshot(topActivity);
             topActivity.finish();
         }
     }
