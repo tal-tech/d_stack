@@ -68,15 +68,18 @@
             // 从flutter过来的节点
             if (node.pageType == DNodePageTypeFlutter) {
                 // 下一个页面是flutter，直接入栈
-                DStackLog(@"被Replace的节点 === %@", self.nodeList.lastObject);
-                [self.nodeList removeLastObject];
-                [self.nodeList addObject:node];
-                self.pageCount = self.nodeList.count;
-                [self dStackDelegateSafeWithSEL:@selector(dStack:inStack:) exe:^(DStack *stack) {
-                    DStackNode *stackNode = [DActionManager stackNodeFromNode:node];
-                    [stack.delegate dStack:stack inStack:@[stackNode]];
-                }];
-                DStackLog(@"Replace的完成之后 === %@", self.nodeList);
+                DNode *lastNode = self.nodeList.lastObject;
+                if (lastNode) {
+                    DStackLog(@"被Replace的节点 === %@", self.nodeList.lastObject);
+                    [lastNode copyWithNode:node];
+                    self.pageCount = self.nodeList.count;
+                    [self dStackDelegateSafeWithSEL:@selector(dStack:inStack:) exe:^(DStack *stack) {
+                        DStackNode *stackNode = [DActionManager stackNodeFromNode:node];
+                        [stack.delegate dStack:stack inStack:@[stackNode]];
+                    }];
+                    DStackLog(@"Replace的完成之后 === %@", self.nodeList);
+                }
+                
             }
         }
     } else {

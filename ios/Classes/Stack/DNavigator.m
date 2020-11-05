@@ -326,8 +326,8 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
         if (![self.dStackFlutterNodeMessage boolValue]) {
             checkNode(self, DNodeActionTypeDismiss);
         }
-        self.dStackFlutterNodeMessage = @(NO);
     }
+    self.dStackFlutterNodeMessage = @(NO);
     [self d_stackDismissViewControllerAnimated:flag completion:completion];
 }
 
@@ -592,8 +592,8 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
             }
         }
         controller.isBeginPoped = YES;
-        self.dStackFlutterNodeMessage = @(NO);
     }
+    self.dStackFlutterNodeMessage = @(NO);
     return [self d_stackPopViewControllerAnimated:animated];
 }
 
@@ -605,8 +605,8 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
             // 如果是FlutterViewController，会在消息通道里面checkNode
             checkNode(viewController, DNodeActionTypePopTo);
         }
-        self.dStackFlutterNodeMessage = @(NO);
     }
+    self.dStackFlutterNodeMessage = @(NO);
     return [self d_stackPopToViewController:viewController animated:animated];
 }
 

@@ -43,6 +43,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSString *)actionTypeString;
 - (NSString *)pageTypeString;
 - (NSString *)pageString;
+- (void)copyWithNode:(DNode *)node;
 
 + (DNodePageType)pageTypeWithString:(NSString *)string;
 + (DNodeActionType)actionTypeWithString:(NSString *)string;
