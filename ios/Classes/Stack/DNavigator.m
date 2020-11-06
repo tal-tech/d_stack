@@ -167,8 +167,8 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
                        controller:presentationController
                           forward:^(id<UIAdaptivePresentationControllerDelegate> delegate) {
         [delegate presentationControllerDidDismiss:presentationController];
-        [self.dismissDelegateClass removeObjectForKey:presentationController.oldDismissDelegateName];
     }];
+    [self.dismissDelegateClass removeObjectForKey:presentationController.oldDismissDelegateName];
 }
 
 - (void)presentationControllerDidAttemptToDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
@@ -301,17 +301,19 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
         if (completion) {
             completion();
         }
-        if (@available(iOS 13.0, *)) {
-            UIPresentationController *presentationController = controller.presentationController;
-            if (presentationController) {
-                id <UIAdaptivePresentationControllerDelegate> delegate = presentationController.delegate;
-                if (!delegate) {
-                    presentationController.delegate = [DStackNavigator instance];
-                } else {
-                    NSString *name = NSStringFromClass([delegate class]);
-                    presentationController.oldDismissDelegateName = name;
-                    [[DStackNavigator instance].dismissDelegateClass setValue:delegate forKey:name];
-                    presentationController.delegate = [DStackNavigator instance];
+        if ([controller isCustomClass]) {
+            if (@available(iOS 13.0, *)) {
+                UIPresentationController *presentationController = controller.presentationController;
+                if (presentationController) {
+                    id <UIAdaptivePresentationControllerDelegate> delegate = presentationController.delegate;
+                    if (!delegate) {
+                        presentationController.delegate = [DStackNavigator instance];
+                    } else {
+                        NSString *name = NSStringFromClass([delegate class]);
+                        presentationController.oldDismissDelegateName = name;
+                        [[DStackNavigator instance].dismissDelegateClass setValue:delegate forKey:name];
+                        presentationController.delegate = [DStackNavigator instance];
+                    }
                 }
             }
         }
