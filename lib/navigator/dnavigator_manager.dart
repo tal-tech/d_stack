@@ -112,7 +112,7 @@ class DNavigatorManager {
 
   /// 目前只支持flutter使用，替换flutter页面
   static Future replace(String routeName, PageType pageType,
-      [Map params, bool maintainState]) {
+      [Map params, bool maintainState = true]) {
     DNavigatorManager.nodeHandle(routeName, pageType, 'replace', params);
 
     if (pageType == PageType.flutter) {
@@ -205,6 +205,7 @@ class DNavigatorManager {
     final List nodes = arguments['nodes'];
     final Map params = arguments['params'];
     bool homePage = arguments["homePage"];
+    final Map pageTypeMape = arguments['pageType'];
     switch (action) {
       case 'push':
         continue Present;
@@ -214,9 +215,18 @@ class DNavigatorManager {
           if (homePage != null &&
               homePage == true &&
               DStackWidgetStream.instance.hasSetFlutterHomePage == false) {
-            StackWidgetStreamItem item =
-                StackWidgetStreamItem(route: nodes.first, params: params);
-            DStackWidgetStream.instance.pageStreamController.sink.add(item);
+            // StackWidgetStreamItem item =
+            //     StackWidgetStreamItem(route: nodes.first, params: params);
+            // DStackWidgetStream.instance.pageStreamController.sink.add(item);
+            // _navigator.replace(oldRoute: null, newRoute: null);
+
+            String router = nodes.first;
+            String pageTypeStr = pageTypeMape[router];
+            PageType pageType = PageType.native;
+            if (pageTypeStr == "Flutter") {
+              pageType = PageType.flutter;
+            }
+            return replace(router, pageType);
           } else {
             bool animated = arguments['animated'];
             if (animated != null && animated == true) {
