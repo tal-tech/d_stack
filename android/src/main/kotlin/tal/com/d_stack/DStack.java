@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -142,7 +143,16 @@ public class DStack {
                 DNodePageType.DNodePageTypeFlutter,
                 DNodeActionType.DNodeActionTypePush,
                 params,
+                false,
                 false);
+        if (!DStack.getInstance().isFlutterApp()) {
+            if (!DStackActivityManager.getInstance().haveFlutterContainer()) {
+                node.setHomePage(true);
+                Map<String, String> pageTypeMap = new HashMap<>();
+                pageTypeMap.put(node.getTarget(), node.getPageType());
+                node.setPageTypeMap(pageTypeMap);
+            }
+        }
 
         // 如果连续打开同一个Flutter控制器，则做个判断，只打开一次activity
         boolean isSameActivity = DStackActivityManager.getInstance().isSameActivity(containerCls);
@@ -167,6 +177,7 @@ public class DStack {
                 DNodePageType.DNodePageTypeFlutter,
                 DNodeActionType.DNodeActionTypePop,
                 params,
+                false,
                 false);
         DNodeManager.getInstance().checkNode(node);
     }
@@ -190,7 +201,7 @@ public class DStack {
     public void popToRoot() {
         DNode rootNode = DNodeManager.getInstance().createNode(""
                 , "", "", DNodeActionType.DNodeActionTypePopToRoot
-                , null, false);
+                , null, false, false);
         DNodeManager.getInstance().checkNode(rootNode);
     }
 
@@ -200,7 +211,7 @@ public class DStack {
     public void popToRoot(Map<String, Object> params) {
         DNode rootNode = DNodeManager.getInstance().createNode(""
                 , "", "", DNodeActionType.DNodeActionTypePopToRoot
-                , params, false);
+                , params, false, false);
         DNodeManager.getInstance().checkNode(rootNode);
     }
 

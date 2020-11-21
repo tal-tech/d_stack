@@ -54,6 +54,10 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
         String target = (String) args.get("target");
         String pageType = (String) args.get("pageType");
         Map<String, Object> params = (Map<String, Object>) args.get("params");
+        boolean homePage = false;
+        if (args.get("homePage") != null) {
+            homePage = (boolean) args.get("homePage");
+        }
         //创建Node节点信息
         DNode node = DNodeManager.getInstance().createNode(
                 target,
@@ -61,7 +65,8 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
                 pageType,
                 actionType,
                 params,
-                true);
+                true,
+                homePage);
         DNodeManager.getInstance().checkNode(node);
     }
 
@@ -73,6 +78,9 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
         resultMap.put("action", node.getAction());
         resultMap.put("nodes", nodes);
         resultMap.put("params", node.getParams());
+        resultMap.put("homePage", node.isHomePage());
+        resultMap.put("pageType", node.getPageTypeMap());
+
         DLog.logE("sendNode信息发送到flutter侧 action: " + node.getAction());
         DLog.logE("sendNode信息发送到flutter侧 nodes: " + nodes.toString());
         DStack.getInstance().getMethodChannel().invokeMethod("sendActionToFlutter", resultMap, new MethodChannel.Result() {
@@ -103,13 +111,17 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
         String target = (String) args.get("target");
         String pageType = (String) args.get("pageType");
         String actionType = (String) args.get("actionType");
+        boolean homePage = false;
+        if (args.get("homePage") != null) {
+            homePage = (boolean) args.get("homePage");
+        }
         DNode node = DNodeManager.getInstance().createNode(
                 target,
                 "",
                 pageType,
                 actionType,
                 null,
-                true);
+                true, homePage);
         DNodeManager.getInstance().handleNeedRemoveFlutterNode(node);
     }
 

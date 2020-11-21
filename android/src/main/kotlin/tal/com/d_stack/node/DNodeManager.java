@@ -63,7 +63,8 @@ public class DNodeManager {
                             String pageType,
                             String actionType,
                             Map<String, Object> params,
-                            boolean fromFlutter) {
+                            boolean fromFlutter,
+                            boolean homePage) {
         DNode node = new DNode();
         node.setTarget(target);
         node.setUniqueId(uniqueId);
@@ -71,6 +72,7 @@ public class DNodeManager {
         node.setPageType(pageType);
         node.setParams(params);
         node.setFromFlutter(fromFlutter);
+        node.setHomePage(homePage);
         return node;
     }
 
@@ -114,7 +116,12 @@ public class DNodeManager {
                         node.setTarget(currentNode.getTarget());
                         node.setPageType(currentNode.getPageType());
                     }
-                    DActionManager.pop(node);
+                    if (currentNode.isHomePage()) {
+                        DStackActivityManager.getInstance().closeTopFlutterActivity();
+                    } else {
+                        //当前flutter页面如果不是homePage需要发消息
+                        DActionManager.pop(node);
+                    }
                 } else {
                     //此处是关闭native页面清除节点逻辑
                     handleNeedRemoveNativeNode(node);
@@ -173,10 +180,11 @@ public class DNodeManager {
                 DNode preNode = currentNode;
                 if (node.isFromFlutter()) {
                     currentNode.setTarget(node.getTarget());
-                    node.setPageType(DNodePageType.DNodePageTypeFlutter);
+                    currentNode.setPageType(DNodePageType.DNodePageTypeFlutter);
+                    currentNode.setParams(node.getParams());
+                    currentNode.setHomePage(node.isHomePage());
                 }
                 updateNodes();
-                DActionManager.replace(node);
                 PageLifecycleManager.pageAppearWithReplace(preNode, currentNode);
                 DLog.logD("----------replace方法结束----------");
                 break;
@@ -377,9 +385,30 @@ public class DNodeManager {
     }
 
     /**
-     * 获取倒数第二个节点
+     * 获取节点集合
      */
     public List<DNode> getNodeList() {
         return nodeList;
     }
+
+    /**
+     * 移除最后一个节点
+     */
+    public void deleteLastNode() {
+        if (nodeList != null && nodeList.size() > 0) {
+            nodeList.remove(nodeList.size() - 1);
+            updateNodes();
+        }
+    }
+
+    /**
+     * 添加最后一个节点
+     */
+    public void addLastNode(DNode node) {
+        if (nodeList != null) {
+            nodeList.add(node);
+            updateNodes();
+        }
+    }
+
 }

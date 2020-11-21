@@ -90,7 +90,9 @@ public class DActionManager {
         for (int i = 0; i < size; i++) {
             DNode loopNode = nodes.get(i);
             if (loopNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-                flutterNodes.add(loopNode.getTarget());
+                if (!loopNode.isHomePage()) {
+                    flutterNodes.add(loopNode.getTarget());
+                }
             } else {
                 nativeNodes.add(loopNode.getUniqueId());
             }
