@@ -115,13 +115,16 @@ public class DNodeManager {
                         //所有flutter侧页面关闭删除节点的逻辑都在handleNeedRemoveNode实现
                         node.setTarget(currentNode.getTarget());
                         node.setPageType(currentNode.getPageType());
-                    }
-                    if (currentNode.isHomePage()) {
-                        DStackActivityManager.getInstance().closeTopFlutterActivity();
+                        if (currentNode.isHomePage()) {
+                            DStackActivityManager.getInstance().closeTopFlutterActivity();
+                        } else {
+                            //当前flutter页面如果不是homePage需要发消息
+                            DActionManager.pop(node);
+                        }
                     } else {
-                        //当前flutter页面如果不是homePage需要发消息
-                        DActionManager.pop(node);
+                        DStackActivityManager.getInstance().closeTopFlutterActivity();
                     }
+                    updateNodes();
                 } else {
                     //此处是关闭native页面清除节点逻辑
                     handleNeedRemoveNativeNode(node);
