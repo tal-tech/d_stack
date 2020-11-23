@@ -131,7 +131,7 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
             if (node == null) {
                 return;
             }
-            //native工程，打开flutter控制器后，homePage页面，点击返回键，不会触发消息，需要手动移除节点
+            //打开flutter控制器后，homePage页面，点击返回键，不会触发消息，需要手动移除节点
             if (node.isHomePage() && node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
                 DNodeManager.getInstance().deleteLastNode();
                 PageLifecycleManager.pageDisappear(node);

@@ -19,7 +19,7 @@ class FlutterContainerActivity : FlutterActivity() {
     }
 
     override fun onBackPressed() {
-        Log.e("magic", "onBackPressed")
+        DStack.getInstance().listenBackPressed()
         super.onBackPressed()
     }
 }

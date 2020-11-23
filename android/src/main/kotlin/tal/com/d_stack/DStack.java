@@ -57,6 +57,9 @@ public class DStack {
 
     private INativeRouter nativeRouter;
 
+    //是否执行过重置引擎的操作
+    private boolean hasBeenExecutedResetAttachEngine = false;
+
     /**
      * 初始化DStack
      *
@@ -266,5 +269,34 @@ public class DStack {
             return;
         }
         FilterActivityManager.getInstance().removeFilter(filterString);
+    }
+
+    /**
+     * 在FlutterActivity的onBackPressed()方法内调用
+     * 监听flutter控制器的返回键，处理多个flutter控制器，根节点无法返回的问题
+     */
+    public void listenBackPressed() {
+        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
+        if (currentNode == null) {
+            return;
+        }
+        if (DStack.getInstance().isFlutterApp()) {
+            return;
+        }
+        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
+            if (currentNode.isHomePage()) {
+                if (hasBeenExecutedResetAttachEngine) {
+                    DStackActivityManager.getInstance().closeTopFlutterActivity();
+                    hasBeenExecutedResetAttachEngine = false;
+                }
+            }
+        }
+    }
+
+    /**
+     * 设置是否重置过引擎
+     */
+    public void setHasBeenExecutedResetAttachEngine(boolean hasBeenExecutedResetAttachEngine) {
+        this.hasBeenExecutedResetAttachEngine = hasBeenExecutedResetAttachEngine;
     }
 }
