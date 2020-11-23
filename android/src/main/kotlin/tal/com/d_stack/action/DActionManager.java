@@ -21,6 +21,7 @@ public class DActionManager {
      * 打开页面
      */
     public static void push(DNode node) {
+        setCurrentNodeContainer();
         enterPageWithNode(node);
     }
 
@@ -143,6 +144,19 @@ public class DActionManager {
         if (node.getPageType().equals(DNodePageType.DNodePageTypeNative)) {
             //如果当前节点类型是native,则把flutter控制器关掉
             DStackActivityManager.getInstance().closeTopFlutterActivity();
+        }
+    }
+
+    /**
+     * 设置打开flutter页面时，节点对应的容器activity
+     */
+    private static void setCurrentNodeContainer() {
+        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
+        if (currentNode == null) {
+            return;
+        }
+        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
+            currentNode.setActivity(DStackActivityManager.getInstance().getTopActivity());
         }
     }
 }

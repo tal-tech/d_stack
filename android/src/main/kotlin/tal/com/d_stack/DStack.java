@@ -167,6 +167,27 @@ public class DStack {
     }
 
     /**
+     * native侧关闭当前页面，暂时只处理关闭flutter页面
+     */
+    public void pop() {
+        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
+        if (currentNode == null) {
+            return;
+        }
+        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
+            DNode node = DNodeManager.getInstance().createNode(
+                    currentNode.getTarget(),
+                    currentNode.getUniqueId(),
+                    DNodePageType.DNodePageTypeFlutter,
+                    DNodeActionType.DNodeActionTypeNativeToFlutterPop,
+                    currentNode.getParams(),
+                    false,
+                    currentNode.isHomePage());
+            DNodeManager.getInstance().checkNode(node);
+        }
+    }
+
+    /**
      * native侧关闭flutter页面
      */
     public void popFlutterPage(String pageRouter, Map<String, Object> params) {

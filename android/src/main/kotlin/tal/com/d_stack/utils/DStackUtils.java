@@ -1,6 +1,10 @@
 package tal.com.d_stack.utils;
 
 import android.app.Activity;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.View;
 
 import java.lang.reflect.Field;
 
@@ -10,6 +14,7 @@ import io.flutter.embedding.android.FlutterView;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.embedding.engine.FlutterEngineCache;
 import tal.com.d_stack.DStack;
+import tal.com.d_stack.node.DNodeManager;
 
 /**
  * 框架常用工具类
@@ -74,5 +79,25 @@ public class DStackUtils {
         }
         flutterView.detachFromFlutterEngine();
         flutterView.attachToFlutterEngine(flutterEngine);
+
+//        handleFlutterViewBackPress(flutterView);
+    }
+
+    public static boolean handleFlutterViewBackPress(FlutterView flutterView) {
+
+        flutterView.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_UP) {
+                    DLog.logD("onKey");
+                    DStack.getInstance().pop();
+                    return true;
+                } else {
+                    return false;
+                }
+
+            }
+        });
+        return true;
     }
 }

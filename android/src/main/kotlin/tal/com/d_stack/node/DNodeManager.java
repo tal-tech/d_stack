@@ -96,7 +96,6 @@ public class DNodeManager {
                 DLog.logD("----------push方法开始----------");
                 handlePush(node);
                 updateNodes();
-                setCurrentNodeContainer();
                 DActionManager.push(node);
                 PageLifecycleManager.pageAppear(node);
                 DLog.logD("----------push方法结束----------");
@@ -115,14 +114,13 @@ public class DNodeManager {
                         //所有flutter侧页面关闭删除节点的逻辑都在handleNeedRemoveNode实现
                         node.setTarget(currentNode.getTarget());
                         node.setPageType(currentNode.getPageType());
-                        if (currentNode.isHomePage()) {
-                            DStackActivityManager.getInstance().closeTopFlutterActivity();
-                        } else {
-                            //当前flutter页面如果不是homePage需要发消息
-                            DActionManager.pop(node);
-                        }
-                    } else {
+                        node.setHomePage(currentNode.isHomePage());
+                    }
+                    if (node.isHomePage()) {
+                        //如果节点是根节点，不给flutter发消息移除节点，直接关闭控制器
                         DStackActivityManager.getInstance().closeTopFlutterActivity();
+                    } else {
+                        DActionManager.pop(node);
                     }
                     updateNodes();
                 } else {
@@ -190,6 +188,17 @@ public class DNodeManager {
                 updateNodes();
                 PageLifecycleManager.pageAppearWithReplace(preNode, currentNode);
                 DLog.logD("----------replace方法结束----------");
+                break;
+            case DNodeActionType.DNodeActionTypeNativeToFlutterPop:
+                DLog.logD("----------nativeToFlutterPop方法开始----------");
+                node.setAction(DNodeActionType.DNodeActionTypePop);
+                if (node.isHomePage()) {
+                    //如果节点是根节点，不给flutter发消息移除节点，直接关闭控制器
+                    DStackActivityManager.getInstance().closeTopFlutterActivity();
+                } else {
+                    DActionManager.pop(node);
+                }
+                DLog.logD("----------nativeToFlutterPop方法结束----------");
                 break;
             default:
                 break;
