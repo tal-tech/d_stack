@@ -1,6 +1,7 @@
 package tal.com.d_stack_example
 
 import android.content.Context
+import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
@@ -15,5 +16,10 @@ class FlutterContainerActivity : FlutterActivity() {
 
     override fun provideFlutterEngine(context: Context): FlutterEngine? {
         return FlutterEngineCache.getInstance().get(DStack.ENGINE_ID)
+    }
+
+    override fun onBackPressed() {
+        DStack.getInstance().listenBackPressed()
+        super.onBackPressed()
     }
 }
