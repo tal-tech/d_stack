@@ -35,19 +35,22 @@ class DStack {
 
   DChannel get channel => _stackChannel;
 
-  // 全局无context
-  GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  /// navigatorKey
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  // 用来监听手势
+  /// 路由observer
   final DStackNavigatorObserver dStackNavigatorObserver =
       DStackNavigatorObserver();
 
-  // 用来监听 应用生命周期
+  /// 用来监听 应用生命周期
   DLifeCycleObserver dLifeCycleObserver;
 
   final Map<String, DStackWidgetBuilder> _pageBuilders =
       <String, DStackWidgetBuilder>{};
 
+  /// 注册DStack
+  /// builders 路由的builder
+  /// observer 生命周期监听者
   void register(
       {Map<String, DStackWidgetBuilder> builders,
       DLifeCycleObserver observer}) {
@@ -57,6 +60,8 @@ class DStack {
     dLifeCycleObserver = observer;
   }
 
+  /// 获取一个 DStackWidgetBuilder
+  /// pageName 路由
   DStackWidgetBuilder pageBuilder(String pageName) {
     DStackWidgetBuilder builder = _pageBuilders[pageName];
     if (builder != null) {
@@ -66,24 +71,28 @@ class DStack {
     }
   }
 
-  // 获取节点列表
-  Future<List<DStackNode>> nodeList() {
-    return channel.getNodeList();
-  }
+  /// 获取节点列表
+  Future<List<DStackNode>> nodeList() => channel.getNodeList();
 
-  /// routeName 路由名，pageType native或者flutter, params 参数
+  /// 推出一个页面
+  /// routeName 路由名，
+  /// pageType native或者flutter,
+  /// params 参数
   static Future push(String routeName, PageType pageType,
       {Map params, bool maintainState = true}) {
     return DNavigatorManager.push(routeName, pageType, params, maintainState);
   }
 
+  /// 弹出一个页面
   static Future present(String routeName, PageType pageType,
       {Map params, bool maintainState = true}) {
     return DNavigatorManager.present(
         routeName, pageType, params, maintainState);
   }
 
-  /// 支持用户自定义Flutter页面间转场动画
+  /// 自定义转场动画进入页面
+  /// flutter页面通过animatedBuilder自定义动画
+  /// native页面会转发到native，由native自行接入实现
   static Future animationPage(
     String routeName,
     PageType pageType,
@@ -111,7 +120,8 @@ class DStack {
         fullscreenDialog);
   }
 
-  /// 提供外界直接传builder的能力
+  /// 等同push
+  /// builder 页面builder
   static Future pushBuild(
       String routeName, PageType pageType, WidgetBuilder builder,
       {Map params, bool maintainState = true, bool fullscreenDialog = false}) {
@@ -129,36 +139,45 @@ class DStack {
         params: params, maintainState: maintainState, homePage: homePage);
   }
 
+  /// pop
+  /// 可以不传路由信息
   /// result 返回值，可为空
-  /// pop可以不传路由信息
   static void pop({Map result}) {
     DNavigatorManager.pop(result);
   }
 
-  static void popWithGesture() {
-    DNavigatorManager.popWithGesture();
-  }
-
+  /// popTo指定页面
+  /// 无法popTo到根页面
+  /// 要popTo到根页面请调用popToRoot
   static void popTo(String routeName, PageType pageType, {Map result}) {
     DNavigatorManager.popTo(routeName, pageType, result);
   }
 
-  static void popToNativeRoot() {
-    DNavigatorManager.popToNativeRoot();
-  }
-
+  /// pop同一组页面
   static void popSkip(String skipName, {Map result}) {
     DNavigatorManager.popSkip(skipName, result);
   }
 
+  /// 关闭一个页面
+  /// 如果是push进入的，等同pop
+  /// 如果是present进入的，效果是从上往下缩回去
   static void dismiss([Map result]) {
     DNavigatorManager.dismiss(result);
+  }
+
+  /// 回到根页面
+  static void popToRoot() {
+    DNavigatorManager.popToNativeRoot();
+  }
+
+  @Deprecated('已废弃，请调用popToRoot')
+  static void popToNativeRoot() {
+    DNavigatorManager.popToNativeRoot();
   }
 }
 
 class DStackNode {
   final String route;
   final String pageType;
-
   DStackNode({this.route, this.pageType});
 }

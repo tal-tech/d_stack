@@ -8,9 +8,12 @@
  */
 
 import 'dart:async';
+
+import 'package:d_stack/constant/constant_config.dart';
 import 'package:d_stack/navigator/dnavigator_manager.dart';
 import 'package:d_stack/observer/life_cycle_observer.dart';
 import 'package:flutter/services.dart';
+
 import '../d_stack.dart';
 
 class DChannel {
@@ -20,12 +23,10 @@ class DChannel {
     _methodChannel = methodChannel;
     _methodChannel.setMethodCallHandler((MethodCall call) {
       // sendActionToFlutter 处理Native发过来的指令
-      if ('sendActionToFlutter' == call.method) {
+      if (DStackConstant.nodeToFlutter == call.method) {
         return DNavigatorManager.handleActionToFlutter(call.arguments);
-      } else if ('sendLifeCycle' == call.method) {
+      } else if (DStackConstant.lifeCycle == call.method) {
         return LifeCycleHandler.handleLifecycleMessage(call.arguments);
-      } else if ('sendResetHomePage' == call.method) {
-        return DNavigatorManager.resetHomePage();
       }
       return Future.value();
     });
@@ -37,25 +38,24 @@ class DChannel {
 
   Future sendNodeToNative(Map arguments) async {
     assert(arguments != null);
-
-    return _methodChannel.invokeMethod('sendNodeToNative', arguments);
+    return _methodChannel.invokeMethod(DStackConstant.nodeToNative, arguments);
   }
 
   Future sendRemoveFlutterPageNode(Map arguments) async {
     assert(arguments != null);
 
-    return _methodChannel.invokeMethod('sendRemoveFlutterPageNode', arguments);
+    return _methodChannel.invokeMethod(DStackConstant.checkRemoved, arguments);
   }
 
   Future<List<DStackNode>> getNodeList() async {
-    return _methodChannel.invokeMethod('sendNodeList', null).then((list) {
+    return _methodChannel
+        .invokeMethod(DStackConstant.nodeList, null)
+        .then((list) {
       if (list is List) {
         List<DStackNode> nodeList = [];
         list.forEach((element) {
           DStackNode node = DStackNode(
-              route: element["route"],
-              pageType: element["pageType"]
-          );
+              route: element["route"], pageType: element["pageType"]);
           nodeList.add(node);
         });
         return Future.value(nodeList);
