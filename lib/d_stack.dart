@@ -45,6 +45,12 @@ class DStack {
   /// 用来监听 应用生命周期
   DLifeCycleObserver dLifeCycleObserver;
 
+  bool _hasHomePage = false;
+  bool get hasHomePage => _hasHomePage;
+  set homePage(bool page) {
+    _hasHomePage = page;
+  }
+
   final Map<String, DStackWidgetBuilder> _pageBuilders =
       <String, DStackWidgetBuilder>{};
 
@@ -167,7 +173,7 @@ class DStack {
 
   /// 回到根页面
   static void popToRoot() {
-    DNavigatorManager.popToNativeRoot();
+    DNavigatorManager.popToRoot();
   }
 
   @Deprecated('已废弃，请调用popToRoot')

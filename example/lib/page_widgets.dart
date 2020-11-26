@@ -86,7 +86,7 @@ class Page2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map args = ModalRoute.of(context).settings.arguments;
-    print(' ==page2收到前一个页面传来的参数=====  $args');
+    debugPrint(' ==page2收到前一个页面传来的参数=====  $args');
 
     return Scaffold(
       appBar: AppBar(

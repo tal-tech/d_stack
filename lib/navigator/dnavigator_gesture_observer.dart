@@ -43,7 +43,8 @@ class DStackNavigatorObserver extends NavigatorObserver {
   @override
   void didPush(Route route, Route previousRoute) {
     super.didPush(route, previousRoute);
-    print('didPush ${route.settings.name}');
+    debugPrint(
+        ' 【didPush】${route.settings.name} 【didPop】');
     routerCount += 1;
   }
 
@@ -54,17 +55,17 @@ class DStackNavigatorObserver extends NavigatorObserver {
   void didPop(Route route, Route previousRoute) {
     super.didPop(route, previousRoute);
     routerCount -= 1;
-    print('didPop 🍎🍎🍎🍎🍎🍎🍎  ${route.settings.name}');
-    if (gesturingRouteName != null && gesturingRouteName == route.settings.name) {
+    debugPrint(
+        ' 【didPop】${route.settings.name} 【didPop】');
+    if (gesturingRouteName != null &&
+        gesturingRouteName == route.settings.name) {
       // 由手势导致的pop事件
-      print('didPop gesturingRouteName ${route.settings.name}');
       DNavigatorManager.popWithGesture();
-    } else if (gesturingRouteName != null && gesturingRouteName == 'NATIVEGESTURE') {
+    } else if (gesturingRouteName != null &&
+        gesturingRouteName == 'NATIVEGESTURE') {
       // native手势引起的didpop，native侧已经删除节点，flutter侧不再removeFlutterNode
-      print('didPop gesturingRouteName $gesturingRouteName');
       DStackNavigatorObserver.instance.setGesturingRouteName(null);
     } else {
-      print('除了手势导致的didPop native处理删除节点 ${route.settings.name}');
       if (route.settings.name != null) {
         DNavigatorManager.removeFlutterNode(route.settings.name);
       }
@@ -77,8 +78,6 @@ class DStackNavigatorObserver extends NavigatorObserver {
   @override
   void didStartUserGesture(Route route, Route previousRoute) {
     super.didStartUserGesture(route, previousRoute);
-    print('didStartUserGesture ${route.settings.name}');
-
     DStackNavigatorObserver.instance.setGesturingRouteName(route.settings.name);
   }
 
@@ -86,8 +85,6 @@ class DStackNavigatorObserver extends NavigatorObserver {
   @override
   void didStopUserGesture() {
     super.didStopUserGesture();
-    print('didStopUserGesture ${this._gesturingRouteName}');
-
     DStackNavigatorObserver.instance.setGesturingRouteName(null);
   }
 }

@@ -8,6 +8,7 @@
  */
 
 import 'dart:io';
+
 import 'package:d_stack/constant/constant_config.dart';
 import 'package:d_stack/d_stack.dart';
 import 'package:d_stack/navigator/dnavigator_gesture_observer.dart';
@@ -22,19 +23,22 @@ class DNavigatorManager {
   /// routeName 路由名，pageType native或者flutter, params 参数
 
   /// 获取navigator
-  static NavigatorState get _navigator => DStack.instance.navigatorKey.currentState;
+  static NavigatorState get _navigator =>
+      DStack.instance.navigatorKey.currentState;
 
   /// 推出页面
   static Future push(String routeName, PageType pageType,
       [Map params, bool maintainState]) {
     if (pageType == PageType.flutter) {
-      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push, {});
+      DNavigatorManager.nodeHandle(
+          routeName, pageType, DStackConstant.push, {});
 
       MaterialPageRoute route = DNavigatorManager.materialRoute(
           routeName: routeName, params: params, maintainState: maintainState);
       return _navigator.push(route);
     } else {
-      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push, params);
+      DNavigatorManager.nodeHandle(
+          routeName, pageType, DStackConstant.push, params);
       return Future.value(true);
     }
   }
@@ -43,11 +47,14 @@ class DNavigatorManager {
   static Future present(String routeName, PageType pageType,
       [Map params, bool maintainState]) {
     if (pageType == PageType.flutter) {
-      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.present, {});
-      PageRouteBuilder route = slideRoute(routeName: routeName, params: params, milliseconds: 300);
+      DNavigatorManager.nodeHandle(
+          routeName, pageType, DStackConstant.present, {});
+      PageRouteBuilder route =
+          slideRoute(routeName: routeName, params: params, milliseconds: 300);
       return _navigator.push(route);
     } else {
-      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.present, params);
+      DNavigatorManager.nodeHandle(
+          routeName, pageType, DStackConstant.present, params);
       return Future.value(true);
     }
   }
@@ -67,7 +74,8 @@ class DNavigatorManager {
     bool fullscreenDialog = false,
   ]) {
     if (pageType == PageType.flutter) {
-      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push, {});
+      DNavigatorManager.nodeHandle(
+          routeName, pageType, DStackConstant.push, {});
       PageRouteBuilder route = DNavigatorManager.animationRoute(
         animatedBuilder: animatedBuilder,
         routeName: routeName,
@@ -82,7 +90,8 @@ class DNavigatorManager {
       );
       return _navigator.push(route);
     } else {
-      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push, params);
+      DNavigatorManager.nodeHandle(
+          routeName, pageType, DStackConstant.push, params);
       return Future.value(true);
     }
   }
@@ -92,7 +101,8 @@ class DNavigatorManager {
       String routeName, PageType pageType, WidgetBuilder builder,
       [Map params, bool maintainState, bool fullscreenDialog]) {
     if (pageType == PageType.flutter) {
-      DNavigatorManager.nodeHandle(routeName, PageType.flutter, DStackConstant.push, {});
+      DNavigatorManager.nodeHandle(
+          routeName, PageType.flutter, DStackConstant.push, {});
 
       RouteSettings userSettings =
           RouteSettings(name: routeName, arguments: params);
@@ -103,7 +113,8 @@ class DNavigatorManager {
           fullscreenDialog: fullscreenDialog);
       return _navigator.push(route);
     } else {
-      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push, params);
+      DNavigatorManager.nodeHandle(
+          routeName, pageType, DStackConstant.push, params);
       return Future.value(true);
     }
   }
@@ -134,7 +145,12 @@ class DNavigatorManager {
   }
 
   static void popTo(String routeName, PageType pageType, [Map result]) {
-    DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.popTo, result);
+    DNavigatorManager.nodeHandle(
+        routeName, pageType, DStackConstant.popTo, result);
+  }
+
+  static void popToRoot() {
+    DNavigatorManager.nodeHandle(null, null, DStackConstant.popToRoot);
   }
 
   static void popToNativeRoot() {
@@ -142,7 +158,8 @@ class DNavigatorManager {
   }
 
   static void popSkip(String skipName, [Map result]) {
-    DNavigatorManager.nodeHandle(skipName, null, DStackConstant.popSkip, result);
+    DNavigatorManager.nodeHandle(
+        skipName, null, DStackConstant.popSkip, result);
   }
 
   static void dismiss([Map result]) {
@@ -190,7 +207,9 @@ class DNavigatorManager {
   /// argument里包含必选参数routeName，actionTpye，可选参数params
   static Future handleActionToFlutter(Map arguments) {
     // 处理实际跳转
-    print("收到【sendActionToFlutter】消息，参数：$arguments, navigator == $_navigator");
+    debugPrint("【sendActionToFlutter】 \n"
+        "【arguments】$arguments \n"
+        "【navigator】$_navigator ");
     final String action = arguments['action'];
     final List nodes = arguments['nodes'];
     final Map params = arguments['params'];
@@ -202,7 +221,9 @@ class DNavigatorManager {
       Present:
       case DStackConstant.present:
         {
-          if (homePage != null && homePage == true) {
+          if (homePage != null &&
+              homePage == true &&
+              DStack.instance.hasHomePage == false) {
             String router = nodes.first;
             String pageTypeStr = pageTypeMap[router];
             pageTypeStr = pageTypeStr.toLowerCase();
