@@ -38,6 +38,7 @@ typedef NS_ENUM(NSInteger, DNodeActionType) {
     DNodeActionTypePop,         // pop返回
     DNodeActionTypePopTo,       // popTo 返回
     DNodeActionTypePopToRoot,   // PopToRoot
+    DNodeActionTypePopToNativeRoot,   // PopToRoot
     DNodeActionTypePopSkip,     // PopSkip
     DNodeActionTypeGesture,     // 手势
     DNodeActionTypeDismiss,     // Dismiss返回

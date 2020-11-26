@@ -6,7 +6,6 @@
 //
 
 #import "DFlutterViewController.h"
-#import "DNodeManager.h"
 #import <objc/runtime.h>
 #import "DNavigator.h"
 #import "DStack.h"
@@ -53,7 +52,6 @@
 - (void)viewDidDisappear:(BOOL)animated
 {
     [self removeGesturePopNode];
-    [[DNodeManager sharedInstance] resetHomePage];
     [super viewDidDisappear:animated];
 }
 

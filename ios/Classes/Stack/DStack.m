@@ -333,7 +333,7 @@
     result(@"节点操作完成");
 }
 
-/// 处理flutter发送的节点移除
+/// 处理flutter发送的节点移除 didPop消息
 /// @param call call
 /// @param result result
 - (void)handleRemoveFlutterPageNode:(FlutterMethodCall *)call result:(FlutterResult)result

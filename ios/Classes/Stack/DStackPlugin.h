@@ -16,7 +16,6 @@ UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendActionToFlutte
 UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendRemoveFlutterPageNode;  // flutter发送移除节点的指令到native
 UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendLifeCircle; // 生命周期通道
 UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendNodeList; // 节点列表
-UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendResetHomePage; // 重置homePage
 
 @interface DStackPlugin : NSObject<FlutterPlugin>
 

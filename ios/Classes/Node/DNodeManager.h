@@ -68,8 +68,6 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param state 应用的生命周期
 - (void)sendAppliccationLifeCicleToFlutter:(DStackApplicationState)state;
 
-- (void)resetHomePage;
-
 @end
 
 NS_ASSUME_NONNULL_END

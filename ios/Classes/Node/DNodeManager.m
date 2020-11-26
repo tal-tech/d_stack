@@ -46,31 +46,26 @@
 - (NSArray *)subArrayWithNode:(DNode *)node
 {
     NSArray *subArray = @[];
-    if (node.action == DNodeActionTypeUnknow || !node) {
-        return subArray;
-    }
+    if (node.action == DNodeActionTypeUnknow || !node) {return subArray;}
     
-    if (node.action == DNodeActionTypePush ||
-        node.action == DNodeActionTypePresent) {
-        // 入栈管理
-        if (node.fromFlutter) {
-            if (node.pageType == DNodePageTypeFlutter) {
-                // 页面是flutter，直接入栈
-                subArray = [self inStackWithNode:node];
-            }
-        } else {
-            // native自己调用 push or Present 过来的节点，这时候才加入节点列表
-            subArray = [self inStackWithNode:node];
+    switch (node.action) {
+        case DNodeActionTypePush:
+        {
+            subArray = [self pushNodeToListWithNode:node];
+            break;
         }
-    } else if (node.action == DNodeActionTypeReplace) {
-        //Replace 操作，删除最后一个节点，再新增当前节点
-        if (node.fromFlutter) {
-            // 从flutter过来的节点
-            if (node.pageType == DNodePageTypeFlutter) {
-                // 下一个页面是flutter，直接入栈
+        case DNodeActionTypePresent:
+        {
+            subArray = [self pushNodeToListWithNode:node];
+            break;
+        }
+        case DNodeActionTypeReplace:
+        {
+            // replace最后一个节点，并且是flutter的页面时，replace只存在于flutter
+            if (node.fromFlutter && node.pageType == DNodePageTypeFlutter) {
                 DNode *lastNode = self.nodeList.lastObject;
                 if (lastNode) {
-                    DStackLog(@"被Replace的节点 === %@", self.nodeList.lastObject);
+                    DStackLog(@"被Replace的节点 === %@", lastNode);
                     [lastNode copyWithNode:node];
                     self.pageCount = self.nodeList.count;
                     [self dStackDelegateSafeWithSEL:@selector(dStack:inStack:) exe:^(DStack *stack) {
@@ -79,44 +74,47 @@
                     }];
                     DStackLog(@"Replace的完成之后 === %@", self.nodeList);
                 }
-                
             }
+            break;
         }
-    } else {
-        // 出栈管理
-        if (node.action == DNodeActionTypePop ||
-            node.action == DNodeActionTypeDismiss ||
-            node.action == DNodeActionTypeGesture ||
-            node.action == DNodeActionTypeDidPop) {
-            if (!node.canRemoveNode) {
-                DNode *lastNode = self.nodeList.lastObject;
-                if (lastNode) {
-                    if (node.action == DNodeActionTypePop ||
-                        node.action == DNodeActionTypeDismiss) {
-                        if (node.fromFlutter) {
-                            subArray = @[lastNode];
-                        } else {
-                            if ([lastNode.target isEqualToString:node.target]) {
-                                subArray = @[lastNode];
-                            }
-                        }
+        case DNodeActionTypePopTo:
+        {
+            // 从栈底开始遍历出需要移除的节点
+            if (!(!node.target || [node.target isEqual:NSNull.null])) {
+                NSMutableArray *removeArray = [[NSMutableArray alloc] init];
+                NSUInteger count = self.nodeList.count;
+                for (NSUInteger i = count - 1; i >= 0; i --) {
+                    DNode *obj = self.nodeList[i];
+                    if ([obj.target isEqualToString:node.target]) {
+                        break;
                     } else {
-                        subArray = @[lastNode];
+                        [removeArray addObject:obj];
                     }
                 }
-            } else {
-                if (node.target) {
-                    DNode *targetNode = [self nodeWithTarget:node.target];
-                    if (targetNode) {
-                        subArray = @[targetNode];
-                    }
-                }
+                subArray = [removeArray copy];
             }
-        } else if (node.action == DNodeActionTypePopSkip) {
+            // 目的页在栈里面不存在
+            if (![[DNodeManager sharedInstance] nodeWithTarget:node.target]) {
+                DStackError(@"target %@ 不存在于栈中", node.target);
+            }
+            break;
+        }
+        case DNodeActionTypePopToRoot:
+        {
+            subArray = [self.nodeList copy];
+            break;
+        }
+        case DNodeActionTypePopToNativeRoot:
+        {
+            subArray = [self.nodeList copy];
+            break;
+        }
+        case DNodeActionTypePopSkip:
+        {
             // popSkip，最后面开始往前找skip的字段，直到没到为止
             NSMutableArray *skipArray = [[NSMutableArray alloc] init];
             [self.nodeList enumerateObjectsWithOptions:NSEnumerationReverse
-                                            usingBlock:^(DNode * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                                            usingBlock:^(DNode *obj, NSUInteger idx, BOOL *stop) {
                 if ([obj.target containsString:node.target]) {
                     [skipArray insertObject:obj atIndex:0];
                 } else {
@@ -124,45 +122,73 @@
                 }
             }];
             subArray = [skipArray copy];
-        } else {
-            // popTo 或者 popToRoot
-            __block DNode *targetNode = nil;
-            // 从栈底开始遍历出需要移除的节点
-            if (!(!node.target || [node.target isEqual:NSNull.null])) {
-                [self.nodeList enumerateObjectsWithOptions:NSEnumerationReverse
-                                                usingBlock:^(DNode * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-                    if ([obj.target isEqualToString:node.target]) {
-                        targetNode = obj;
-                        *stop = YES;
-                    }
-                }];
-            }
-            if (targetNode) {
-                NSUInteger targetNodeIndex = [self.nodeList indexOfObject:targetNode];
-                if (node.action == DNodeActionTypePopTo) {
-                    targetNodeIndex += 1;
-                }
-                if (self.nodeList.count >= targetNodeIndex) {
-                    NSInteger length = self.nodeList.count - targetNodeIndex;
-                    subArray = [self.nodeList subarrayWithRange:NSMakeRange(targetNodeIndex, length)];
-                }
-            } else if (!targetNode && node.action == DNodeActionTypePopToRoot) {
-                // 没有找到targetNode，又是回到root，说明targetNode为根节点，直接移除所有节点
-                subArray = [self.nodeList copy];
-            }
+            break;
         }
+        case DNodeActionTypePop:
+        {
+            subArray = [self popNodeToListWithNode:node];
+            break;
+        }
+        case DNodeActionTypeGesture:
+        {
+            if (!node.canRemoveNode) {
+                DNode *lastNode = self.nodeList.lastObject;
+                if (lastNode) { subArray = @[lastNode];}
+            }
+            break;
+        }
+        case DNodeActionTypeDismiss:
+        {
+            subArray = [self popNodeToListWithNode:node];
+            break;
+        }
+        case DNodeActionTypeDidPop:
+        {
+            DNode *targetNode = [self nodeWithTarget:node.target];
+            if (targetNode) { subArray = @[targetNode]; }
+            break;
+        }
+        default: {subArray = @[];}
     }
-    
-    if (node.action == DNodeActionTypePopTo) {
-        // 目的页在栈里面不存在，直接返回
-        if (![[DNodeManager sharedInstance] nodeWithTarget:node.target]) {
-            DStackError(@"target %@ 不存在于栈中", node.target);
-            return subArray;
+    return subArray;
+}
+
+- (NSArray *)pushNodeToListWithNode:(DNode *)node
+{
+    if (node.fromFlutter) {
+        // 页面是flutter，直接入栈
+        // flutter打开native页面会调用原生的push和present
+        if (node.pageType == DNodePageTypeFlutter) {
+            return [self inStackWithNode:node];
+        }
+    } else {
+        // native自己调用 push or Present 过来的节点，这时候才加入节点列表
+        return [self inStackWithNode:node];
+    }
+    return @[];
+}
+
+- (NSArray *)popNodeToListWithNode:(DNode *)node
+{
+    NSArray *subArray = @[];
+    if (!node.canRemoveNode) {
+        DNode *lastNode = self.nodeList.lastObject;
+        if (lastNode) {
+            if (node.fromFlutter) {
+                subArray = @[lastNode];
+            } else {
+                if ([lastNode.target isEqualToString:node.target]) {
+                    subArray = @[lastNode];
+                }
+            }
         }
     }
     return subArray;
 }
 
+/// 移除节点
+/// @param subArray subArray
+/// @param node node
 - (void)removeNodesWithNodeArray:(NSArray *)subArray node:(DNode *)node
 {
     if (!node.fromFlutter) {
@@ -324,6 +350,7 @@
 - (DNode *)nodeWithTarget:(NSString *)target
 {
     DNode *targetNode = nil;
+    if (!target || [target isEqual:NSNull.null]) {return targetNode;}
     for (NSInteger i = self.nodeList.count - 1; i >= 0; i --) {
         DNode *node = self.nodeList[i];
         if ([node.target isEqualToString:target]) {
@@ -465,17 +492,6 @@
                                    error:nil];
             }
         }
-    }
-}
-
-- (void)resetHomePage
-{
-    if (self.removedNodes && self.removedNodes.count == 1) {
-        DNode *first = self.removedNodes.firstObject;
-        if (first.isFlutterHomePage) {
-            [[DStackPlugin sharedInstance] invokeMethod:DStackMethodChannelSendResetHomePage arguments:nil result:nil];
-        }
-        self.removedNodes = nil;
     }
 }
 

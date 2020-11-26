@@ -44,62 +44,18 @@
 {
     NSString *action = @"";
     switch (_action) {
-        case DNodeActionTypePush:
-        {
-            action = @"push";
-            break;
-        }
-        case DNodeActionTypePresent:
-        {
-            action = @"present";
-            break;
-        }
-        case DNodeActionTypePop:
-        {
-            action = @"pop";
-            break;
-        }
-        case DNodeActionTypePopTo:
-        {
-            action = @"popTo";
-            break;
-        }
-        case DNodeActionTypePopToRoot:
-        {
-            if (_fromFlutter) {
-                action = @"popToNativeRoot";
-            } else {
-                action = @"popToRoot";
-            }
-            break;
-        }
-        case DNodeActionTypePopSkip:
-        {
-            action = @"popSkip";
-            break;
-        }
-        case DNodeActionTypeGesture:
-        {
-            action = @"gesture";
-            break;
-        }
-        case DNodeActionTypeDismiss:
-        {
-            action = @"dismiss";
-            break;
-        }
-        case DNodeActionTypeReplace:
-        {
-            action = @"replace";
-            break;
-        }
-        case DNodeActionTypeDidPop:
-        {
-            action = @"didPop";
-            break;
-        }
-        default:
-            break;
+        case DNodeActionTypePush:{action = @"push";break;}
+        case DNodeActionTypePresent:{action = @"present";break;}
+        case DNodeActionTypePop:{action = @"pop";break;}
+        case DNodeActionTypePopTo:{action = @"popTo";}
+        case DNodeActionTypePopToRoot:{action = @"popToRoot";}
+        case DNodeActionTypePopToNativeRoot:{action = @"popToNativeRoot";break;}
+        case DNodeActionTypePopSkip:{action = @"popSkip";break;}
+        case DNodeActionTypeGesture:{action = @"gesture";break;}
+        case DNodeActionTypeDismiss:{action = @"dismiss";break;}
+        case DNodeActionTypeReplace:{action = @"replace";break;}
+        case DNodeActionTypeDidPop:{action = @"didPop";break;}
+        default:break;
     }
     return action;
 }
@@ -149,6 +105,8 @@
     } else if ([_actionType isEqualToString:@"popSkip"]) {
         actionType = DNodeActionTypePopSkip;
     } else if ([_actionType isEqualToString:@"popToNativeRoot"]) {
+        actionType = DNodeActionTypePopToNativeRoot;
+    } else if ([_actionType isEqualToString:@"popToRoot"]) {
         actionType = DNodeActionTypePopToRoot;
     } else if ([_actionType isEqualToString:@"dismiss"]) {
         actionType = DNodeActionTypeDismiss;

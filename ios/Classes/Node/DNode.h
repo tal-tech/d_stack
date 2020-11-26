@@ -32,6 +32,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) BOOL fromFlutter;
 
 /// 是否可以移除节点
+/// 收到didPop消息时才是YES，只有flutter页面会有didDop消息
 @property (nonatomic, assign) BOOL canRemoveNode;
 
 /// 是否是flutter的第一个页面

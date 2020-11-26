@@ -159,10 +159,6 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
         checkNode(target, DNodeActionTypePopTo);
     }
     checkNode(target, DNodeActionTypeGesture);
-    if ([target isKindOfClass:NSClassFromString(@"FlutterViewController")]) {
-        [[DNodeManager sharedInstance] resetHomePage];
-    }
-    
     [self checkSelectorToDelegate:@selector(presentationControllerDidDismiss:)
                        controller:presentationController
                           forward:^(id<UIAdaptivePresentationControllerDelegate> delegate) {
