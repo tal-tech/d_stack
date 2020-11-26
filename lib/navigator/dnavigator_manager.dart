@@ -23,8 +23,7 @@ class DNavigatorManager {
   /// routeName 路由名，pageType native或者flutter, params 参数
 
   // 获取navigator
-  static NavigatorState get _navigator =>
-      DStack.instance.navigatorKey.currentState;
+  static NavigatorState get _navigator => DStack.instance.navigatorKey.currentState;
 
   static Future push(String routeName, PageType pageType,
       [Map params, bool maintainState]) {
@@ -91,14 +90,14 @@ class DNavigatorManager {
   }
 
   /// 提供外界直接传builder的能力
-  static Future pushBuild(
-      String routeName, PageType pageType, WidgetBuilder builder,
+  static Future pushBuild(String routeName, PageType pageType, WidgetBuilder builder,
       [Map params, bool maintainState, bool fullscreenDialog]) {
+
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(routeName, PageType.flutter, 'push', {});
 
       RouteSettings userSettings =
-          RouteSettings(name: routeName, arguments: params);
+      RouteSettings(name: routeName, arguments: params);
       MaterialPageRoute route = MaterialPageRoute(
           settings: userSettings,
           builder: builder,
@@ -113,9 +112,8 @@ class DNavigatorManager {
 
   /// 目前只支持flutter使用，替换flutter页面
   static Future replace(String routeName, PageType pageType,
-      {Map params, bool maintainState = true, bool homePage = false}) {
-    DNavigatorManager.nodeHandle(
-        routeName, pageType, 'replace', params, homePage);
+      [Map params, bool maintainState]) {
+    DNavigatorManager.nodeHandle(routeName, pageType, 'replace', params);
 
     if (pageType == PageType.flutter) {
       MaterialPageRoute route = DNavigatorManager.materialRoute(
@@ -157,14 +155,12 @@ class DNavigatorManager {
     PageType pageType,
     String actionType, [
     Map result,
-    bool homePage,
   ]) {
     Map arguments = {
       'target': target,
       'pageType': '$pageType'.split('.').last,
       'params': (result != null) ? result : {},
       'actionType': actionType,
-      'homePage': homePage,
     };
     DStack.instance.channel.sendNodeToNative(arguments);
   }
@@ -203,12 +199,12 @@ class DNavigatorManager {
   /// argument里包含必选参数routeName，actionTpye，可选参数params
   static Future handleActionToFlutter(Map arguments) {
     // 处理实际跳转
-    print("收到【sendActionToFlutter】消息，参数：$arguments, navigator == $_navigator");
+    print(
+        "收到【sendActionToFlutter】消息，参数：$arguments, navigator == $_navigator");
     final String action = arguments['action'];
     final List nodes = arguments['nodes'];
     final Map params = arguments['params'];
     bool homePage = arguments["homePage"];
-    final Map pageTypeMap = arguments['pageType'];
     switch (action) {
       case 'push':
         continue Present;
@@ -218,19 +214,9 @@ class DNavigatorManager {
           if (homePage != null &&
               homePage == true &&
               DStackWidgetStream.instance.hasSetFlutterHomePage == false) {
-            // StackWidgetStreamItem item =
-            //     StackWidgetStreamItem(route: nodes.first, params: params);
-            // DStackWidgetStream.instance.pageStreamController.sink.add(item);
-            // _navigator.replace(oldRoute: null, newRoute: null);
-
-            String router = nodes.first;
-            String pageTypeStr = pageTypeMap[router];
-            pageTypeStr = pageTypeStr.toLowerCase();
-            PageType pageType = PageType.native;
-            if (pageTypeStr == "flutter") {
-              pageType = PageType.flutter;
-            }
-            return replace(router, pageType, homePage: homePage);
+            StackWidgetStreamItem item =
+                StackWidgetStreamItem(route: nodes.first, params: params);
+            DStackWidgetStream.instance.pageStreamController.sink.add(item);
           } else {
             bool animated = arguments['animated'];
             if (animated != null && animated == true) {
@@ -276,8 +262,7 @@ class DNavigatorManager {
       case 'gesture':
         {
           // native发消息过来时，需要处理返回至上一页
-          DStackNavigatorObserver.instance
-              .setGesturingRouteName('NATIVEGESTURE');
+          DStackNavigatorObserver.instance.setGesturingRouteName('NATIVEGESTURE');
           return DNavigatorManager.gardPop(params);
         }
         break;

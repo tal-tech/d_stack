@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -56,9 +55,6 @@ public class DStack {
     private Context context;
 
     private INativeRouter nativeRouter;
-
-    //是否执行过重置引擎的操作
-    private boolean hasBeenExecutedResetAttachEngine = false;
 
     /**
      * 初始化DStack
@@ -146,16 +142,7 @@ public class DStack {
                 DNodePageType.DNodePageTypeFlutter,
                 DNodeActionType.DNodeActionTypePush,
                 params,
-                false,
                 false);
-        if (!DStack.getInstance().isFlutterApp()) {
-            if (!DStackActivityManager.getInstance().haveFlutterContainer()) {
-                node.setHomePage(true);
-                Map<String, String> pageTypeMap = new HashMap<>();
-                pageTypeMap.put(node.getTarget(), node.getPageType());
-                node.setPageTypeMap(pageTypeMap);
-            }
-        }
 
         // 如果连续打开同一个Flutter控制器，则做个判断，只打开一次activity
         boolean isSameActivity = DStackActivityManager.getInstance().isSameActivity(containerCls);
@@ -170,27 +157,6 @@ public class DStack {
     }
 
     /**
-     * native侧关闭当前页面，暂时只处理关闭flutter页面
-     */
-    public void pop() {
-        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-        if (currentNode == null) {
-            return;
-        }
-        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-            DNode node = DNodeManager.getInstance().createNode(
-                    currentNode.getTarget(),
-                    currentNode.getUniqueId(),
-                    DNodePageType.DNodePageTypeFlutter,
-                    DNodeActionType.DNodeActionTypeNativeToFlutterPop,
-                    currentNode.getParams(),
-                    false,
-                    currentNode.isHomePage());
-            DNodeManager.getInstance().checkNode(node);
-        }
-    }
-
-    /**
      * native侧关闭flutter页面
      */
     public void popFlutterPage(String pageRouter, Map<String, Object> params) {
@@ -201,7 +167,6 @@ public class DStack {
                 DNodePageType.DNodePageTypeFlutter,
                 DNodeActionType.DNodeActionTypePop,
                 params,
-                false,
                 false);
         DNodeManager.getInstance().checkNode(node);
     }
@@ -225,7 +190,7 @@ public class DStack {
     public void popToRoot() {
         DNode rootNode = DNodeManager.getInstance().createNode(""
                 , "", "", DNodeActionType.DNodeActionTypePopToRoot
-                , null, false, false);
+                , null, false);
         DNodeManager.getInstance().checkNode(rootNode);
     }
 
@@ -235,7 +200,7 @@ public class DStack {
     public void popToRoot(Map<String, Object> params) {
         DNode rootNode = DNodeManager.getInstance().createNode(""
                 , "", "", DNodeActionType.DNodeActionTypePopToRoot
-                , params, false, false);
+                , params, false);
         DNodeManager.getInstance().checkNode(rootNode);
     }
 
@@ -269,34 +234,5 @@ public class DStack {
             return;
         }
         FilterActivityManager.getInstance().removeFilter(filterString);
-    }
-
-    /**
-     * 在FlutterActivity的onBackPressed()方法内调用
-     * 监听flutter控制器的返回键，处理多个flutter控制器，根节点无法返回的问题
-     */
-    public void listenBackPressed() {
-        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-        if (currentNode == null) {
-            return;
-        }
-        if (DStack.getInstance().isFlutterApp()) {
-            return;
-        }
-        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-            if (currentNode.isHomePage()) {
-                if (hasBeenExecutedResetAttachEngine) {
-                    DStackActivityManager.getInstance().closeTopFlutterActivity();
-                    hasBeenExecutedResetAttachEngine = false;
-                }
-            }
-        }
-    }
-
-    /**
-     * 设置是否重置过引擎
-     */
-    public void setHasBeenExecutedResetAttachEngine(boolean hasBeenExecutedResetAttachEngine) {
-        this.hasBeenExecutedResetAttachEngine = hasBeenExecutedResetAttachEngine;
     }
 }

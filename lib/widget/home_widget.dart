@@ -53,6 +53,29 @@ class DStackWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return homePage ?? Container(color: Colors.white);
+    if (Platform.isIOS) {
+      return StreamBuilder(
+        stream: DStackWidgetStream.instance.pageStream,
+        builder:
+            (BuildContext cxt, AsyncSnapshot<StackWidgetStreamItem> snapshot) {
+          DStackWidgetStream.instance.hasSetFlutterHomePage = homePage != null;
+          Widget widget = homePage ?? Container();
+          if (snapshot.data != null && homePage == null) {
+            if (snapshot.data.route == "homePage") {
+              widget = Container();
+            } else {
+              DStackWidgetBuilder builder =
+              DStack.instance.pageBuilder(snapshot.data.route);
+              if (builder != null) {
+                widget = builder(snapshot.data.params)(cxt);
+              }
+            }
+          }
+          return widget;
+        },
+      );
+    } else {
+      return homePage ?? Container(color: Colors.white);
+    }
   }
 }

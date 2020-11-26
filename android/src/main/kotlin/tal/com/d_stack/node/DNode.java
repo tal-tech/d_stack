@@ -34,12 +34,6 @@ public class DNode {
     // 是否正在执行popTo，popToRoot，popToSkip方法
     private boolean isPopTo;
 
-    // 是否是主页面
-    private boolean isHomePage;
-
-    // 页面路由和类型组合的map
-    private Map<String, String> pageTypeMap;
-
     public DNode() {
     }
 
@@ -105,21 +99,5 @@ public class DNode {
 
     public void setPopTo(boolean popTo) {
         isPopTo = popTo;
-    }
-
-    public boolean isHomePage() {
-        return isHomePage;
-    }
-
-    public void setHomePage(boolean homePage) {
-        isHomePage = homePage;
-    }
-
-    public Map<String, String> getPageTypeMap() {
-        return pageTypeMap;
-    }
-
-    public void setPageTypeMap(Map<String, String> pageTypeMap) {
-        this.pageTypeMap = pageTypeMap;
     }
 }

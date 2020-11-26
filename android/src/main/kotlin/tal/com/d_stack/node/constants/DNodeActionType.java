@@ -29,7 +29,4 @@ public class DNodeActionType {
 
     //replace
     public static final String DNodeActionTypeReplace = "replace";
-
-    //native通知flutter进行pop
-    public static final String DNodeActionTypeNativeToFlutterPop = "nativeToFlutterPop";
 }

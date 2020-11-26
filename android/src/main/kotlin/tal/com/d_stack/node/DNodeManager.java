@@ -63,8 +63,7 @@ public class DNodeManager {
                             String pageType,
                             String actionType,
                             Map<String, Object> params,
-                            boolean fromFlutter,
-                            boolean homePage) {
+                            boolean fromFlutter) {
         DNode node = new DNode();
         node.setTarget(target);
         node.setUniqueId(uniqueId);
@@ -72,7 +71,6 @@ public class DNodeManager {
         node.setPageType(pageType);
         node.setParams(params);
         node.setFromFlutter(fromFlutter);
-        node.setHomePage(homePage);
         return node;
     }
 
@@ -96,6 +94,7 @@ public class DNodeManager {
                 DLog.logD("----------push方法开始----------");
                 handlePush(node);
                 updateNodes();
+                setCurrentNodeContainer();
                 DActionManager.push(node);
                 PageLifecycleManager.pageAppear(node);
                 DLog.logD("----------push方法结束----------");
@@ -114,15 +113,8 @@ public class DNodeManager {
                         //所有flutter侧页面关闭删除节点的逻辑都在handleNeedRemoveNode实现
                         node.setTarget(currentNode.getTarget());
                         node.setPageType(currentNode.getPageType());
-                        node.setHomePage(currentNode.isHomePage());
                     }
-                    if (node.isHomePage()) {
-                        //如果节点是根节点，不给flutter发消息移除节点，直接关闭控制器
-                        DStackActivityManager.getInstance().closeTopFlutterActivity();
-                    } else {
-                        DActionManager.pop(node);
-                    }
-                    updateNodes();
+                    DActionManager.pop(node);
                 } else {
                     //此处是关闭native页面清除节点逻辑
                     handleNeedRemoveNativeNode(node);
@@ -181,24 +173,12 @@ public class DNodeManager {
                 DNode preNode = currentNode;
                 if (node.isFromFlutter()) {
                     currentNode.setTarget(node.getTarget());
-                    currentNode.setPageType(DNodePageType.DNodePageTypeFlutter);
-                    currentNode.setParams(node.getParams());
-                    currentNode.setHomePage(node.isHomePage());
+                    node.setPageType(DNodePageType.DNodePageTypeFlutter);
                 }
                 updateNodes();
+                DActionManager.replace(node);
                 PageLifecycleManager.pageAppearWithReplace(preNode, currentNode);
                 DLog.logD("----------replace方法结束----------");
-                break;
-            case DNodeActionType.DNodeActionTypeNativeToFlutterPop:
-                DLog.logD("----------nativeToFlutterPop方法开始----------");
-                node.setAction(DNodeActionType.DNodeActionTypePop);
-                if (node.isHomePage()) {
-                    //如果节点是根节点，不给flutter发消息移除节点，直接关闭控制器
-                    DStackActivityManager.getInstance().closeTopFlutterActivity();
-                } else {
-                    DActionManager.pop(node);
-                }
-                DLog.logD("----------nativeToFlutterPop方法结束----------");
                 break;
             default:
                 break;
@@ -397,30 +377,9 @@ public class DNodeManager {
     }
 
     /**
-     * 获取节点集合
+     * 获取倒数第二个节点
      */
     public List<DNode> getNodeList() {
         return nodeList;
     }
-
-    /**
-     * 移除最后一个节点
-     */
-    public void deleteLastNode() {
-        if (nodeList != null && nodeList.size() > 0) {
-            nodeList.remove(nodeList.size() - 1);
-            updateNodes();
-        }
-    }
-
-    /**
-     * 添加最后一个节点
-     */
-    public void addLastNode(DNode node) {
-        if (nodeList != null) {
-            nodeList.add(node);
-            updateNodes();
-        }
-    }
-
 }

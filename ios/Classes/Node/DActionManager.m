@@ -106,18 +106,9 @@
             DNode *popNode = [[DNode alloc] init];
             popNode.params = node.params;
             popNode.action = DNodeActionTypeGesture;
-            
-            NSDictionary *pageType = [self getPageTypeNodeList:nodeList];
-            [self sendMessageToFlutterWithFlutterNodes:@[nodeList.firstObject.target] node:popNode pageType:pageType];
+            [self sendMessageToFlutterWithFlutterNodes:@[nodeList.firstObject.target] node:popNode];
         }
     }
-}
-
-+ (NSDictionary *)getPageTypeNodeList:(NSArray<DNode *> *)nodeList
-{
-    NSString *pageTypeKey = [NSString stringWithFormat:@"%@", nodeList.firstObject.target];
-    NSString *pageType = nodeList.firstObject.pageTypeString;
-    return  @{pageTypeKey : pageType};
 }
 
 /// 进入一个页面
@@ -143,7 +134,7 @@
         // 来自Native的Node，并且是需要打开Flutter页面的，发消息至flutter，打开页面
         // 如果是DNodePageTypeNative 的话直接就打开了
        if (node.pageType == DNodePageTypeFlutter) {
-           [self sendMessageToFlutterWithFlutterNodes:@[node.target] node:node pageType:@{node.target : node.pageTypeString}];
+           [self sendMessageToFlutterWithFlutterNodes:@[node.target] node:node];
        }
     }
 }
@@ -167,15 +158,14 @@
             DNode *currentNode = [DNodeManager sharedInstance].currentNode;
             if (currentNode.pageType == DNodePageTypeFlutter) {
                 // 当前页面还是Flutter，则发消息返回到上一页
-                NSDictionary *pageType = [self getPageTypeNodeList:nodeList];
-                [self sendMessageToFlutterWithFlutterNodes:@[targetNode.target] node:node pageType:pageType];
+                [self sendMessageToFlutterWithFlutterNodes:@[targetNode.target] node:node];
             }
         } else {
             // 前面一页不是Flutter页面，如果消息是来自Flutter的则把当前controller关闭掉，
             // 如果消息是来自native的，则说明是native popViewControllerAnimated触发的操作进入到这里的，所以要去重
             if (node.fromFlutter) {
                 [self closeViewControllerWithNode:node];
-                [self sendMessageToFlutterWithFlutterNodes:@[targetNode.target] node:node pageType:@{node.target : node.pageTypeString}];
+                [self sendMessageToFlutterWithFlutterNodes:@[targetNode.target] node:node];
             }
         }
     } else {
@@ -189,11 +179,11 @@
                     // 当前的flutter页面是被单独的flutterViewController 承载的，要dismiss
                     [self dismissViewController];
                 }
-                [self sendMessageToFlutterWithFlutterNodes:@[targetNode.target] node:node pageType:@{node.target : node.pageTypeString}];
+                [self sendMessageToFlutterWithFlutterNodes:@[targetNode.target] node:node];
             } else if (preNode.pageType == DNodePageTypeNative) {
                 // 前一个页面是Native, 关闭当前的FlutterViewController，并且发消息告诉flutter返回上一页
                 [self closeViewControllerWithNode:node];
-                [self sendMessageToFlutterWithFlutterNodes:@[targetNode.target] node:node pageType:@{node.target : node.pageTypeString}];
+                [self sendMessageToFlutterWithFlutterNodes:@[targetNode.target] node:node];
             }
         } else if (currentNode.pageType == DNodePageTypeNative) {
             // 当前页面是Native
@@ -226,7 +216,7 @@
 
     if (flutterNodes.count) {
         // flutter的节点信息直接发消息到flutter
-        [self sendMessageToFlutterWithFlutterNodes:flutterNodes node:node pageType:@{node.target : node.pageTypeString}];
+        [self sendMessageToFlutterWithFlutterNodes:flutterNodes node:node];
     }
     if (!node.fromFlutter) { return;}
     
@@ -292,13 +282,12 @@
 /// @param flutterNodes 需要发送至flutter的节点信息
 /// @param node 目标节点信息
 + (void)sendMessageToFlutterWithFlutterNodes:(NSArray <NSString *>*)flutterNodes
-                                        node:(DNode *)node pageType:(NSDictionary *)pageType
+                                        node:(DNode *)node
 {
     NSDictionary *dataToFlutter = @{
         @"action": node.actionTypeString,
         @"params": node.params ? node.params : @{},
         @"nodes": flutterNodes,
-        @"pageType": pageType,
         @"homePage": @(node.isFlutterHomePage),
         @"animated": @(node.animated)
     };

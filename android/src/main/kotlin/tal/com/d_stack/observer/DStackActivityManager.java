@@ -293,16 +293,4 @@ public class DStackActivityManager {
     public boolean isNeedReAttachEngine() {
         return needReAttachEngine;
     }
-
-    /**
-     * 栈里是否有flutter控制器
-     */
-    public boolean haveFlutterContainer() {
-        for (Activity activity : activities) {
-            if (isFlutterActivity(activity)) {
-                return true;
-            }
-        }
-        return false;
-    }
 }

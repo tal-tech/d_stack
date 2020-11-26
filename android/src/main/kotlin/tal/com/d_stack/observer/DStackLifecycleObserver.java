@@ -53,7 +53,6 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
                     DNodePageType.DNodePageTypeNative,
                     DNodeActionType.DNodeActionTypePush,
                     null,
-                    false,
                     false);
             DNodeManager.getInstance().checkNode(node);
             DNode currentNode = DNodeManager.getInstance().getCurrentNode();
@@ -127,15 +126,6 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
         boolean isPopTo = DStackActivityManager.getInstance().isPopTo();
         DStackActivityManager.getInstance().removeActivity(activity);
         if (DStackActivityManager.getInstance().isFlutterActivity(activity)) {
-            DNode node = DNodeManager.getInstance().getCurrentNode();
-            if (node == null) {
-                return;
-            }
-            //打开flutter控制器后，homePage页面，点击返回键，不会触发消息，需要手动移除节点
-            if (node.isHomePage() && node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-                DNodeManager.getInstance().deleteLastNode();
-                PageLifecycleManager.pageDisappear(node);
-            }
             return;
         }
         DNode node = DNodeManager.getInstance().createNode(
@@ -144,7 +134,7 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
                 DNodePageType.DNodePageTypeNative,
                 DNodeActionType.DNodeActionTypePop,
                 null,
-                false, false);
+                false);
         node.setPopTo(isPopTo);
         DNodeManager.getInstance().checkNode(node);
     }

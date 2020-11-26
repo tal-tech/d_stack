@@ -33,7 +33,6 @@
     self.testCases = @[
         @"打开新的NATIVE页面",
         @"打开新的Flutter页面",
-        @"打开新的Flutter页面2"
     ];
 }
 
@@ -67,12 +66,6 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     switch (indexPath.row) {
-        case 0:
-        {
-            SecondViewController *secondVC = [[SecondViewController alloc] init];
-            [self.navigationController pushViewController:secondVC animated:YES];
-            break;
-        }
         case 1:
         {
             [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DFlutterViewController.class
@@ -97,10 +90,10 @@
 //
             break;
         }
-        case 2:
+        case 0:
         {
-            [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DFlutterViewController.class
-                                                               route:@"page1"];
+            SecondViewController *secondVC = [[SecondViewController alloc] init];
+            [self.navigationController pushViewController:secondVC animated:YES];
             break;
         }
         default:

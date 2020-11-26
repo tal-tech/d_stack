@@ -79,8 +79,7 @@ class DStack {
 
   static Future present(String routeName, PageType pageType,
       {Map params, bool maintainState = true}) {
-    return DNavigatorManager.present(
-        routeName, pageType, params, maintainState);
+    return DNavigatorManager.present(routeName, pageType, params, maintainState);
   }
 
   /// 支持用户自定义Flutter页面间转场动画
@@ -112,8 +111,7 @@ class DStack {
   }
 
   /// 提供外界直接传builder的能力
-  static Future pushBuild(
-      String routeName, PageType pageType, WidgetBuilder builder,
+  static Future pushBuild(String routeName, PageType pageType, WidgetBuilder builder,
       {Map params, bool maintainState = true, bool fullscreenDialog = false}) {
     return DNavigatorManager.pushBuild(
         routeName, pageType, builder, params, maintainState, fullscreenDialog);
@@ -121,12 +119,9 @@ class DStack {
 
   /// 只支持flutter使用，替换flutter页面
   static Future replace(String routeName, PageType pageType,
-      {Map params,
-      bool maintainState = true,
-      bool fullscreenDialog = false,
-      bool homePage = false}) {
-    return DNavigatorManager.replace(routeName, pageType,
-        params: params, maintainState: maintainState, homePage: homePage);
+      {Map params, bool maintainState = true, bool fullscreenDialog = false}) {
+    return DNavigatorManager.replace(
+        routeName, pageType, params, maintainState);
   }
 
   /// result 返回值，可为空
@@ -159,6 +154,5 @@ class DStack {
 class DStackNode {
   final String route;
   final String pageType;
-
   DStackNode({this.route, this.pageType});
 }

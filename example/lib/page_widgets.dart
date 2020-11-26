@@ -39,39 +39,36 @@ class _Page1 extends State<Page1> {
           )),
       backgroundColor: Colors.white,
       body: Center(
-        child: Column(children: [
-          RaisedButton(
-            child: Text('push flutter page 2'),
-            onPressed: () {
-              Student student = Student();
-              student.name = '😁🍎111';
-              student.age = 12;
+        child: RaisedButton(
+          child: Text('push flutter page 2'),
+          onPressed: () {
+            Student student = Student();
+            student.name = '😁🍎111';
+            student.age = 12;
 
-              // 自定义动画
-              DStack.animationPage('page2', PageType.flutter,
-                      (BuildContext context,
-                      Animation<double> animation,
-                      Animation<double> secondaryAnimation,
-                      WidgetBuilder widgetBuilder) {
-                    Offset startOffset = const Offset(1.0, 0.0);
-                    Offset endOffset = const Offset(0.0, 0.0);
-                    return SlideTransition(
-                      position: new Tween<Offset>(
-                        begin: startOffset,
-                        end: endOffset,
-                      ).animate(animation),
-                      child: widgetBuilder(context),
-                    );
-                  }, params: {'key1': 12}, transitionDuration: Duration(milliseconds: 250));
+            // 自定义动画
+            DStack.animationPage('page2', PageType.flutter,
+                (BuildContext context,
+                    Animation<double> animation,
+                    Animation<double> secondaryAnimation,
+                    WidgetBuilder widgetBuilder) {
+              Offset startOffset = const Offset(1.0, 0.0);
+              Offset endOffset = const Offset(0.0, 0.0);
+              return SlideTransition(
+                position: new Tween<Offset>(
+                  begin: startOffset,
+                  end: endOffset,
+                ).animate(animation),
+                child: widgetBuilder(context),
+              );
+            }, params: {'key1': 12}, transitionDuration: Duration(milliseconds: 250));
 
-              // DStack.push('page2', PageType.flutter, params: {'key1': 12})
-              //     .then((data) {
-              //   return print('pop to Page1 result $data');
-              // });
-            },
-          ),
-          TextField()
-        ],),
+            // DStack.push('page2', PageType.flutter, params: {'key1': 12})
+            //     .then((data) {
+            //   return print('pop to Page1 result $data');
+            // });
+          },
+        ),
       ),
     );
   }
@@ -180,13 +177,6 @@ class Page4 extends StatelessWidget {
               child: Text('popTo Root'),
               onPressed: () {
                 DStack.popToNativeRoot();
-              },
-            ),
-            RaisedButton(
-              child: Text('打开NativePage'),
-              onPressed: () {
-                DStack.push("NativePage", PageType.native,
-                    params: {"name": "flutter 传递的", "id": 1000000});
               },
             ),
           ],
