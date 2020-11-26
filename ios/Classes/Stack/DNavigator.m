@@ -259,8 +259,14 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
 
 - (BOOL)isCustomClass
 {
+    NSString *systemLibrary = @"System/Library";
+    NSString *developerLibrary = @"Developer/Library";
     NSBundle *bundle = [NSBundle bundleForClass:self.class];
-    return bundle == [NSBundle mainBundle];
+    if ([[bundle bundlePath] containsString:systemLibrary] ||
+        [[bundle bundlePath] containsString:developerLibrary]) {
+        return NO;
+    }
+    return YES;
 }
 
 - (void)d_stackPresentViewController:(UIViewController *)controller animated:(BOOL)flag completion:(void (^)(void))completion
@@ -581,7 +587,7 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
     // 出栈管理，触发pop动作
     // 手势返回也会触发这个函数注意手势返回的情况，手势一开始滑动就会触发，这时有可能手势滑动了一部分就停掉了
     // 这时该页面并没有被pop出去，要注意这种情况，这情况在d_stackViewDidDisappear处理
-    UIViewController *controller = self.topViewController;
+    UIViewController *controller = [self d_stackPopViewControllerAnimated:animated];
     if ([controller isCustomClass]) {
         if (![self.dStackFlutterNodeMessage boolValue]) {
             // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
@@ -593,10 +599,10 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
                 [[DNodeManager sharedInstance] checkNode:node];
             }
         }
-        controller.isBeginPoped = YES;
     }
+    controller.isBeginPoped = YES;
     self.dStackFlutterNodeMessage = @(NO);
-    return [self d_stackPopViewControllerAnimated:animated];
+    return controller;
 }
 
 - (NSArray<UIViewController *> *)d_stackPopToViewController:(UIViewController *)viewController animated:(BOOL)animated
