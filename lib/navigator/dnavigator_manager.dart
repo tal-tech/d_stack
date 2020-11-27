@@ -121,13 +121,21 @@ class DNavigatorManager {
 
   /// 目前只支持flutter使用，替换flutter页面
   static Future replace(String routeName, PageType pageType,
-      {Map params, bool maintainState = true, bool homePage = false}) {
+      {Map params,
+      bool maintainState = true,
+      bool homePage = false,
+      bool animated = true}) {
     DNavigatorManager.nodeHandle(
         routeName, pageType, DStackConstant.replace, params, homePage);
-
     if (pageType == PageType.flutter) {
-      MaterialPageRoute route = DNavigatorManager.materialRoute(
-          routeName: routeName, params: params, maintainState: maintainState);
+      var route;
+      if (animated) {
+        route = DNavigatorManager.materialRoute(
+            routeName: routeName, params: params, maintainState: maintainState);
+      } else {
+        route =
+            slideRoute(routeName: routeName, params: params, milliseconds: 0);
+      }
       return _navigator.pushReplacement(route);
     } else {
       return Future.error('not flutter page');
@@ -239,6 +247,7 @@ class DNavigatorManager {
                   routeName: nodes.first,
                   params: params,
                   fullscreenDialog: action == DStackConstant.present);
+
               return _navigator.push(route);
             } else {
               PageRouteBuilder route = DNavigatorManager.slideRoute(

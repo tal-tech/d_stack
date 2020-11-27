@@ -9,6 +9,7 @@
 
 //import 'package:battery/battery.dart';
 import 'dart:io';
+
 import 'package:d_stack/d_stack.dart';
 import 'package:flutter/material.dart';
 
@@ -39,39 +40,40 @@ class _Page1 extends State<Page1> {
           )),
       backgroundColor: Colors.white,
       body: Center(
-        child: Column(children: [
-          RaisedButton(
-            child: Text('push flutter page 2'),
-            onPressed: () {
-              Student student = Student();
-              student.name = '😁🍎111';
-              student.age = 12;
+        child: Column(
+          children: [
+            RaisedButton(
+              child: Text('push flutter page 2'),
+              onPressed: () {
+                Student student = Student();
+                student.name = '😁🍎111';
+                student.age = 12;
 
-              // 自定义动画
-              DStack.animationPage('page2', PageType.flutter,
-                      (BuildContext context,
-                      Animation<double> animation,
-                      Animation<double> secondaryAnimation,
-                      WidgetBuilder widgetBuilder) {
-                    Offset startOffset = const Offset(1.0, 0.0);
-                    Offset endOffset = const Offset(0.0, 0.0);
-                    return SlideTransition(
-                      position: new Tween<Offset>(
-                        begin: startOffset,
-                        end: endOffset,
-                      ).animate(animation),
-                      child: widgetBuilder(context),
-                    );
-                  }, params: {'key1': 12}, transitionDuration: Duration(milliseconds: 250));
+                // // 自定义动画
+                // DStack.animationPage('page2', PageType.flutter,
+                //         (BuildContext context,
+                //         Animation<double> animation,
+                //         Animation<double> secondaryAnimation,
+                //         WidgetBuilder widgetBuilder) {
+                //       Offset startOffset = const Offset(1.0, 0.0);
+                //       Offset endOffset = const Offset(0.0, 0.0);
+                //       return SlideTransition(
+                //         position: new Tween<Offset>(
+                //           begin: startOffset,
+                //           end: endOffset,
+                //         ).animate(animation),
+                //         child: widgetBuilder(context),
+                //       );
+                //     }, params: {'key1': 12}, transitionDuration: Duration(milliseconds: 250));
 
-              // DStack.push('page2', PageType.flutter, params: {'key1': 12})
-              //     .then((data) {
-              //   return print('pop to Page1 result $data');
-              // });
-            },
-          ),
-          TextField()
-        ],),
+                DStack.push('page2', PageType.flutter, params: {'key1': 12})
+                    .then((data) {
+                  return print('pop to Page1 result $data');
+                });
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -104,7 +106,11 @@ class Page2 extends StatelessWidget {
         child: RaisedButton(
           child: Text('present flutter page 3'),
           onPressed: () {
-            DStack.present('page3', PageType.flutter);
+            // DStack.present('page3', PageType.flutter);
+            DStack.push('page2', PageType.flutter, params: {'key1': 12})
+                .then((data) {
+              return print('pop to Page1 result $data');
+            });
           },
         ),
       ),

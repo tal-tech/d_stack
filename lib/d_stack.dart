@@ -140,9 +140,13 @@ class DStack {
       {Map params,
       bool maintainState = true,
       bool fullscreenDialog = false,
-      bool homePage = false}) {
+      bool homePage = false,
+      bool animated = true}) {
     return DNavigatorManager.replace(routeName, pageType,
-        params: params, maintainState: maintainState, homePage: homePage);
+        params: params,
+        maintainState: maintainState,
+        homePage: homePage,
+        animated: animated);
   }
 
   /// pop
