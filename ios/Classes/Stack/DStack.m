@@ -90,7 +90,7 @@
         if (!cls) { return;}
         DFlutterViewController *controller = [[cls alloc] init];
         if (![controller isKindOfClass:FlutterViewController.class]) { return;}
-        [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush];
+        [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush controller:controller];
         UINavigationController *navi = [self.delegate dStack:self
                                  navigationControllerForNode:[DActionManager stackNodeFromNode:currentNode]];
         if (callBack) {
@@ -127,7 +127,7 @@
         if (story) {
             DFlutterViewController *controller = [story instantiateViewControllerWithIdentifier:identifier];
             if (!controller || ![controller isKindOfClass:FlutterViewController.class]) { return;}
-            [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush];
+            [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush controller:controller];
             UINavigationController *navi = [self.delegate dStack:self
                                      navigationControllerForNode:[DActionManager stackNodeFromNode:currentNode]];
             if (callBack) {
@@ -201,7 +201,7 @@
                 rootVC = x;
             }
         }
-        [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush];
+        [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush controller:controller];
         if (callBack) {
             callBack(controller);
         }
@@ -252,7 +252,7 @@
                     rootVC = x;
                 }
             }
-            [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush];
+            [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush controller:controller];
             if (callBack) {
                 callBack(controller);
             }
@@ -279,19 +279,28 @@
 - (void)openFlutterPageWithRoute:(NSString *)route
                           params:(NSDictionary *)params
                           action:(DNodeActionType)action
+                      controller:(DFlutterViewController *)controller
 {
-    [self openFlutterPageWithRoute:route params:params action:action animated:NO];
+    [self openFlutterPageWithRoute:route
+                            params:params
+                            action:action
+                          animated:NO
+                        controller:controller];
 }
 
 - (void)openFlutterPageWithRoute:(NSString *)route
                           params:(NSDictionary *)params
                           action:(DNodeActionType)action
                         animated:(BOOL)animated
+                      controller:(DFlutterViewController *)controller
 {
     DNode *node = [[DNodeManager sharedInstance] nextPageScheme:route
                                                        pageType:DNodePageTypeFlutter
                                                          action:action
                                                          params:params];
+    NSString *identifier = [NSString stringWithFormat:@"%@_%p",
+                            NSStringFromClass(controller.class), controller];
+    node.identifier = identifier;
     node.animated = animated;
     [[DNodeManager sharedInstance] checkNode:node];
 }
@@ -307,7 +316,11 @@
         if (callBack) {
             callBack((DFlutterViewController *)controller);
         }
-        [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush animated:animated];
+        [self openFlutterPageWithRoute:route
+                                params:params
+                                action:DNodeActionTypePush
+                              animated:animated
+                            controller:(DFlutterViewController *)controller];
     } else if ([controller isKindOfClass:UIViewController.class]) {
         DNode *currentNode = [[DNodeManager sharedInstance] currentNode];
         block(currentNode);
@@ -329,6 +342,10 @@
                                                          action:actionType
                                                          params:call.arguments[@"params"]];
     node.fromFlutter = YES;
+    id homePage = call.arguments[@"homePage"];
+    if (homePage && [homePage isKindOfClass:NSNumber.class]) {
+        node.isFlutterHomePage = [homePage boolValue];
+    }
     [[DNodeManager sharedInstance] checkNode:node];
     result(@"节点操作完成");
 }

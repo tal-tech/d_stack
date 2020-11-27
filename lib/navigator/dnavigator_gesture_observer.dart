@@ -44,7 +44,7 @@ class DStackNavigatorObserver extends NavigatorObserver {
   void didPush(Route route, Route previousRoute) {
     super.didPush(route, previousRoute);
     debugPrint(
-        ' 【didPush】${route.settings.name} 【didPop】');
+        ' 【didPush】${route.settings.name} 【didPush】');
     routerCount += 1;
   }
 

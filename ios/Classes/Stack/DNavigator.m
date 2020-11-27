@@ -41,6 +41,9 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
                                                        pageType:DNodePageTypeNative
                                                          action:action
                                                          params:nil];
+    NSString *identifier = [NSString stringWithFormat:@"%@_%p",
+                            NSStringFromClass(targetVC.class), targetVC];
+    node.identifier = identifier;
     [[DNodeManager sharedInstance] checkNode:node];
 }
 

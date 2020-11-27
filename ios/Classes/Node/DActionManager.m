@@ -17,23 +17,15 @@
     // didPop 不处理跳转，只需要删节点
     switch (node.action) {
         case DNodeActionTypePush:
-        {
-            [self push:node];
-            break;
-        }
         case DNodeActionTypePresent:
         {
-            [self present:node];
+            [self enterPageWithNode:node];
             break;
         }
         case DNodeActionTypePop:
-        {
-            [self pop:node willRemovedList:nodeList];
-            break;
-        }
         case DNodeActionTypeDismiss:
         {
-            [self dismiss:node willRemovedList:nodeList];
+            [self closePageWithNode:node willRemovedList:nodeList];
             break;
         }
         case DNodeActionTypeGesture:
@@ -42,57 +34,15 @@
             break;
         }
         case DNodeActionTypePopTo:
-        {
-             [self popTo:node willRemovedList:nodeList];
-            break;
-        }
         case DNodeActionTypePopToRoot:
-        {
-            [self popToRoot:node willRemovedList:nodeList];
-            break;
-        }
+        case DNodeActionTypePopToNativeRoot:
         case DNodeActionTypePopSkip:
         {
-            [self popSkip:node willRemovedList:nodeList];
+            [self closePageListWithNode:node willRemovedList:nodeList];
             break;
         }
         default:break;
     }
-}
-
-+ (void)push:(DNode *)node
-{
-    [self enterPageWithNode:node];
-}
-
-+ (void)present:(DNode *)node
-{
-    [self enterPageWithNode:node];
-}
-
-+ (void)pop:(DNode *)node willRemovedList:(NSArray<DNode *> *)nodeList
-{
-    [self closePageWithNode:node willRemovedList:nodeList];
-}
-
-+ (void)dismiss:(DNode *)node willRemovedList:(NSArray<DNode *> *)nodeList
-{
-    [self closePageWithNode:node willRemovedList:nodeList];
-}
-
-+ (void)popTo:(DNode *)node willRemovedList:(NSArray<DNode *> *)nodeList
-{
-    [self closePageListWithNode:node willRemovedList:nodeList];
-}
-
-+ (void)popToRoot:(DNode *)node willRemovedList:(NSArray<DNode *> *)nodeList
-{
-    [self closePageListWithNode:node willRemovedList:nodeList];
-}
-
-+ (void)popSkip:(DNode *)node willRemovedList:(NSArray<DNode *> *)nodeList
-{
-    [self closePageListWithNode:node willRemovedList:nodeList];
 }
 
 + (void)gesture:(DNode *)node willRemovedList:(NSArray<DNode *> *)nodeList
@@ -108,7 +58,9 @@
             popNode.action = DNodeActionTypeGesture;
             
             NSDictionary *pageType = [self getPageTypeNodeList:nodeList];
-            [self sendMessageToFlutterWithFlutterNodes:@[nodeList.firstObject.target] node:popNode pageType:pageType];
+            [self sendMessageToFlutterWithFlutterNodes:nodeList
+                                                  node:popNode
+                                              pageType:pageType];
         }
     }
 }
@@ -117,7 +69,7 @@
 {
     NSString *pageTypeKey = [NSString stringWithFormat:@"%@", nodeList.firstObject.target];
     NSString *pageType = nodeList.firstObject.pageTypeString;
-    return  @{pageTypeKey : pageType};
+    return @{pageTypeKey : pageType};
 }
 
 /// 进入一个页面
@@ -143,7 +95,9 @@
         // 来自Native的Node，并且是需要打开Flutter页面的，发消息至flutter，打开页面
         // 如果是DNodePageTypeNative 的话直接就打开了
        if (node.pageType == DNodePageTypeFlutter) {
-           [self sendMessageToFlutterWithFlutterNodes:@[node.target] node:node pageType:@{node.target : node.pageTypeString}];
+           [self sendMessageToFlutterWithFlutterNodes:@[node]
+                                                 node:node
+                                             pageType:@{node.target: node.pageTypeString}];
        }
     }
 }
@@ -155,56 +109,60 @@
 {
     if (node.action == DNodeActionTypeUnknow) {return;}
     DNode *targetNode = nodeList.firstObject;
-    if (!targetNode) {
-        return;
-    }
+    if (!targetNode) { return;}
+    
     DNode *preNode = [DNodeManager sharedInstance].preNode;
-    // 看当前节点的前一个节点是什么
-    if (!preNode) {
-        // 前一个节点是空的，说明前一个节点是根节点了
-        if ([self rootControllerIsFlutterController]) {
-            // 前面一页是Flutter页面
-            DNode *currentNode = [DNodeManager sharedInstance].currentNode;
-            if (currentNode.pageType == DNodePageTypeFlutter) {
-                // 当前页面还是Flutter，则发消息返回到上一页
-                NSDictionary *pageType = [self getPageTypeNodeList:nodeList];
-                [self sendMessageToFlutterWithFlutterNodes:@[targetNode.target] node:node pageType:pageType];
-            }
-        } else {
-            // 前面一页不是Flutter页面，如果消息是来自Flutter的则把当前controller关闭掉，
-            // 如果消息是来自native的，则说明是native popViewControllerAnimated触发的操作进入到这里的，所以要去重
-            if (node.fromFlutter) {
-                [self closeViewControllerWithNode:node];
-                [self sendMessageToFlutterWithFlutterNodes:@[targetNode.target] node:node pageType:@{node.target : node.pageTypeString}];
-            }
-        }
-    } else {
-        DNode *currentNode = [DNodeManager sharedInstance].currentNode;
-        if (!currentNode) { return;}
-        if (currentNode.pageType == DNodePageTypeFlutter) {
-            // 当前页面是Flutter
-            if (preNode.pageType == DNodePageTypeFlutter) {
+    DNode *currentNode = [DNodeManager sharedInstance].currentNode;
+    
+    if (!currentNode) { return;}
+    if (currentNode.pageType == DNodePageTypeFlutter) {
+        switch (preNode.pageType) {
+            case DNodePageTypeFlutter:
+            {
                 // 前一个页面是Flutter
                 if (node.action == DNodeActionTypeDismiss) {
                     // 当前的flutter页面是被单独的flutterViewController 承载的，要dismiss
                     [self dismissViewController];
                 }
-                [self sendMessageToFlutterWithFlutterNodes:@[targetNode.target] node:node pageType:@{node.target : node.pageTypeString}];
-            } else if (preNode.pageType == DNodePageTypeNative) {
+                [self sendMessageToFlutterWithFlutterNodes:nodeList
+                                                      node:node
+                                                  pageType:@{node.target: node.pageTypeString}];
+                break;
+            }
+            case DNodePageTypeNative:
+            {
                 // 前一个页面是Native, 关闭当前的FlutterViewController，并且发消息告诉flutter返回上一页
                 [self closeViewControllerWithNode:node];
-                [self sendMessageToFlutterWithFlutterNodes:@[targetNode.target] node:node pageType:@{node.target : node.pageTypeString}];
+                [self sendMessageToFlutterWithFlutterNodes:nodeList
+                                                      node:node
+                                                  pageType:@{node.target: node.pageTypeString}];
+                break;
             }
-        } else if (currentNode.pageType == DNodePageTypeNative) {
-            // 当前页面是Native
-            if (preNode.pageType == DNodePageTypeFlutter) {
-                // 前一个页面是Flutter，直接返回上一个页面，不处理
-                DStackLog(@"当前页面是Native,前一个页面是Flutter，直接返回上一个页面，不处理");
-            } else {
-                // 前一个页面是Native
-                DStackLog(@"当前页面是Native,前一个页面是Native，直接返回上一个页面，不处理");
+            case DNodePageTypeUnknow:
+            {
+                // 前一个节点根节点，并且是Flutter页面
+                if ([self rootControllerIsFlutterController]) {
+                    // 当前页面还是Flutter，则发消息返回到上一页
+                    NSDictionary *pageType = [self getPageTypeNodeList:nodeList];
+                    [self sendMessageToFlutterWithFlutterNodes:nodeList
+                                                          node:node
+                                                      pageType:pageType];
+                } else {
+                    // 前面一页不是Flutter页面，如果消息是来自Flutter的则把当前controller关闭掉，
+                    // 如果消息是来自native的，则说明是native popViewControllerAnimated触发的操作进入到这里的，所以要去重
+                    if (node.fromFlutter) {
+                        [self closeViewControllerWithNode:node];
+                        [self sendMessageToFlutterWithFlutterNodes:nodeList
+                                                              node:node
+                                                          pageType:@{node.target: node.pageTypeString}];
+                    }
+                }
+                break;
             }
+            default:break;
         }
+    } else if (currentNode.pageType == DNodePageTypeNative) {
+        DStackLog(@"当前页面是Native，直接返回上一个页面，不需要处理");
     }
 }
 
@@ -214,95 +172,78 @@
 + (void)closePageListWithNode:(DNode *)node willRemovedList:(nullable NSArray<DNode *> *)nodeList
 {
     // 拆分出native的节点和flutter的节点
+    if (!nodeList.count) { return; }
+    // 临界节点 DFlutterViewController
+    int boundaryCount = 0;
+    
     NSMutableArray <DNode *>*nativeNodes = [[NSMutableArray alloc] init];
-    NSMutableArray <NSString *>*flutterNodes = [[NSMutableArray alloc] init];
-    [nodeList enumerateObjectsUsingBlock:^(DNode *obj, NSUInteger idx, BOOL *stop) {
+    NSMutableArray <DNode *>*flutterNodes = [[NSMutableArray alloc] init];
+    for (DNode *obj in nodeList) {
         if (obj.pageType == DNodePageTypeNative) {
             [nativeNodes addObject:obj];
         } else if (obj.pageType == DNodePageTypeFlutter) {
-            [flutterNodes addObject:obj.target];
+            [flutterNodes addObject:obj];
+            if ([obj.identifier containsString:@"DFlutterViewController"]) {
+                boundaryCount += 1;
+            }
         }
-    }];
-
+    }
+    
     if (flutterNodes.count) {
         // flutter的节点信息直接发消息到flutter
         [self sendMessageToFlutterWithFlutterNodes:flutterNodes node:node pageType:@{node.target : node.pageTypeString}];
     }
     if (!node.fromFlutter) { return;}
     
-    BOOL animation = NO;
     UINavigationController *navigation = [self currentNavigationControllerWithNode:node];
-    if (node.action == DNodeActionTypePopTo ||
-        node.action == DNodeActionTypePopSkip) {
-        // 需要找出目的页面所在的controller
-        NSArray *vcs = navigation.viewControllers;
-        UIViewController *target = nil;
-        if (nativeNodes.count) {
-            NSInteger idx = 0;
-            target = vcs.firstObject;
-            for (NSInteger i = vcs.count - 1; i >= 0; i --) {
-                UIViewController *x = vcs[i];
-                if ([NSStringFromClass(x.class) isEqualToString:nativeNodes.firstObject.target]) {
-                    target = vcs[i];
-                    idx = i;
-                    break;
-                }
-            }
-            if (idx > 0) {
-                target = vcs[idx - 1];
-            }
-        } else {
-            // nativeNodes里面没有Native页面，需要判断目的页是不是临界点的页面
-            DNode *targetNode = nil;
-            if (node.action == DNodeActionTypePopSkip) {
-                if (nodeList.count) {
-                    NSInteger idx = [[[DNodeManager sharedInstance] currentNodeList] indexOfObject:nodeList.firstObject];
-                    if (idx > 0 && idx < [DNodeManager sharedInstance].currentNodeList.count) {
-                        targetNode = [[DNodeManager sharedInstance] currentNodeList][idx - 1];
-                    }
-                }
-            } else {
-                targetNode = [[DNodeManager sharedInstance] nodeWithTarget:node.target];
-            }
-            if (targetNode && targetNode.pageType == DNodePageTypeNative) {
-                // 是属于临界点的页面
-                for (NSInteger i = vcs.count - 1; i >= 0; i --) {
-                    UIViewController *x = vcs[i];
-                    if ([NSStringFromClass(x.class) isEqualToString:targetNode.target]) {
-                        target = x;
-                        animation = YES;
-                        break;
-                    }
-                }
-            }
-        }
-        if (target) {
-            [navigation setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
-            [navigation popToViewController:target animated:animation];
-        } else {
-            DStackError(@"%@", @"没有找到需要关闭的controller");
-        }
-    } else if (node.action == DNodeActionTypePopToRoot) {
+    if (node.action == DNodeActionTypePopToRoot ||
+        node.action == DNodeActionTypePopToNativeRoot) {
         [navigation setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
         [navigation popToRootViewControllerAnimated:YES];
+        return;
+    }
+
+    NSInteger index = navigation.viewControllers.count - boundaryCount - nativeNodes.count - 1;
+    index = index < 0 ? 0 : index;
+    UIViewController *target = navigation.viewControllers[index];
+    if (target) {
+        [navigation setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
+        [navigation popToViewController:target animated:YES];
+    } else {
+        DStackError(@"%@", @"没有找到需要关闭的controller");
     }
 }
 
 /// 发消息至Flutter
 /// @param flutterNodes 需要发送至flutter的节点信息
 /// @param node 目标节点信息
-+ (void)sendMessageToFlutterWithFlutterNodes:(NSArray <NSString *>*)flutterNodes
-                                        node:(DNode *)node pageType:(NSDictionary *)pageType
++ (void)sendMessageToFlutterWithFlutterNodes:(NSArray <DNode *>*)flutterNodes
+                                        node:(DNode *)node
+                                    pageType:(NSDictionary *)pageType
 {
+    if (node.canRemoveNode) {return;}
+    NSMutableArray *nodes = [[NSMutableArray alloc] init];
+    if ((node.action == DNodeActionTypePush ||
+         node.action == DNodeActionTypePresent ||
+         node.action == DNodeActionTypeReplace)) {
+        [nodes addObject:flutterNodes.firstObject.target];
+    } else {
+        for (DNode *x in flutterNodes) {
+            if (!x.isFlutterHomePage) {
+                //homePage 页面不能pop，不然会黑屏
+                [nodes addObject:x.target];
+            }
+        }
+    }
+    
     NSDictionary *dataToFlutter = @{
         @"action": node.actionTypeString,
         @"params": node.params ? node.params : @{},
-        @"nodes": flutterNodes,
+        @"nodes": nodes,
         @"pageType": pageType,
         @"homePage": @(node.isFlutterHomePage),
         @"animated": @(node.animated)
     };
-    if (node.canRemoveNode) {return;}
     DStackLog(@"发送【sendActionToFlutter】消息至Flutter\n参数 == %@", dataToFlutter);
     [[DStackPlugin sharedInstance] invokeMethod:DStackMethodChannelSendActionToFlutter arguments:dataToFlutter result:^(id  _Nullable result) {
         

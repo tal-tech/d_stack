@@ -16,6 +16,7 @@
 @property (nonatomic, assign) NSInteger pageCount;
 @property (nonatomic, copy) NSString *debugLogPath;
 @property (nonatomic, strong) dispatch_queue_t logQueue;
+/// 列表第一个节点是根节点，只有一个 / 代表根
 @property (nonatomic, strong) NSMutableArray <DNode *>*nodeList;
 
 @end
@@ -50,10 +51,6 @@
     
     switch (node.action) {
         case DNodeActionTypePush:
-        {
-            subArray = [self pushNodeToListWithNode:node];
-            break;
-        }
         case DNodeActionTypePresent:
         {
             subArray = [self pushNodeToListWithNode:node];
@@ -100,13 +97,9 @@
             break;
         }
         case DNodeActionTypePopToRoot:
-        {
-            subArray = [self.nodeList copy];
-            break;
-        }
         case DNodeActionTypePopToNativeRoot:
         {
-            subArray = [self.nodeList copy];
+            subArray = [self.nodeList subarrayWithRange:NSMakeRange(1, self.nodeList.count - 1)];
             break;
         }
         case DNodeActionTypePopSkip:
@@ -125,6 +118,7 @@
             break;
         }
         case DNodeActionTypePop:
+        case DNodeActionTypeDismiss:
         {
             subArray = [self popNodeToListWithNode:node];
             break;
@@ -135,11 +129,6 @@
                 DNode *lastNode = self.nodeList.lastObject;
                 if (lastNode) { subArray = @[lastNode];}
             }
-            break;
-        }
-        case DNodeActionTypeDismiss:
-        {
-            subArray = [self popNodeToListWithNode:node];
             break;
         }
         case DNodeActionTypeDidPop:
@@ -192,37 +181,57 @@
 - (void)removeNodesWithNodeArray:(NSArray *)subArray node:(DNode *)node
 {
     if (!node.fromFlutter) {
-        // 原生自己的直接出栈
-        if (!(node.action == DNodeActionTypePush || node.action == DNodeActionTypePresent)) {
-            // 先执行跳转，再出栈管理
-            [self outStackWithNode:node nodeArray:subArray];
+        switch (node.action) {
+            case DNodeActionTypePop:
+            case DNodeActionTypePopTo:
+            case DNodeActionTypePopToRoot:
+            case DNodeActionTypePopToNativeRoot:
+            case DNodeActionTypePopSkip:
+            case DNodeActionTypeGesture:
+            case DNodeActionTypeDismiss:
+            case DNodeActionTypeReplace:
+            case DNodeActionTypeDidPop:
+            {
+                [self outStackWithNode:node nodeArray:subArray];
+                break;
+            }
+            default:break;
         }
     } else {
-        if (node.action == DNodeActionTypeDidPop) {
-            // 收到flutter的确认出栈信息才执行出栈
-            if (node.canRemoveNode && subArray.count) {
-                [self outStackWithNode:node nodeArray:subArray];
+        switch (node.action) {
+            case DNodeActionTypeDidPop:
+            {
+                if (node.canRemoveNode) {
+                    [self outStackWithNode:node nodeArray:subArray];
+                }
+                break;
             }
-        } else {
-            if ((node.action == DNodeActionTypePopTo ||
-                 node.action == DNodeActionTypePopSkip ||
-                 node.action == DNodeActionTypePopToRoot ||
-                 node.action == DNodeActionTypeGesture)) {
-                // 先执行跳转，再出栈管理
+            case DNodeActionTypePopTo:
+            case DNodeActionTypePopSkip:
+            case DNodeActionTypePopToRoot:
+            case DNodeActionTypeGesture:
+            {
                 [self outStackWithNode:node nodeArray:subArray];
-            } else if (node.action == DNodeActionTypePop ||
-                       node.action == DNodeActionTypeDismiss) {
+                break;
+            }
+            case DNodeActionTypePop:
+            case DNodeActionTypeDismiss:
+            {
                 if (subArray.count == 1) {
                     DNode *first = subArray.firstObject;
                     if (first.isFlutterHomePage) {
                         [self outStackWithNode:node nodeArray:subArray];
                     }
                 }
+                break;
             }
+            default:break;
         }
     }
 }
 
+/// 进栈
+/// @param node node
 - (NSArray *)inStackWithNode:(DNode *)node
 {
     NSArray *subArray = @[node];
@@ -245,6 +254,9 @@
     return subArray;
 }
 
+/// 出栈
+/// @param node node
+/// @param subArray 出栈列表
 - (void)outStackWithNode:(DNode *)node nodeArray:(NSArray *)subArray
 {
     if (!subArray.count) { return;}
@@ -289,16 +301,9 @@
     if (stack.delegate && [stack.delegate respondsToSelector:@selector(dStack:applicationState:visibleNode:)]) {
         [stack.delegate dStack:stack applicationState:state visibleNode:stackNode];
     }
-    NSString *currentRoute = @"";
-    if (!self.nodeList.count) {
-        // 节点列表里面没用记录根页面的路由，/代表根页面
-        currentRoute = @"/";
-    } else {
-        currentRoute = stackNode.route ? stackNode.route : @"";
-    }
     NSDictionary *params = @{
         @"application": @{
-                @"currentRoute": currentRoute,
+                @"currentRoute": stackNode.route ? stackNode.route : @"",
                 @"pageType": node.pageString ? node.pageString : @"",
                 @"state": @(state)
         }
@@ -320,17 +325,6 @@
     }
     NSString *appearRoute = stackAppearNode.route ? stackAppearNode.route : @"";
     NSString *disappearRoute = stackDisappearNode.route ? stackDisappearNode.route : @"";
-    if (isPush) {
-        // 节点列表里面没用记录根页面的路由，/代表根页面
-        if (!self.preNode) {
-            disappearRoute = @"/";
-        }
-    } else {
-        if (!self.nodeList.count) {
-            appearRoute = @"/";
-        }
-    }
-    
     NSDictionary *params = @{
         @"page": @{
                 @"actionType": isPush ? @"push" : @"pop",
@@ -345,6 +339,7 @@
                                          result:nil];
 }
 
+    
 #pragma mark -- private
 
 - (DNode *)nodeWithTarget:(NSString *)target
@@ -362,9 +357,9 @@
 
 - (BOOL)nativePopGestureCanReponse
 {
-    if (self.nodeList.count == 0) {
+    if (self.nodeList.count <= 1) {
         return YES;
-    } else if (self.nodeList.count == 1) {
+    } else if (self.nodeList.count == 2) {
         return ![DActionManager rootControllerIsFlutterController];
     } else {
         // self.nodeList.count - 2 是要查看当前页面前一个页面的页面类型
@@ -502,6 +497,10 @@
 {
     if (!_nodeList) {
         _nodeList = [[NSMutableArray alloc] init];
+        DNode *rootNode = [[DNode alloc] init];
+        rootNode.target = @"/";
+        rootNode.pageType = DNodePageTypeUnknow;
+        [_nodeList addObject:rootNode];
     }
     return _nodeList;
 }
@@ -521,7 +520,7 @@
     if (self.nodeList.count > 1) {
         return [self.nodeList objectAtIndex:self.nodeList.count - 2];
     }
-    return nil;
+    return self.nodeList.firstObject;
 }
 
 - (NSString *)_page:(DNode *)node

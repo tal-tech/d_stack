@@ -41,6 +41,11 @@ NS_ASSUME_NONNULL_BEGIN
 /// 是否开启进场动画
 @property (nonatomic, assign) BOOL animated;
 
+/// 唯一id
+/// 生成规则 controller类名+contorller的内存地址
+/// DFlutterViewController_0x28268d1d0
+@property (nonatomic, copy) NSString *identifier;
+
 - (NSString *)actionTypeString;
 - (NSString *)pageTypeString;
 - (NSString *)pageString;
