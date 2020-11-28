@@ -46,6 +46,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// DFlutterViewController_0x28268d1d0
 @property (nonatomic, copy) NSString *identifier;
 
+/// 是否是flutterVC
+@property (nonatomic, assign) BOOL isFlutterClass;
+
 - (NSString *)actionTypeString;
 - (NSString *)pageTypeString;
 - (NSString *)pageString;

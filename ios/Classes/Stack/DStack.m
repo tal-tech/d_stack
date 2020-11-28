@@ -302,6 +302,7 @@
                             NSStringFromClass(controller.class), controller];
     node.identifier = identifier;
     node.animated = animated;
+    node.isFlutterClass = YES;
     [[DNodeManager sharedInstance] checkNode:node];
 }
 

@@ -183,7 +183,7 @@
             [nativeNodes addObject:obj];
         } else if (obj.pageType == DNodePageTypeFlutter) {
             [flutterNodes addObject:obj];
-            if ([obj.identifier containsString:@"DFlutterViewController"]) {
+            if (obj.isFlutterClass) {
                 boundaryCount += 1;
             }
         }

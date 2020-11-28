@@ -209,6 +209,7 @@
             case DNodeActionTypePopTo:
             case DNodeActionTypePopSkip:
             case DNodeActionTypePopToRoot:
+            case DNodeActionTypePopToNativeRoot:
             case DNodeActionTypeGesture:
             {
                 [self outStackWithNode:node nodeArray:subArray];
