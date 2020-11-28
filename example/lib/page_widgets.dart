@@ -65,7 +65,7 @@ class _Page1 extends State<Page1> {
             // }, params: {'key1': 12}, transitionDuration: Duration(milliseconds: 250));
 
             DStack.push('page2', PageType.flutter,
-                    params: {'key1': 12}, animated: false)
+                    params: {'key1': 12}, animated: true)
                 .then((data) {
               return print('pop to Page1 result $data');
             });
@@ -103,7 +103,7 @@ class Page2 extends StatelessWidget {
         child: RaisedButton(
           child: Text('present flutter page 3'),
           onPressed: () {
-            DStack.push('page3', PageType.flutter);
+            DStack.present('page3', PageType.flutter, animated: false);
           },
         ),
       ),
