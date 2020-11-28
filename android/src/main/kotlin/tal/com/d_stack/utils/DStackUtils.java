@@ -76,4 +76,12 @@ public class DStackUtils {
         flutterView.attachToFlutterEngine(flutterEngine);
         DStack.getInstance().setHasBeenExecutedResetAttachEngine(true);
     }
+
+    /**
+     * 获取唯一id
+     */
+    public static String generateUniqueId() {
+        double d = Math.random();
+        return (int) (d * 100000) + "";
+    }
 }

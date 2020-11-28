@@ -65,7 +65,7 @@ public class DStackActivityManager {
             return;
         }
         activities.add(activity);
-        setBottomActivity(activity);
+        setBottomAndTopActivity();
     }
 
     /**
@@ -78,16 +78,20 @@ public class DStackActivityManager {
         activities.remove(activity);
         handleReAttachEngine(activity);
         handleNeedRemoveActivities(activity);
+        setBottomAndTopActivity();
     }
 
     /**
-     * 设置栈顶Activity
+     * 设置栈顶和栈底Activity
      */
-    public void setTopActivity(Activity activity) {
-        if (activity == null) {
-            return;
+    public void setBottomAndTopActivity() {
+        if (activities == null || activities.size() == 0) {
+            topActivity = null;
+            bottomActivity = null;
+        } else {
+            topActivity = activities.get(activities.size() - 1);
+            bottomActivity = activities.get(0);
         }
-        topActivity = activity;
     }
 
     /**
@@ -97,21 +101,22 @@ public class DStackActivityManager {
         return topActivity;
     }
 
-    /**
-     * 设置栈底Activity
-     */
-    public void setBottomActivity(Activity activity) {
-        if (activity == null || bottomActivity != null) {
-            return;
-        }
-        bottomActivity = activity;
-    }
 
     /**
      * 获取栈底Activity
      */
     public Activity getBottomActivity() {
         return bottomActivity;
+    }
+
+    /**
+     * 获取栈内Activity数量
+     */
+    public int getActivitiesSize() {
+        if (activities == null) {
+            return 0;
+        }
+        return activities.size();
     }
 
     /**

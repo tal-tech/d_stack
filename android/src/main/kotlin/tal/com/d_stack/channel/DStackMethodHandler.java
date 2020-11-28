@@ -14,6 +14,7 @@ import tal.com.d_stack.node.DNode;
 import tal.com.d_stack.node.DNodeManager;
 import tal.com.d_stack.observer.DStackActivityManager;
 import tal.com.d_stack.utils.DLog;
+import tal.com.d_stack.utils.DStackUtils;
 
 /**
  * 框架消息通道
@@ -61,12 +62,12 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
         //创建Node节点信息
         DNode node = DNodeManager.getInstance().createNode(
                 target,
-                DStackActivityManager.getInstance().generateUniqueId(),
+                DStackUtils.generateUniqueId(),
                 pageType,
                 actionType,
                 params,
                 true,
-                homePage);
+                homePage, false);
         DNodeManager.getInstance().checkNode(node);
     }
 
@@ -121,7 +122,7 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
                 pageType,
                 actionType,
                 null,
-                true, homePage);
+                true, homePage, false);
         DNodeManager.getInstance().handleNeedRemoveFlutterNode(node);
     }
 

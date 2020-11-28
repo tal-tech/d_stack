@@ -34,11 +34,14 @@ public class DNode {
     // 是否正在执行popTo，popToRoot，popToSkip方法
     private boolean isPopTo;
 
-    // 是否是主页面
+    // 是否是flutter主页面
     private boolean isHomePage;
 
     // 页面路由和类型组合的map
     private Map<String, String> pageTypeMap;
+
+    //是否是根页面
+    private boolean isRootPage;
 
     public DNode() {
     }
@@ -121,5 +124,13 @@ public class DNode {
 
     public void setPageTypeMap(Map<String, String> pageTypeMap) {
         this.pageTypeMap = pageTypeMap;
+    }
+
+    public boolean isRootPage() {
+        return isRootPage;
+    }
+
+    public void setRootPage(boolean rootPage) {
+        isRootPage = rootPage;
     }
 }

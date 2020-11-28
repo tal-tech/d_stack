@@ -60,8 +60,12 @@ public class DActionManager {
                 );
             }
         } else {
-            // 只是来自Native的Node，并且是需要打开Flutter页面的，发消息至flutter，打开页面
+            // 只是来自native的node，并且是需要打开Flutter页面的，发消息至flutter，打开页面
             if (node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
+                if (node.isRootPage()) {
+                    //flutter根节点，不发通知给flutter
+                    return;
+                }
                 List<String> flutterNodes = new ArrayList<>();
                 flutterNodes.add(node.getTarget());
                 DStackMethodHandler.sendNode(flutterNodes, node);
@@ -74,6 +78,11 @@ public class DActionManager {
      */
     private static void closePageWithNode(DNode node) {
         if (node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
+            if (node.isRootPage() || node.isHomePage()) {
+                //根节点不移除栈，去判断临界状态
+                DNodeManager.getInstance().handleNeedRemoveFlutterNode(node);
+                return;
+            }
             //pop的是flutter页面，发消息至flutter
             List<String> flutterNodes = new ArrayList<>();
             flutterNodes.add(node.getTarget());
@@ -148,15 +157,10 @@ public class DActionManager {
     }
 
     /**
-     * 设置打开flutter页面时，节点对应的容器activity
+     * 设置打开新的页面时，节点对应的容器activity
      */
     private static void setCurrentNodeContainer() {
         DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-        if (currentNode == null) {
-            return;
-        }
-        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-            currentNode.setActivity(DStackActivityManager.getInstance().getTopActivity());
-        }
+        currentNode.setActivity(DStackActivityManager.getInstance().getTopActivity());
     }
 }

@@ -147,7 +147,7 @@ public class DStack {
                 DNodeActionType.DNodeActionTypePush,
                 params,
                 false,
-                false);
+                false, false);
         if (!DStack.getInstance().isFlutterApp()) {
             if (!DStackActivityManager.getInstance().haveFlutterContainer()) {
                 node.setHomePage(true);
@@ -184,7 +184,7 @@ public class DStack {
                     DNodePageType.DNodePageTypeFlutter,
                     DNodeActionType.DNodeActionTypeNativeToFlutterPop,
                     currentNode.getParams(),
-                    false,
+                    false, false,
                     currentNode.isHomePage());
             DNodeManager.getInstance().checkNode(node);
         }
@@ -202,7 +202,7 @@ public class DStack {
                 DNodeActionType.DNodeActionTypePop,
                 params,
                 false,
-                false);
+                false, false);
         DNodeManager.getInstance().checkNode(node);
     }
 
@@ -225,7 +225,7 @@ public class DStack {
     public void popToRoot() {
         DNode rootNode = DNodeManager.getInstance().createNode(""
                 , "", "", DNodeActionType.DNodeActionTypePopToRoot
-                , null, false, false);
+                , null, false, false, false);
         DNodeManager.getInstance().checkNode(rootNode);
     }
 
@@ -235,7 +235,7 @@ public class DStack {
     public void popToRoot(Map<String, Object> params) {
         DNode rootNode = DNodeManager.getInstance().createNode(""
                 , "", "", DNodeActionType.DNodeActionTypePopToRoot
-                , params, false, false);
+                , params, false, false, false);
         DNodeManager.getInstance().checkNode(rootNode);
     }
 
@@ -276,21 +276,21 @@ public class DStack {
      * 监听flutter控制器的返回键，处理多个flutter控制器，根节点无法返回的问题
      */
     public void listenBackPressed() {
-        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-        if (currentNode == null) {
-            return;
-        }
-        if (DStack.getInstance().isFlutterApp()) {
-            return;
-        }
-        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-            if (currentNode.isHomePage()) {
-                if (hasBeenExecutedResetAttachEngine) {
-                    DStackActivityManager.getInstance().closeTopFlutterActivity();
-                    hasBeenExecutedResetAttachEngine = false;
-                }
-            }
-        }
+//        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
+//        if (currentNode == null) {
+//            return;
+//        }
+//        if (DStack.getInstance().isFlutterApp()) {
+//            return;
+//        }
+//        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
+//            if (currentNode.isHomePage()) {
+//                if (hasBeenExecutedResetAttachEngine) {
+//                    DStackActivityManager.getInstance().closeTopFlutterActivity();
+//                    hasBeenExecutedResetAttachEngine = false;
+//                }
+//            }
+//        }
     }
 
     /**

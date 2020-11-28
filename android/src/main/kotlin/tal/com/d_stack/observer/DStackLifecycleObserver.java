@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import io.flutter.embedding.android.FlutterView;
+import tal.com.d_stack.DStack;
 import tal.com.d_stack.lifecycle.PageLifecycleManager;
 import tal.com.d_stack.node.DNode;
 import tal.com.d_stack.node.DNodeManager;
@@ -22,9 +23,12 @@ import tal.com.d_stack.utils.DStackUtils;
 public class DStackLifecycleObserver implements Application.ActivityLifecycleCallbacks {
 
     private int appCount = 0;
+    //app是否在前台
     private boolean isFrontApp = true;
+    //当前活动activity
     private Activity activeActivity;
-    private boolean appCreate = false;
+    //是否app启动
+    boolean appStart;
 
     @Override
     public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
@@ -32,36 +36,54 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
         if (!canAdd) {
             return;
         }
-        activeActivity = activity;
-        Activity bottomActivity = DStackActivityManager.getInstance().getBottomActivity();
-        appCreate = bottomActivity == null;
         DStackActivityManager.getInstance().addActivity(activity);
-        String uniqueId = DStackActivityManager.getInstance().generateUniqueId();
-        if (DStackActivityManager.getInstance().isFlutterActivity(activity)) {
-            //如果是flutterActivity，那么不记录节点
-            //把当前节点的activity赋值
-            DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-            if (currentNode != null &&
-                    currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-                currentNode.setActivity(activity);
+        activeActivity = activity;
+        appStart = DStackActivityManager.getInstance().getActivitiesSize() == 1;
+        if (appStart) {
+            DNode node;
+            //应用刚刚启动时
+            if (DStackActivityManager.getInstance().isFlutterActivity(activity)) {
+                //是flutter工程，添加根节点
+                node = DNodeManager.getInstance().createNode(
+                        "/",
+                        DStackUtils.generateUniqueId(),
+                        DNodePageType.DNodePageTypeFlutter,
+                        DNodeActionType.DNodeActionTypePush,
+                        null,
+                        false,
+                        true,
+                        true);
+            } else {
+                //是native工程，添加根节点
+                node = DNodeManager.getInstance().createNode(
+                        "/",
+                        DStackUtils.generateUniqueId(),
+                        DNodePageType.DNodePageTypeNative,
+                        DNodeActionType.DNodeActionTypePush,
+                        null,
+                        false,
+                        true,
+                        true);
             }
-        } else {
-            //当前activity是nativeActivity，记录节点，并且赋值节点的activity
-            DNode node = DNodeManager.getInstance().createNode(
-                    activity.getClass().getName(),
-                    uniqueId,
-                    DNodePageType.DNodePageTypeNative,
-                    DNodeActionType.DNodeActionTypePush,
-                    null,
-                    false,
-                    false);
             DNodeManager.getInstance().checkNode(node);
-            DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-            if (currentNode != null) {
-                currentNode.setActivity(activity);
+        } else {
+            //应用已经启动，打开新的activity
+            if (!DStackActivityManager.getInstance().isFlutterActivity(activity)) {
+                //是native工程，添加普通节点
+                DNode node = DNodeManager.getInstance().createNode(
+                        activity.getClass().getName(),
+                        DStackUtils.generateUniqueId(),
+                        DNodePageType.DNodePageTypeNative,
+                        DNodeActionType.DNodeActionTypePush,
+                        null,
+                        false,
+                        false,
+                        false);
+                DNodeManager.getInstance().checkNode(node);
             }
         }
-        if (appCreate) {
+        if (appStart) {
+            //app启动通知
             PageLifecycleManager.appCreate();
         }
     }
@@ -83,10 +105,10 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
         }
         if (activeActivity == activity) {
             //正在执行创建activity的逻辑，打开新页面操作，onCreate，onResumed方法是同一个activity
-            DStackActivityManager.getInstance().setTopActivity(activity);
+
         } else {
             activeActivity = activity;
-            DStackActivityManager.getInstance().setTopActivity(activity);
+
             //正在执行恢复activity的逻辑，页面返回操作，onCreate，onResumed不是同一个activity
             if (DStackActivityManager.getInstance().isNeedReAttachEngine()) {
                 //判断是否需要重新attach flutter引擎，1.17以上bug，解决软键盘不能弹出问题
@@ -114,39 +136,37 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
     }
 
     @Override
-    public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
-
-    }
-
-    @Override
     public void onActivityDestroyed(@NonNull Activity activity) {
         boolean canAdd = FilterActivityManager.getInstance().canAdd(activity);
         if (!canAdd) {
             return;
         }
-        boolean isPopTo = DStackActivityManager.getInstance().isPopTo();
         DStackActivityManager.getInstance().removeActivity(activity);
-        if (DStackActivityManager.getInstance().isFlutterActivity(activity)) {
-            DNode node = DNodeManager.getInstance().getCurrentNode();
-            if (node == null) {
-                return;
-            }
-            //打开flutter控制器后，homePage页面，点击返回键，不会触发消息，需要手动移除节点
-            if (node.isHomePage() && node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-                DNodeManager.getInstance().deleteLastNode();
-                PageLifecycleManager.pageDisappear(node);
-            }
-            return;
-        }
+        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
+        boolean isPopTo = DStackActivityManager.getInstance().isPopTo();
         DNode node = DNodeManager.getInstance().createNode(
-                activity.getClass().getName(),
-                DStackActivityManager.getInstance().generateUniqueId(),
-                DNodePageType.DNodePageTypeNative,
+                currentNode.getTarget(),
+                currentNode.getUniqueId(),
+                currentNode.getPageType(),
                 DNodeActionType.DNodeActionTypePop,
-                null,
-                false, false);
+                currentNode.getParams(),
+                false,
+                currentNode.isHomePage(),
+                currentNode.isRootPage());
         node.setPopTo(isPopTo);
         DNodeManager.getInstance().checkNode(node);
+//        if (DStackActivityManager.getInstance().isFlutterActivity(activity)) {
+//            DNode node = DNodeManager.getInstance().getCurrentNode();
+//            //打开flutter控制器后，homePage页面，点击返回键，不会触发消息，需要手动移除节点
+//            if (node.isHomePage() && node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
+//                DNodeManager.getInstance().deleteLastNode();
+//                PageLifecycleManager.pageDisappear(node);
+//            }
+//            return;
+//        }
+
+//        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
+
     }
 
     /**
@@ -156,4 +176,8 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
         return appCount > 0;
     }
 
+    @Override
+    public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
+
+    }
 }

@@ -385,6 +385,9 @@ class DNavigatorManager {
       maintainState: maintainState,
       pageBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> secondaryAnimation) {
+        if(routeName =='/') {
+
+        }
         DStackWidgetBuilder stackWidgetBuilder =
             DStack.instance.pageBuilder(routeName);
 

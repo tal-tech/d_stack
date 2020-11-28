@@ -42,6 +42,7 @@ class _Page1 extends State<Page1> {
       body: Center(
         child: Column(
           children: [
+            TextField(),
             RaisedButton(
               child: Text('push flutter page 2'),
               onPressed: () {
