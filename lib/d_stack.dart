@@ -84,21 +84,26 @@ class DStack {
   /// routeName 路由名，
   /// pageType native或者flutter,
   /// params 参数
+  /// animated 是否有进场动画
   static Future push(String routeName, PageType pageType,
-      {Map params, bool maintainState = true}) {
-    return DNavigatorManager.push(routeName, pageType, params, maintainState);
+      {Map params, bool maintainState = true, bool animated = true}) {
+    return DNavigatorManager.push(
+        routeName, pageType, params, maintainState, animated);
   }
 
   /// 弹出一个页面
+  /// animated 是否有进场动画
   static Future present(String routeName, PageType pageType,
-      {Map params, bool maintainState = true}) {
+      {Map params, bool maintainState = true, bool animated = true}) {
     return DNavigatorManager.present(
-        routeName, pageType, params, maintainState);
+        routeName, pageType, params, maintainState, animated);
   }
 
   /// 自定义转场动画进入页面
   /// flutter页面通过animatedBuilder自定义动画
   /// native页面会转发到native，由native自行接入实现
+  /// replace：true flutter的pushReplacement实现
+  /// replace：false flutter的push实现
   static Future animationPage(
     String routeName,
     PageType pageType,
@@ -111,6 +116,7 @@ class DStack {
     String barrierLabel,
     bool maintainState = true,
     bool fullscreenDialog = false,
+    bool replace = false,
   }) {
     return DNavigatorManager.animationPage(
         routeName,
@@ -123,30 +129,40 @@ class DStack {
         barrierColor,
         barrierLabel,
         maintainState,
-        fullscreenDialog);
+        fullscreenDialog,
+        replace);
   }
 
   /// 等同push
   /// builder 页面builder
+  /// animated 是否有进场动画
   static Future pushBuild(
       String routeName, PageType pageType, WidgetBuilder builder,
-      {Map params, bool maintainState = true, bool fullscreenDialog = false}) {
-    return DNavigatorManager.pushBuild(
-        routeName, pageType, builder, params, maintainState, fullscreenDialog);
-  }
-
-  /// 只支持flutter使用，替换flutter页面
-  static Future replace(String routeName, PageType pageType,
       {Map params,
       bool maintainState = true,
       bool fullscreenDialog = false,
-      bool homePage = false,
       bool animated = true}) {
+    return DNavigatorManager.pushBuild(routeName, pageType, builder, params,
+        maintainState, fullscreenDialog, animated);
+  }
+
+  /// 只支持flutter使用，替换flutter页面
+  /// animated 是否有进场动画
+  static Future replace(
+    String routeName,
+    PageType pageType, {
+    Map params,
+    bool maintainState = true,
+    bool fullscreenDialog = false,
+    bool animated = true,
+    bool homePage = false,
+  }) {
     return DNavigatorManager.replace(routeName, pageType,
         params: params,
         maintainState: maintainState,
         homePage: homePage,
-        animated: animated);
+        animated: animated,
+        fullscreenDialog: fullscreenDialog);
   }
 
   /// pop

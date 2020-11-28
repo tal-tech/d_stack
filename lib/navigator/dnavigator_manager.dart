@@ -26,15 +26,19 @@ class DNavigatorManager {
   static NavigatorState get _navigator =>
       DStack.instance.navigatorKey.currentState;
 
-  /// 推出页面
   static Future push(String routeName, PageType pageType,
-      [Map params, bool maintainState]) {
+      [Map params, bool maintainState, bool animated = true]) {
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(
           routeName, pageType, DStackConstant.push, {});
-
-      MaterialPageRoute route = DNavigatorManager.materialRoute(
-          routeName: routeName, params: params, maintainState: maintainState);
+      var route;
+      if (animated) {
+        route = DNavigatorManager.materialRoute(
+            routeName: routeName, params: params, maintainState: maintainState);
+      } else {
+        route =
+            slideRoute(routeName: routeName, params: params, milliseconds: 0);
+      }
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(
@@ -45,12 +49,24 @@ class DNavigatorManager {
 
   /// 弹出页面
   static Future present(String routeName, PageType pageType,
-      [Map params, bool maintainState]) {
+      [Map params, bool maintainState, bool animated = true]) {
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(
           routeName, pageType, DStackConstant.present, {});
-      PageRouteBuilder route =
-          slideRoute(routeName: routeName, params: params, milliseconds: 300);
+      var route;
+      if (animated) {
+        route = DNavigatorManager.materialRoute(
+            routeName: routeName,
+            params: params,
+            maintainState: maintainState,
+            fullscreenDialog: true);
+      } else {
+        route = slideRoute(
+            routeName: routeName,
+            params: params,
+            milliseconds: 0,
+            fullscreenDialog: true);
+      }
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(
@@ -72,6 +88,7 @@ class DNavigatorManager {
     String barrierLabel,
     bool maintainState = true,
     bool fullscreenDialog = false,
+    bool replace = false,
   ]) {
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(
@@ -88,7 +105,11 @@ class DNavigatorManager {
         maintainState: maintainState,
         fullscreenDialog: fullscreenDialog,
       );
-      return _navigator.push(route);
+      if (replace) {
+        return _navigator.pushReplacement(route);
+      } else {
+        return _navigator.push(route);
+      }
     } else {
       DNavigatorManager.nodeHandle(
           routeName, pageType, DStackConstant.push, params);
@@ -99,18 +120,26 @@ class DNavigatorManager {
   /// 提供外界直接传builder的能力
   static Future pushBuild(
       String routeName, PageType pageType, WidgetBuilder builder,
-      [Map params, bool maintainState, bool fullscreenDialog]) {
+      [Map params,
+      bool maintainState,
+      bool fullscreenDialog,
+      bool animated = true]) {
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(
           routeName, PageType.flutter, DStackConstant.push, {});
-
-      RouteSettings userSettings =
-          RouteSettings(name: routeName, arguments: params);
-      MaterialPageRoute route = MaterialPageRoute(
-          settings: userSettings,
-          builder: builder,
-          maintainState: maintainState,
-          fullscreenDialog: fullscreenDialog);
+      var route;
+      if (animated) {
+        RouteSettings userSettings =
+            RouteSettings(name: routeName, arguments: params);
+        route = MaterialPageRoute(
+            settings: userSettings,
+            builder: builder,
+            maintainState: maintainState,
+            fullscreenDialog: fullscreenDialog);
+      } else {
+        route =
+            slideRoute(routeName: routeName, params: params, milliseconds: 0);
+      }
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(
@@ -124,7 +153,8 @@ class DNavigatorManager {
       {Map params,
       bool maintainState = true,
       bool homePage = false,
-      bool animated = true}) {
+      bool animated = true,
+      bool fullscreenDialog = false}) {
     DNavigatorManager.nodeHandle(
         routeName, pageType, DStackConstant.replace, params, homePage);
     if (pageType == PageType.flutter) {
@@ -133,8 +163,11 @@ class DNavigatorManager {
         route = DNavigatorManager.materialRoute(
             routeName: routeName, params: params, maintainState: maintainState);
       } else {
-        route =
-            slideRoute(routeName: routeName, params: params, milliseconds: 0);
+        route = slideRoute(
+            routeName: routeName,
+            params: params,
+            milliseconds: 0,
+            fullscreenDialog: fullscreenDialog);
       }
       return _navigator.pushReplacement(route);
     } else {
@@ -239,7 +272,8 @@ class DNavigatorManager {
             if (pageTypeStr == "flutter") {
               pageType = PageType.flutter;
             }
-            return replace(router, pageType, homePage: homePage);
+            return replace(router, pageType,
+                homePage: homePage, animated: false);
           } else {
             bool animated = arguments['animated'];
             if (animated != null && animated == true) {
@@ -297,23 +331,29 @@ class DNavigatorManager {
 
   /// 从下往上弹出动画
   static PageRouteBuilder slideRoute(
-      {String routeName, Map params, int milliseconds}) {
+      {String routeName,
+      Map params,
+      int milliseconds,
+      bool fullscreenDialog = false}) {
     return animationRoute(
         routeName: routeName,
         params: params,
         animatedBuilder: (BuildContext context, Animation<double> animation,
             Animation<double> secondaryAnimation, WidgetBuilder widgetBuilder) {
-          Offset startOffset = const Offset(1.0, 0.0);
-          Offset endOffset = const Offset(0.0, 0.0);
-          var curvedAnimation = CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutQuint,
-          );
+          double startOffsetX = fullscreenDialog ? 0 : 1.0;
+          double startOffsetY = fullscreenDialog ? 1.0 : 0;
+          Offset startOffset = Offset(startOffsetX, startOffsetY);
+          Offset endOffset = const Offset(0, 0);
+
           return SlideTransition(
-            position: Tween<Offset>(
+            transformHitTests: true,
+            position: new Tween<Offset>(
               begin: startOffset,
               end: endOffset,
-            ).animate(curvedAnimation),
+            ).animate(CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOutCubic,
+            )),
             child: widgetBuilder(context),
           );
         },
@@ -325,7 +365,7 @@ class DNavigatorManager {
     @required AnimatedPageBuilder animatedBuilder,
     @required String routeName,
     Map params,
-    Duration transitionDuration = const Duration(milliseconds: 300),
+    Duration transitionDuration = const Duration(milliseconds: 200),
     bool opaque = true,
     bool barrierDismissible = false,
     Color barrierColor,
