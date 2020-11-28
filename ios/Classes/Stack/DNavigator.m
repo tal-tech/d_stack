@@ -91,9 +91,11 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 - (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller
 {
     NSString *name = controller.oldDismissDelegateName;
-    id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
-    if (oldDelegate && [oldDelegate respondsToSelector:@selector(adaptivePresentationStyleForPresentationController:)]) {
-        return [oldDelegate adaptivePresentationStyleForPresentationController:controller];
+    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
+        id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+        if (oldDelegate && [oldDelegate respondsToSelector:@selector(adaptivePresentationStyleForPresentationController:)]) {
+            return [oldDelegate adaptivePresentationStyleForPresentationController:controller];
+        }
     }
     return controller.presentationStyle;
 }
@@ -101,10 +103,12 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 - (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller traitCollection:(UITraitCollection *)traitCollection API_AVAILABLE(ios(8.3))
 {
     NSString *name = controller.oldDismissDelegateName;
-    id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
-    if (oldDelegate && [oldDelegate respondsToSelector:@selector(adaptivePresentationStyleForPresentationController:traitCollection:)]) {
-        return [oldDelegate adaptivePresentationStyleForPresentationController:controller
-                                                               traitCollection:traitCollection];
+    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
+        id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+        if (oldDelegate && [oldDelegate respondsToSelector:@selector(adaptivePresentationStyleForPresentationController:traitCollection:)]) {
+            return [oldDelegate adaptivePresentationStyleForPresentationController:controller
+                                                                   traitCollection:traitCollection];
+        }
     }
     return controller.presentationStyle;
 }
@@ -112,10 +116,12 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 - (nullable UIViewController *)presentationController:(UIPresentationController *)controller viewControllerForAdaptivePresentationStyle:(UIModalPresentationStyle)style
 {
     NSString *name = controller.oldDismissDelegateName;
-    id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
-    if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationController:viewControllerForAdaptivePresentationStyle:)]) {
-        return [oldDelegate presentationController:controller
-        viewControllerForAdaptivePresentationStyle:style];
+    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
+        id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+        if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationController:viewControllerForAdaptivePresentationStyle:)]) {
+            return [oldDelegate presentationController:controller
+            viewControllerForAdaptivePresentationStyle:style];
+        }
     }
     return nil;
 }
@@ -134,9 +140,11 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 - (BOOL)presentationControllerShouldDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
 {
     NSString *name = presentationController.oldDismissDelegateName;
-    id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
-    if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationControllerShouldDismiss:)]) {
-        return [oldDelegate presentationControllerShouldDismiss:presentationController];
+    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
+        id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+        if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationControllerShouldDismiss:)]) {
+            return [oldDelegate presentationControllerShouldDismiss:presentationController];
+        }
     }
     return YES;
 }
@@ -168,7 +176,11 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
                           forward:^(id<UIAdaptivePresentationControllerDelegate> delegate) {
         [delegate presentationControllerDidDismiss:presentationController];
     }];
-    [self.dismissDelegateClass removeObjectForKey:presentationController.oldDismissDelegateName];
+    
+    NSString *name = presentationController.oldDismissDelegateName;
+    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
+        [self.dismissDelegateClass removeObjectForKey:name];
+    }
 }
 
 - (void)presentationControllerDidAttemptToDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
@@ -185,10 +197,12 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
                         forward:(void(^)(id <UIAdaptivePresentationControllerDelegate> delegate))forward
 {
     NSString *name = controller.oldDismissDelegateName;
-    id <UIAdaptivePresentationControllerDelegate> delegate = self.dismissDelegateClass[name];
-    if (delegate && [delegate respondsToSelector:selector]) {
-        if (forward) {
-            forward(delegate);
+    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
+        id <UIAdaptivePresentationControllerDelegate> delegate = self.dismissDelegateClass[name];
+        if (delegate && [delegate respondsToSelector:selector]) {
+            if (forward) {
+                forward(delegate);
+            }
         }
     }
 }

@@ -26,12 +26,16 @@ class DNavigatorManager {
   static NavigatorState get _navigator => DStack.instance.navigatorKey.currentState;
 
   static Future push(String routeName, PageType pageType,
-      [Map params, bool maintainState]) {
+      [Map params, bool maintainState, bool animated = true]) {
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(routeName, pageType, 'push', {});
-
-      MaterialPageRoute route = DNavigatorManager.materialRoute(
-          routeName: routeName, params: params, maintainState: maintainState);
+      var route;
+      if (animated) {
+        route = DNavigatorManager.materialRoute(
+            routeName: routeName, params: params, maintainState: maintainState);
+      } else {
+        route = slideRoute(routeName: routeName, params: params, milliseconds: 0);
+      }
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(routeName, pageType, 'push', params);
@@ -40,14 +44,19 @@ class DNavigatorManager {
   }
 
   static Future present(String routeName, PageType pageType,
-      [Map params, bool maintainState]) {
+      [Map params, bool maintainState, bool animated = true]) {
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(routeName, pageType, 'present', {});
-      MaterialPageRoute route = DNavigatorManager.materialRoute(
-          routeName: routeName,
-          params: params,
-          maintainState: maintainState,
-          fullscreenDialog: true);
+      var route;
+      if (animated) {
+        route = DNavigatorManager.materialRoute(
+            routeName: routeName,
+            params: params,
+            maintainState: maintainState,
+            fullscreenDialog: true);
+      } else {
+        route = slideRoute(routeName: routeName, params: params, milliseconds: 0);
+      }
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(routeName, pageType, 'present', params);
@@ -67,6 +76,7 @@ class DNavigatorManager {
     String barrierLabel,
     bool maintainState = true,
     bool fullscreenDialog = false,
+    bool replace = false,
   ]) {
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(routeName, pageType, 'push', {});
@@ -82,7 +92,11 @@ class DNavigatorManager {
         maintainState: maintainState,
         fullscreenDialog: fullscreenDialog,
       );
-      return _navigator.push(route);
+      if (replace) {
+        return _navigator.pushReplacement(route);
+      } else {
+        return _navigator.push(route);
+      }
     } else {
       DNavigatorManager.nodeHandle(routeName, pageType, 'push', params);
       return Future.value(true);
@@ -91,18 +105,21 @@ class DNavigatorManager {
 
   /// 提供外界直接传builder的能力
   static Future pushBuild(String routeName, PageType pageType, WidgetBuilder builder,
-      [Map params, bool maintainState, bool fullscreenDialog]) {
+      [Map params, bool maintainState, bool fullscreenDialog, bool animated = true]) {
 
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(routeName, PageType.flutter, 'push', {});
-
-      RouteSettings userSettings =
-      RouteSettings(name: routeName, arguments: params);
-      MaterialPageRoute route = MaterialPageRoute(
-          settings: userSettings,
-          builder: builder,
-          maintainState: maintainState,
-          fullscreenDialog: fullscreenDialog);
+      var route;
+      if (animated) {
+        RouteSettings userSettings = RouteSettings(name: routeName, arguments: params);
+        route = MaterialPageRoute(
+            settings: userSettings,
+            builder: builder,
+            maintainState: maintainState,
+            fullscreenDialog: fullscreenDialog);
+      } else {
+        route = slideRoute(routeName: routeName, params: params, milliseconds: 0);
+      }
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(routeName, pageType, 'push', params);
@@ -112,12 +129,17 @@ class DNavigatorManager {
 
   /// 目前只支持flutter使用，替换flutter页面
   static Future replace(String routeName, PageType pageType,
-      [Map params, bool maintainState]) {
+      [Map params, bool maintainState, bool animated = true]) {
     DNavigatorManager.nodeHandle(routeName, pageType, 'replace', params);
 
     if (pageType == PageType.flutter) {
-      MaterialPageRoute route = DNavigatorManager.materialRoute(
-          routeName: routeName, params: params, maintainState: maintainState);
+      var route;
+      if (animated) {
+        route = DNavigatorManager.materialRoute(
+            routeName: routeName, params: params, maintainState: maintainState);
+      } else {
+        route = slideRoute(routeName: routeName, params: params, milliseconds: 0);
+      }
       return _navigator.pushReplacement(route);
     } else {
       return Future.error('not flutter page');
