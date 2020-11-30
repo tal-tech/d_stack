@@ -182,7 +182,7 @@ public class DStack {
                     currentNode.getTarget(),
                     currentNode.getUniqueId(),
                     DNodePageType.DNodePageTypeFlutter,
-                    DNodeActionType.DNodeActionTypeNativeToFlutterPop,
+                    DNodeActionType.DNodeActionTypePop,
                     currentNode.getParams(),
                     false, false,
                     currentNode.isHomePage());
