@@ -12,7 +12,6 @@ import tal.com.d_stack.DStack;
 import tal.com.d_stack.lifecycle.PageModel;
 import tal.com.d_stack.node.DNode;
 import tal.com.d_stack.node.DNodeManager;
-import tal.com.d_stack.observer.DStackActivityManager;
 import tal.com.d_stack.utils.DLog;
 import tal.com.d_stack.utils.DStackUtils;
 
@@ -26,7 +25,6 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
      */
     @Override
     public void onMethodCall(MethodCall methodCall, MethodChannel.Result result) {
-        DLog.logE("------接收到flutter侧传来的消息------: " + methodCall.method);
         String method = methodCall.method;
         Map<String, Object> args = (Map<String, Object>) methodCall.arguments;
         switch (method) {
@@ -81,9 +79,8 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
         resultMap.put("params", node.getParams());
         resultMap.put("homePage", node.isHomePage());
         resultMap.put("pageType", node.getPageTypeMap());
-
-        DLog.logE("sendNode信息发送到flutter侧 action: " + node.getAction());
-        DLog.logE("sendNode信息发送到flutter侧 nodes: " + nodes.toString());
+        DLog.logD("sendNode信息发送到flutter侧 action: " + node.getAction());
+        DLog.logD("sendNode信息发送到flutter侧 nodes: " + nodes.toString());
         DStack.getInstance().getMethodChannel().invokeMethod("sendActionToFlutter", resultMap, new MethodChannel.Result() {
             @Override
             public void success(Object result) {
@@ -154,11 +151,6 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
         pageInfo.put("disappearPageType", pageModel.getPrePageType());
         pageInfo.put("actionType", pageModel.getActionType());
         resultMap.put("page", pageInfo);
-        DLog.logE("sendPageLifeCircle信息发送到flutter侧 appearRoute: " + pageModel.getCurrentPageRoute());
-        DLog.logE("sendPageLifeCircle信息发送到flutter侧 appearPageType: " + pageModel.getCurrentPageType());
-        DLog.logE("sendPageLifeCircle信息发送到flutter侧 disappearRoute: " + pageModel.getPrePageRoute());
-        DLog.logE("sendPageLifeCircle信息发送到flutter侧 disappearPageType: " + pageModel.getPrePageType());
-        DLog.logE("sendPageLifeCircle信息发送到flutter侧 actionType: " + pageModel.getActionType());
         DStack.getInstance().getMethodChannel().invokeMethod("sendLifeCycle", resultMap, new MethodChannel.Result() {
             @Override
             public void success(Object result) {
@@ -187,9 +179,6 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
         appInfo.put("pageType", pageModel.getCurrentPageType());
         appInfo.put("state", pageModel.getState());
         resultMap.put("application", appInfo);
-        DLog.logE("sendAppLifeCircle信息发送到flutter侧 currentRoute: " + pageModel.getCurrentPageRoute());
-        DLog.logE("sendAppLifeCircle信息发送到flutter侧 pageType: " + pageModel.getCurrentPageType());
-        DLog.logE("sendAppLifeCircle信息发送到flutter侧 state: " + pageModel.getState());
         DStack.getInstance().getMethodChannel().invokeMethod("sendLifeCycle", resultMap, new MethodChannel.Result() {
             @Override
             public void success(Object result) {

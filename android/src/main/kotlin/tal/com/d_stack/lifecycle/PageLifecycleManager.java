@@ -19,7 +19,7 @@ public class PageLifecycleManager {
      * app启动
      */
     public static void appCreate() {
-        DLog.logE("appCreate");
+        DLog.logD("appCreate");
         PageModel pageModel = new PageModel();
         pageModel.setState(PageState.APP_CREATE);
         DNode node = DNodeManager.getInstance().getCurrentNode();
@@ -37,7 +37,7 @@ public class PageLifecycleManager {
      * app进入前台
      */
     public static void appForeground() {
-        DLog.logE("appForeground");
+        DLog.logD("appForeground");
         PageModel pageModel = new PageModel();
         pageModel.setState(PageState.APP_FOREGROUND);
         DNode node = DNodeManager.getInstance().getCurrentNode();
@@ -55,7 +55,7 @@ public class PageLifecycleManager {
      * app进入后台
      */
     public static void appBackground() {
-        DLog.logE("appBackground");
+        DLog.logD("appBackground");
         PageModel pageModel = new PageModel();
         pageModel.setState(PageState.APP_BACKGROUND);
         DNode node = DNodeManager.getInstance().getCurrentNode();
@@ -73,7 +73,7 @@ public class PageLifecycleManager {
      * 页面出现
      */
     public static void pageAppear(DNode node) {
-        DLog.logE("pageAppear");
+        DLog.logD("pageAppear");
         if (node == null) {
             return;
         }
@@ -101,7 +101,7 @@ public class PageLifecycleManager {
      * 页面消失
      */
     public static void pageDisappear(DNode node) {
-        DLog.logE("pageAppear");
+        DLog.logD("pageAppear");
         if (node == null) {
             return;
         }

@@ -7,6 +7,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.lang.ref.WeakReference;
+
 import io.flutter.embedding.android.FlutterView;
 import tal.com.d_stack.DStack;
 import tal.com.d_stack.lifecycle.PageLifecycleManager;
@@ -82,6 +84,7 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
                 DNodeManager.getInstance().checkNode(node);
             }
         }
+        DNodeManager.getInstance().getCurrentNode().setActivity(new WeakReference(activity));
         if (appStart) {
             //app启动通知
             PageLifecycleManager.appCreate();
@@ -103,13 +106,9 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
         if (!canAdd) {
             return;
         }
-        if (activeActivity == activity) {
-            //正在执行创建activity的逻辑，打开新页面操作，onCreate，onResumed方法是同一个activity
-
-        } else {
-            activeActivity = activity;
-
+        if (activeActivity != activity) {
             //正在执行恢复activity的逻辑，页面返回操作，onCreate，onResumed不是同一个activity
+            activeActivity = activity;
             if (DStackActivityManager.getInstance().isNeedReAttachEngine()) {
                 //判断是否需要重新attach flutter引擎，1.17以上bug，解决软键盘不能弹出问题
                 DLog.logE("需要needReAttachEngine");
@@ -141,9 +140,9 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
         if (!canAdd) {
             return;
         }
+        boolean isPopTo = DStackActivityManager.getInstance().isExecuteStack();
         DStackActivityManager.getInstance().removeActivity(activity);
         DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-        boolean isPopTo = DStackActivityManager.getInstance().isPopTo();
         DNode node = DNodeManager.getInstance().createNode(
                 currentNode.getTarget(),
                 currentNode.getUniqueId(),
@@ -155,18 +154,6 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
                 currentNode.isRootPage());
         node.setPopTo(isPopTo);
         DNodeManager.getInstance().checkNode(node);
-//        if (DStackActivityManager.getInstance().isFlutterActivity(activity)) {
-//            DNode node = DNodeManager.getInstance().getCurrentNode();
-//            //打开flutter控制器后，homePage页面，点击返回键，不会触发消息，需要手动移除节点
-//            if (node.isHomePage() && node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-//                DNodeManager.getInstance().deleteLastNode();
-//                PageLifecycleManager.pageDisappear(node);
-//            }
-//            return;
-//        }
-
-//        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-
     }
 
     /**

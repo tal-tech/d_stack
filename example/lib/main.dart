@@ -29,8 +29,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return MaterialApp(
       navigatorKey: DStack.instance.navigatorKey,
       navigatorObservers: [DStack.instance.dStackNavigatorObserver],
-      home: DStackWidget(
-      ),
+      home: DStackWidget(),
     );
   }
 }
@@ -74,12 +73,14 @@ class RouterBuilder {
 class MyLifeCycleObserver extends DLifeCycleObserver {
   @override
   void appDidEnterBackground(PageModel model) {
-    debugPrint("MyLifeCycleObserver  appDidEnterBackground == ${model.currentPageRoute}");
+    debugPrint(
+        "MyLifeCycleObserver  appDidEnterBackground == ${model.currentPageRoute}");
   }
 
   @override
   void appDidEnterForeground(PageModel model) {
-    debugPrint("MyLifeCycleObserver  appDidEnterForeground == ${model.currentPageRoute}");
+    debugPrint(
+        "MyLifeCycleObserver  appDidEnterForeground == ${model.currentPageRoute}");
   }
 
   @override

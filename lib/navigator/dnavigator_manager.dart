@@ -236,8 +236,7 @@ class DNavigatorManager {
 
   // 记录节点进出，如果已经是首页，则不再pop
   static Future gardPop([Map params]) {
-    int minCount = Platform.isIOS ? 2 : 1;
-    if (DStackNavigatorObserver.instance.routerCount < minCount) {
+    if (DStackNavigatorObserver.instance.routerCount < 1) {
       return Future.value('已经是首页，不再出栈');
     }
     _navigator.pop(params);

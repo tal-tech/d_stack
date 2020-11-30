@@ -165,7 +165,7 @@ public class DStackActivityManager {
         }
         boolean find = false;
         needRemoveActivities.clear();
-        Activity activity = node.getActivity();
+        Activity activity = node.getActivity().get();
         for (int i = activities.size() - 1; i >= 0; i--) {
             Activity tempActivity = activities.get(i);
             if (tempActivity != activity) {
@@ -238,14 +238,6 @@ public class DStackActivityManager {
      */
     public boolean isExecuteStack() {
         return executeStack;
-    }
-
-    /**
-     * 判断是否在执行popTo，popToRoot，popToSkip方法
-     * 主要给节点处理用
-     */
-    public boolean isPopTo() {
-        return needRemoveActivities.size() > 0;
     }
 
     /**

@@ -2,6 +2,7 @@ package tal.com.d_stack.node;
 
 import android.app.Activity;
 
+import java.lang.ref.WeakReference;
 import java.util.Map;
 
 /**
@@ -29,7 +30,7 @@ public class DNode {
     private boolean fromFlutter;
 
     // 节点对应的activity
-    private Activity activity;
+    private WeakReference<Activity> activity;
 
     // 是否正在执行popTo，popToRoot，popToSkip方法
     private boolean isPopTo;
@@ -94,11 +95,11 @@ public class DNode {
         this.uniqueId = uniqueId;
     }
 
-    public Activity getActivity() {
+    public WeakReference<Activity> getActivity() {
         return activity;
     }
 
-    public void setActivity(Activity activity) {
+    public void setActivity(WeakReference<Activity> activity) {
         this.activity = activity;
     }
 

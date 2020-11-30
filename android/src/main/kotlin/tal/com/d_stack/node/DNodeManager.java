@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import tal.com.d_stack.DStack;
 import tal.com.d_stack.action.DActionManager;
 import tal.com.d_stack.lifecycle.PageLifecycleManager;
 import tal.com.d_stack.node.constants.DNodeActionType;
@@ -116,6 +115,7 @@ public class DNodeManager {
                     node.setTarget(currentNode.getTarget());
                     node.setPageType(currentNode.getPageType());
                     node.setHomePage(currentNode.isHomePage());
+                    node.setRootPage(currentNode.isRootPage());
                     DActionManager.pop(node);
                     updateNodes();
                 } else {
@@ -142,13 +142,7 @@ public class DNodeManager {
                 DLog.logD("----------popToRoot方法开始----------");
                 needRemoveNodes.clear();
                 needRemoveNodesIndex.clear();
-                if (DStack.getInstance().isFlutterApp()) {
-                    //flutter工程，节点全部元素都要移除
-                    needRemoveNodes.addAll(nodeList);
-                    nodeList.clear();
-                } else {
-                    needRemoveNodes = popToRootNeedRemoveNodes();
-                }
+                needRemoveNodes = popToRootNeedRemoveNodes();
                 DNode popToRootNode = getCurrentNode();
                 deleteNodes();
                 updateNodes();
@@ -197,18 +191,6 @@ public class DNodeManager {
                 break;
             default:
                 break;
-        }
-    }
-
-    /**
-     * 设置打开flutter页面时，节点对应的容器activity
-     */
-    private void setCurrentNodeContainer() {
-        if (currentNode == null) {
-            return;
-        }
-        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-            currentNode.setActivity(DStackActivityManager.getInstance().getTopActivity());
         }
     }
 
@@ -331,21 +313,19 @@ public class DNodeManager {
      * 每次操作后，更新节点信息
      */
     public void updateNodes() {
-        DLog.logD("-----更新节点开始-----");
+        DLog.logE("-----更新节点开始-----");
         int size = nodeList.size();
         if (size == 0) {
             currentNode = null;
-            DLog.logD("当前栈的currentNode为null");
+            DLog.logE("当前栈的currentNode为null");
             return;
         }
         currentNode = nodeList.get(size - 1);
-        DLog.logD("当前栈的currentNode：" + currentNode.getTarget());
-        DLog.logD("-----当前栈的结构开始-----");
+        DLog.logE("当前栈的currentNode：" + currentNode.getTarget());
         for (DNode node : nodeList) {
-            DLog.logD(node.getPageType() + "--" + node.getTarget());
+            DLog.logE(node.getPageType() + "--" + node.getTarget());
         }
-        DLog.logD("-----当前栈的结构结束-----");
-        DLog.logD("-----更新节点结束-----");
+        DLog.logE("-----更新节点结束-----");
     }
 
     /**
@@ -430,6 +410,9 @@ public class DNodeManager {
      */
     public boolean isCritical(DNode node) {
         if (nodeList != null) {
+            if (nodeList.size() == 1) {
+                return true;
+            }
             if (node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)
                     && currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)
                     && node.getTarget().equals(currentNode.getTarget())) {

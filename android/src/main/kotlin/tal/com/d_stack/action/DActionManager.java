@@ -2,6 +2,7 @@ package tal.com.d_stack.action;
 
 import android.os.Handler;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +22,6 @@ public class DActionManager {
      * 打开页面
      */
     public static void push(DNode node) {
-        setCurrentNodeContainer();
         enterPageWithNode(node);
     }
 
@@ -51,12 +51,18 @@ public class DActionManager {
      */
     private static void enterPageWithNode(DNode node) {
         if (node.isFromFlutter()) {
-            // 来自flutter消息通道的node，并且是打开native页面
+            // 来自flutter消息通道的node
             if (node.getPageType().equals(DNodePageType.DNodePageTypeNative)) {
+                // 打开native页面
                 // flutter打开native页面，回传给用户侧处理
                 DStack.getInstance().getNativeRouter().openContainer(
                         node.getTarget(),
                         node.getParams()
+                );
+            } else if (node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
+                // 给当前flutter节点设置对应的activity
+                DNodeManager.getInstance().getCurrentNode().setActivity(
+                        new WeakReference(DStackActivityManager.getInstance().getTopActivity())
                 );
             }
         } else {
@@ -109,11 +115,7 @@ public class DActionManager {
         }
         //处理需要关闭的控制器
         DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-        if (currentNode == null) {
-            DStackActivityManager.getInstance().closeActivityWithBottom();
-        } else {
-            DStackActivityManager.getInstance().closeActivityWithNode(currentNode);
-        }
+        DStackActivityManager.getInstance().closeActivityWithNode(currentNode);
         //发送消息给flutter侧处理
         //为了保证native侧页面顺利关闭，此处需要延迟一些时间给flutter发消息
         //不然会引起surfaceView的绘制问题
@@ -136,31 +138,5 @@ public class DActionManager {
                 DStackMethodHandler.sendNode(flutterNodes, node);
             }
         }
-    }
-
-    /**
-     * 判断页面临界状态
-     * 当一个flutter页面关闭，节点清除后，看一看当前节点是否是native
-     * 如果是native页面，要把最后一个flutter控制器关闭
-     */
-    public static void checkNodeCritical(DNode node) {
-        if (node == null) {
-            return;
-        }
-        if (DStackActivityManager.getInstance().isExecuteStack()) {
-            return;
-        }
-        if (node.getPageType().equals(DNodePageType.DNodePageTypeNative)) {
-            //如果当前节点类型是native,则把flutter控制器关掉
-            DStackActivityManager.getInstance().closeTopFlutterActivity();
-        }
-    }
-
-    /**
-     * 设置打开新的页面时，节点对应的容器activity
-     */
-    private static void setCurrentNodeContainer() {
-        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-        currentNode.setActivity(DStackActivityManager.getInstance().getTopActivity());
     }
 }
