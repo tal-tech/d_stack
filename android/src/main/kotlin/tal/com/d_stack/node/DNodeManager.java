@@ -172,22 +172,10 @@ public class DNodeManager {
                     currentNode.setTarget(node.getTarget());
                     currentNode.setPageType(DNodePageType.DNodePageTypeFlutter);
                     currentNode.setParams(node.getParams());
-                    currentNode.setHomePage(node.isHomePage());
                 }
                 updateNodes();
                 PageLifecycleManager.pageAppearWithReplace(preNode, currentNode);
                 DLog.logD("----------replace方法结束----------");
-                break;
-            case DNodeActionType.DNodeActionTypeNativeToFlutterPop:
-                DLog.logD("----------nativeToFlutterPop方法开始----------");
-                node.setAction(DNodeActionType.DNodeActionTypePop);
-                if (node.isHomePage()) {
-                    //如果节点是根节点，不给flutter发消息移除节点，直接关闭控制器
-                    DStackActivityManager.getInstance().closeTopFlutterActivity();
-                } else {
-                    DActionManager.pop(node);
-                }
-                DLog.logD("----------nativeToFlutterPop方法结束----------");
                 break;
             default:
                 break;
