@@ -200,6 +200,7 @@
         node.action == DNodeActionTypePopToNativeRoot) {
         [navigation setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
         [navigation popToRootViewControllerAnimated:YES];
+        [navigation setValue:@(NO) forKey:@"dStackFlutterNodeMessage"];
         return;
     }
 
@@ -209,6 +210,7 @@
     if (target) {
         [navigation setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
         [navigation popToViewController:target animated:YES];
+        [navigation setValue:@(NO) forKey:@"dStackFlutterNodeMessage"];
     } else {
         DStackError(@"%@", @"没有找到需要关闭的controller");
     }
@@ -256,6 +258,7 @@
         UINavigationController *controller = [self currentNavigationControllerWithNode:node];
         [controller setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
         [controller popViewControllerAnimated:YES];
+        [controller setValue:@(NO) forKey:@"dStackFlutterNodeMessage"];
     } else if (node.action == DNodeActionTypeDismiss) {
         [self dismissViewController];
     }
@@ -266,6 +269,7 @@
     UIViewController *currentVC = self.currentController;
     [currentVC setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
     [currentVC dismissViewControllerAnimated:YES completion:nil];
+    [currentVC setValue:@(NO) forKey:@"dStackFlutterNodeMessage"];
 }
 
 + (DStackNode *)stackNodeFromNode:(DNode *)node
@@ -357,25 +361,13 @@
 
 + (UIViewController *)currentController
 {
-    return [self currentControllerFromController:self.rootController];
-}
-
-+ (UIViewController *)currentControllerFromController:(UIViewController *)controller
-{
-    if (!controller) { return nil;}
-    UIViewController *presented = controller.presentedViewController;
-    if (presented) { return [self currentControllerFromController:presented];}
-    if ([controller isKindOfClass:[UINavigationController class]]) {
-        UINavigationController *navi = (UINavigationController *)controller;
-        if (!navi.viewControllers.count) { return navi;}
-        return [self currentControllerFromController:navi.topViewController];
-    } else if ([controller isKindOfClass:[UITabBarController class]]) {
-        UITabBarController *tab = (UITabBarController *)controller;
-        if (!tab.viewControllers.count) { return tab;}
-        return [self currentControllerFromController:tab.selectedViewController];
-    } else {
-        return controller;
-    }
+    UIViewController *controller = nil;
+    DStack *stack = [DStack sharedInstance];
+    if (stack.delegate && [stack.delegate respondsToSelector:@selector(visibleControllerForCurrentWindow)]) {
+        controller = [stack.delegate visibleControllerForCurrentWindow];
+    };
+    NSAssert(controller, @"visibleControllerForCurrentWindow返回了空的controller");
+    return controller;
 }
 
 + (UIViewController *)rootController

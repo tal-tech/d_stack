@@ -66,10 +66,6 @@
     self.pageType = node.pageType;
     self.target = node.target;
     self.params = node.params;
-    self.fromFlutter = node.fromFlutter;
-    self.canRemoveNode = node.canRemoveNode;
-    self.isFlutterHomePage = node.isFlutterHomePage; 
-    self.animated = node.animated;
 }
 
 + (DNodePageType)pageTypeWithString:(NSString *)string

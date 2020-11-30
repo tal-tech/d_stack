@@ -10,6 +10,8 @@
 #import "DNodeManager.h"
 #import "DActionManager.h"
 
+typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *viewController, BOOL animated);
+
 void dStackSelectorSwizzling(Class aClass, SEL originalSelector, SEL newSelector)
 {
     Method originalMethod = class_getInstanceMethod(aClass, originalSelector);
@@ -49,11 +51,68 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 
 
 
+#pragma mark ########### 声明 ###########
+#pragma mark ########### DStackNavigator ###########
+
+@interface DStackNavigator : NSObject <UIAdaptivePresentationControllerDelegate>
+
+/// dismiss手势代理类列表
+@property (nonatomic, strong) NSMutableDictionary <NSString *, id>*dismissDelegateClass;
+
++ (instancetype)instance;
+
+@end
+
+
+#pragma mark ########### (DStackDismissGestureCategory) ###########
+
 @interface NSObject (DStackDismissGestureCategory)
 
 @property (nonatomic, copy) NSString *oldDismissDelegateName;
 
 @end
+
+
+#pragma mark ########### DStackUIViewControllerCategory ###########
+
+@interface UIViewController (DStackUIViewControllerCategory)
+
+/// 开始pop
+@property (nonatomic, assign) BOOL isBeginPoped;
+/// 是否为手势出发的返回
+@property (nonatomic, assign) BOOL isGesturePoped;
+@property (nonatomic, strong) NSNumber *dStackFlutterNodeMessage;
+@property (nonatomic, copy) _DStackViewControllerWillAppearInjectBlock dStack_willAppearInjectBlock;
+
+/// 是否为FlutterViewController
+- (BOOL)isFlutterViewController;
+
+@end
+
+
+
+#pragma mark ########### DStackNavigationControllerCategory ###########
+
+@interface UINavigationController (DStackNavigationControllerCategory)
+
+@property (nonatomic, strong) UIViewController *dStackRootViewController;
+@property (nonatomic, strong, readonly) UIPanGestureRecognizer *dStack_fullscreenPopGestureRecognizer;
+@property (nonatomic, assign) BOOL dStack_viewControllerBasedNavigationBarAppearanceEnabled;
+
+@end
+
+
+#pragma mark ########### _DStackFullscreenPopGestureRecognizerDelegate ###########
+
+@interface _DStackFullscreenPopGestureRecognizerDelegate : NSObject <UIGestureRecognizerDelegate>
+
+@property (nonatomic, weak) UINavigationController *navigationController;
+
+@end
+
+
+
+#pragma mark ########### 实现 ###########
 
 @implementation NSObject (DStackDismissGestureCategory)
 
@@ -69,15 +128,6 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 
 @end
 
-
-@interface DStackNavigator : NSObject <UIAdaptivePresentationControllerDelegate>
-
-/// dismiss手势代理类列表
-@property (nonatomic, strong) NSMutableDictionary <NSString *, id>*dismissDelegateClass;
-
-+ (instancetype)instance;
-
-@end
 
 @implementation DStackNavigator
 
@@ -206,6 +256,27 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
     }
 }
 
+- (BOOL)gestureRecognizerShouldBeginWithNavigationController:(UINavigationController *)navigationContoller
+{
+    UIViewController *topViewController = navigationContoller.viewControllers.lastObject;
+    if (navigationContoller == [DActionManager rootController]) {
+        UIViewController *rootViewController = navigationContoller.viewControllers.firstObject;
+        if (topViewController == rootViewController) {
+            if (topViewController.isFlutterViewController) {
+                return NO;
+            }
+        }
+    }
+    BOOL shouldBegin = YES;
+    if (topViewController.isFlutterViewController) {
+        shouldBegin = [[DNodeManager sharedInstance] nativePopGestureCanReponse];
+    }
+    if (shouldBegin) {
+        topViewController.isGesturePoped = YES;
+    }
+    return shouldBegin;
+}
+
 - (NSMutableDictionary<NSString *,id> *)dismissDelegateClass
 {
     if (!_dismissDelegateClass) {
@@ -217,34 +288,7 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 @end
 
 
-#pragma mark ########### DStackNavigationControllerCategory ###########
-
-@interface UINavigationController (DStackNavigationControllerCategory)
-
-@property (nonatomic, strong) UIViewController *dStackRootViewController;
-@property (nonatomic, strong, readonly) UIPanGestureRecognizer *dStack_fullscreenPopGestureRecognizer;
-@property (nonatomic, assign) BOOL dStack_viewControllerBasedNavigationBarAppearanceEnabled;
-
-@end
-
-
 #pragma mark ########### DStackUIViewControllerCategory ###########
-
-typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *viewController, BOOL animated);
-
-@interface UIViewController (DStackUIViewControllerCategory)
-
-/// 开始pop
-@property (nonatomic, assign) BOOL isBeginPoped;
-/// 是否为手势出发的返回
-@property (nonatomic, assign) BOOL isGesturePoped;
-@property (nonatomic, strong) NSNumber *dStackFlutterNodeMessage;
-@property (nonatomic, copy) _DStackViewControllerWillAppearInjectBlock dStack_willAppearInjectBlock;
-
-/// 是否为FlutterViewController
-- (BOOL)isFlutterViewController;
-
-@end
 
 @implementation UIViewController (DStackUIViewControllerCategory)
 
@@ -348,7 +392,6 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
             checkNode(self, DNodeActionTypeDismiss);
         }
     }
-    self.dStackFlutterNodeMessage = @(NO);
     [self d_stackDismissViewControllerAnimated:flag completion:completion];
 }
 
@@ -453,14 +496,6 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
 @end
 
 
-#pragma mark ########### _DStackFullscreenPopGestureRecognizerDelegate ###########
-
-@interface _DStackFullscreenPopGestureRecognizerDelegate : NSObject <UIGestureRecognizerDelegate>
-
-@property (nonatomic, weak) UINavigationController *navigationController;
-
-@end
-
 @implementation _DStackFullscreenPopGestureRecognizerDelegate
 
 - (BOOL)gestureRecognizerShouldBegin:(UIPanGestureRecognizer *)gestureRecognizer
@@ -489,24 +524,7 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
     if (translation.x <= 0) {
         return NO;
     }
-    
-    if (navigationContoller == [DActionManager rootController]) {
-        UIViewController *rootViewController = navigationContoller.viewControllers.firstObject;
-        if (topViewController == rootViewController) {
-            if (topViewController.isFlutterViewController) {
-                return NO;
-            }
-        }
-    }
-    BOOL shouldBegin = YES;
-    if (topViewController.isFlutterViewController) {
-        // 如果节点列表是空，说明已经在第一页了并且是Flutter的页面，则直接绕过
-        shouldBegin = [[DNodeManager sharedInstance] nativePopGestureCanReponse];
-    }
-    if (shouldBegin) {
-        topViewController.isGesturePoped = YES;
-    }
-    return shouldBegin;
+    return [[DStackNavigator instance] gestureRecognizerShouldBeginWithNavigationController:navigationContoller];
 }
 
 @end
@@ -614,7 +632,6 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
         }
     }
     controller.isBeginPoped = YES;
-    self.dStackFlutterNodeMessage = @(NO);
     return controller;
 }
 
@@ -627,7 +644,6 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
             checkNode(viewController, DNodeActionTypePopTo);
         }
     }
-    self.dStackFlutterNodeMessage = @(NO);
     return [self d_stackPopToViewController:viewController animated:animated];
 }
 
@@ -638,7 +654,6 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
         // 如果是FlutterViewController，会在消息通道里面checkNode
         checkNode(self.viewControllers.firstObject, DNodeActionTypePopToRoot);
     }
-    self.dStackFlutterNodeMessage = @(NO);
     return [self d_stackPopToRootViewControllerAnimated:animated];
 }
 
@@ -648,20 +663,7 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
     UIViewController *topViewController = navigationContoller.viewControllers.lastObject;
     BOOL shouldBegin = [self d_stackGestureRecognizerShouldBegin:gestureRecognizer];
     if (shouldBegin) {
-        if (navigationContoller == [DActionManager rootController]) {
-            UIViewController *rootViewController = navigationContoller.viewControllers.firstObject;
-            if (topViewController == rootViewController) {
-                if (topViewController.isFlutterViewController) {
-                    shouldBegin = NO;
-                }
-            }
-        }
-        if (topViewController.isFlutterViewController) {
-            // 如果节点列表是空，说明已经在第一页了并且是Flutter的页面，则直接绕过
-            if ([DNodeManager sharedInstance].currentNodeList.count) {
-                shouldBegin = [[DNodeManager sharedInstance] nativePopGestureCanReponse];
-            }
-        }
+        shouldBegin = [[DStackNavigator instance] gestureRecognizerShouldBeginWithNavigationController:navigationContoller];
     }
     if (shouldBegin) {
         topViewController.isGesturePoped = YES;

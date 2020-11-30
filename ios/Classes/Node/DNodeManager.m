@@ -287,7 +287,7 @@
                                                            style:UIAlertActionStyleCancel
                                                          handler:nil];
             [alert addAction:sure];
-            [[DActionManager rootController] presentViewController:alert animated:YES completion:nil];
+            [[DActionManager currentController] presentViewController:alert animated:YES completion:nil];
         }
     }
     DStackLog(@"来自【%@】的【%@】消息，出栈节点为 == %@, 出栈后的节点列表 == %@", [self _page:node], node.actionTypeString, subArray, self.nodeList);
@@ -501,6 +501,7 @@
         DNode *rootNode = [[DNode alloc] init];
         rootNode.target = @"/";
         rootNode.pageType = DNodePageTypeUnknow;
+        rootNode.isRootPage = YES;
         [_nodeList addObject:rootNode];
     }
     return _nodeList;

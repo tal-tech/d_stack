@@ -36,18 +36,27 @@
 
 - (void)dStack:(nonnull DStack *)stack presentWithNode:(nonnull DStackNode *)node
 {
+    UIViewController *didPushController = nil;
     UINavigationController *navi = [self dStack:stack navigationControllerForNode:node];
     if ([node.route isEqualToString:@"NativePage2"]) {
-        [navi.topViewController presentViewController:[[FourViewController alloc] init] animated:YES completion:nil];
+        didPushController = [[FourViewController alloc] init];
+        [navi.topViewController presentViewController:didPushController animated:YES completion:nil];
     }
 }
 
 - (void)dStack:(nonnull DStack *)stack pushWithNode:(nonnull DStackNode *)node
 {
+    UIViewController *didPresentController = nil;
     UINavigationController *navi = [self dStack:stack navigationControllerForNode:node];
     if ([node.route isEqualToString:@"NativePage"]) {
-        [navi pushViewController:[[ThirdViewController alloc] init] animated:YES];
+        didPresentController = [[ThirdViewController alloc] init];
+        [navi pushViewController:didPresentController animated:YES];
     }
+}
+
+- (nonnull UIViewController *)visibleControllerForCurrentWindow
+{
+    return [self currentController];
 }
 
 -(UIViewController *)currentController

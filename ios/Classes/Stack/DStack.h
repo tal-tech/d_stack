@@ -233,6 +233,10 @@ NS_ASSUME_NONNULL_BEGIN
 /// 用户需要创建FlutterEngine返回
 + (FlutterEngine *)dStackForFlutterEngine;
 
+/// 当前正在显示的controller
+/// DStack 1.3.0版本以上必须实现
+- (UIViewController *)visibleControllerForCurrentWindow;
+
 /// 用户实现返回目标route的navigationController
 /// @param stack stack
 /// @param node node

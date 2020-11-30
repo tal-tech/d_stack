@@ -49,6 +49,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// 是否是flutterVC
 @property (nonatomic, assign) BOOL isFlutterClass;
 
+/// 是否是根页面
+@property (nonatomic, assign) BOOL isRootPage;
+
 - (NSString *)actionTypeString;
 - (NSString *)pageTypeString;
 - (NSString *)pageString;
