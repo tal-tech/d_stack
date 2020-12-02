@@ -16,12 +16,21 @@ import 'package:flutter/services.dart';
 
 enum PageType { native, flutter }
 
+const Duration defaultPushDuration = Duration(milliseconds: 300);
+const Duration defaultPopDuration = Duration(milliseconds: 250);
+
 typedef DStackWidgetBuilder = WidgetBuilder Function(Map params);
 typedef AnimatedPageBuilder = AnimatedWidget Function(
     BuildContext context,
     Animation<double> animation,
     Animation<double> secondaryAnimation,
     WidgetBuilder widgetBuilder);
+
+typedef PushAnimationPageBuilder = AnimatedWidget Function(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child);
 
 class DStack {
   static DChannel _stackChannel;
@@ -99,38 +108,25 @@ class DStack {
         routeName, pageType, params, maintainState, animated);
   }
 
-  /// 自定义转场动画进入页面
-  /// flutter页面通过animatedBuilder自定义动画
-  /// native页面会转发到native，由native自行接入实现
-  /// replace：true flutter的pushReplacement实现
-  /// replace：false flutter的push实现
-  static Future animationPage(
+  /// 自定义进场动画
+  /// animationBuilder 进场动画的builder
+  /// pushDuration 进场时间
+  /// popDuration 退场时间
+  static Future pushWithAnimation(
     String routeName,
     PageType pageType,
-    AnimatedPageBuilder animatedBuilder, {
+    PushAnimationPageBuilder animationBuilder, {
     Map params,
-    Duration transitionDuration,
-    bool opaque = true,
-    bool barrierDismissible = false,
-    Color barrierColor,
-    String barrierLabel,
-    bool maintainState = true,
-    bool fullscreenDialog = false,
     bool replace = false,
+    Duration pushDuration = defaultPushDuration,
+    Duration popDuration = defaultPopDuration,
   }) {
-    return DNavigatorManager.animationPage(
-        routeName,
-        pageType,
-        animatedBuilder,
-        params,
-        transitionDuration,
-        opaque,
-        barrierDismissible,
-        barrierColor,
-        barrierLabel,
-        maintainState,
-        fullscreenDialog,
-        replace);
+    return DNavigatorManager.pushWithAnimation(
+        routeName, pageType, animationBuilder,
+        params: params,
+        replace: replace,
+        pushDuration: pushDuration,
+        popDuration: popDuration);
   }
 
   /// 等同push
@@ -200,6 +196,41 @@ class DStack {
   @Deprecated('已废弃，请调用popToRoot')
   static void popToNativeRoot() {
     DNavigatorManager.popToNativeRoot();
+  }
+
+  /// 自定义转场动画进入页面
+  /// flutter页面通过animatedBuilder自定义动画
+  /// native页面会转发到native，由native自行接入实现
+  /// replace：true flutter的pushReplacement实现
+  /// replace：false flutter的push实现
+  @Deprecated('已废弃，请使用pushWithAnimation')
+  static Future animationPage(
+    String routeName,
+    PageType pageType,
+    AnimatedPageBuilder animatedBuilder, {
+    Map params,
+    Duration transitionDuration,
+    bool opaque = true,
+    bool barrierDismissible = false,
+    Color barrierColor,
+    String barrierLabel,
+    bool maintainState = true,
+    bool fullscreenDialog = false,
+    bool replace = false,
+  }) {
+    return DNavigatorManager.animationPage(
+        routeName,
+        pageType,
+        animatedBuilder,
+        params,
+        transitionDuration,
+        opaque,
+        barrierDismissible,
+        barrierColor,
+        barrierLabel,
+        maintainState,
+        fullscreenDialog,
+        replace);
   }
 }
 

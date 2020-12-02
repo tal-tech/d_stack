@@ -50,27 +50,28 @@ class _Page1 extends State<Page1> {
                 student.name = '😁🍎111';
                 student.age = 12;
 
-                // // 自定义动画
-                // DStack.animationPage('page2', PageType.flutter,
-                //         (BuildContext context,
-                //         Animation<double> animation,
-                //         Animation<double> secondaryAnimation,
-                //         WidgetBuilder widgetBuilder) {
-                //       Offset startOffset = const Offset(1.0, 0.0);
-                //       Offset endOffset = const Offset(0.0, 0.0);
-                //       return SlideTransition(
-                //         position: new Tween<Offset>(
-                //           begin: startOffset,
-                //           end: endOffset,
-                //         ).animate(animation),
-                //         child: widgetBuilder(context),
-                //       );
-                //     }, params: {'key1': 12}, transitionDuration: Duration(milliseconds: 250));
+                // 自定义动画
+                DStack.animationPage('page2', PageType.flutter,
+                    (BuildContext context,
+                        Animation<double> animation,
+                        Animation<double> secondaryAnimation,
+                        WidgetBuilder widgetBuilder) {
+                  Offset startOffset = const Offset(1.0, 0.0);
+                  Offset endOffset = const Offset(0.0, 0.0);
+                  return SlideTransition(
+                    position: new Tween<Offset>(
+                      begin: startOffset,
+                      end: endOffset,
+                    ).animate(animation),
+                    child: widgetBuilder(context),
+                  );
+                },
+                    params: {'key1': 12},
+                    transitionDuration: Duration(milliseconds: 250));
 
-                DStack.push('page2', PageType.flutter, params: {'key1': 12})
-                    .then((data) {
-                  return print('pop to Page1 result $data');
-                });
+                // DStack.push('page2', PageType.flutter).then((data) {
+                //   return print('pop to Page1 result $data');
+                // });
               },
             ),
           ],
@@ -100,15 +101,15 @@ class Page2 extends StatelessWidget {
               Student student = Student();
               student.name = '😁🍎33333';
               student.age = 12;
-              DStack.pop(result: {'params': 'value222'}, animated: false);
+              DStack.pop(result: {'params': 'value222'});
             },
           )),
       body: Center(
         child: RaisedButton(
           child: Text('present flutter page 3'),
           onPressed: () {
-            // DStack.present('page3', PageType.flutter);
-            DStack.push('page3', PageType.flutter);
+            DStack.present('page3', PageType.flutter);
+            // DStack.push('page3', PageType.flutter);
           },
         ),
       ),
@@ -124,7 +125,7 @@ class Page3 extends StatelessWidget {
         return RaisedButton(
           child: Text('Present打开NativePage2'),
           onPressed: () {
-            DStack.present("NativePage2", PageType.native,
+            DStack.push("NativePage2", PageType.native,
                 params: {"name": "flutter 传递的", "id": 1000000});
           },
         );
@@ -147,8 +148,9 @@ class Page3 extends StatelessWidget {
           RaisedButton(
             child: Text('打开NativePage'),
             onPressed: () {
-              DStack.push("NativePage", PageType.native,
-                  params: {"name": "flutter 传递的", "id": 1000000});
+              // DStack.push("NativePage", PageType.native,
+              //     params: {"name": "flutter 传递的", "id": 1000000});
+              DStack.popTo("page1", PageType.flutter, animated: true);
             },
           ),
           present(),

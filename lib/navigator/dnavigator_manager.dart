@@ -32,14 +32,11 @@ class DNavigatorManager {
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
           result: {}, animated: animated);
-      var route;
-      if (animated) {
-        route = DNavigatorManager.materialRoute(
-            routeName: routeName, params: params, maintainState: maintainState);
-      } else {
-        route =
-            slideRoute(routeName: routeName, params: params, milliseconds: 0);
-      }
+      var route = DNavigatorManager.materialRoute(
+          routeName: routeName,
+          params: params,
+          maintainState: maintainState,
+          pushAnimated: animated);
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
@@ -54,20 +51,12 @@ class DNavigatorManager {
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.present,
           result: {}, animated: animated);
-      var route;
-      if (animated) {
-        route = DNavigatorManager.materialRoute(
-            routeName: routeName,
-            params: params,
-            maintainState: maintainState,
-            fullscreenDialog: true);
-      } else {
-        route = slideRoute(
-            routeName: routeName,
-            params: params,
-            milliseconds: 0,
-            fullscreenDialog: true);
-      }
+      var route = DNavigatorManager.materialRoute(
+          routeName: routeName,
+          params: params,
+          maintainState: maintainState,
+          pushAnimated: animated,
+          fullscreenDialog: true);
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.present,
@@ -76,13 +65,38 @@ class DNavigatorManager {
     }
   }
 
+  static Future pushWithAnimation(
+    String routeName,
+    PageType pageType,
+    PushAnimationPageBuilder animationBuilder, {
+    Map params,
+    bool replace,
+    Duration pushDuration,
+    Duration popDuration,
+  }) {
+    RouteSettings userSettings =
+        RouteSettings(name: routeName, arguments: params);
+    DStackWidgetBuilder stackWidgetBuilder =
+        DStack.instance.pageBuilder(routeName);
+    WidgetBuilder builder = stackWidgetBuilder(params);
+
+    _DStackPageRouteBuilder route = _DStackPageRouteBuilder(
+      pageBuilder: builder,
+      settings: userSettings,
+      pushTransition: pushDuration,
+      popTransition: popDuration,
+    );
+
+    return Future.value(false);
+  }
+
   /// 自定义进场方式
   static Future animationPage(
     String routeName,
     PageType pageType,
     AnimatedPageBuilder animatedBuilder, [
     Map params,
-    Duration transitionDuration = const Duration(milliseconds: 300),
+    Duration transitionDuration = defaultPushDuration,
     bool opaque = true,
     bool barrierDismissible = false,
     Color barrierColor,
@@ -129,19 +143,13 @@ class DNavigatorManager {
       DNavigatorManager.nodeHandle(
           routeName, PageType.flutter, DStackConstant.push,
           result: {}, animated: animated);
-      var route;
-      if (animated) {
-        RouteSettings userSettings =
-            RouteSettings(name: routeName, arguments: params);
-        route = MaterialPageRoute(
-            settings: userSettings,
-            builder: builder,
-            maintainState: maintainState,
-            fullscreenDialog: fullscreenDialog);
-      } else {
-        route =
-            slideRoute(routeName: routeName, params: params, milliseconds: 0);
-      }
+      var route = DNavigatorManager.materialRoute(
+          routeName: routeName,
+          params: params,
+          maintainState: maintainState,
+          pushAnimated: animated,
+          fullscreenDialog: fullscreenDialog,
+          builder: builder);
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
@@ -160,17 +168,12 @@ class DNavigatorManager {
     DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.replace,
         result: params, homePage: homePage, animated: animated);
     if (pageType == PageType.flutter) {
-      var route;
-      if (animated) {
-        route = DNavigatorManager.materialRoute(
-            routeName: routeName, params: params, maintainState: maintainState);
-      } else {
-        route = slideRoute(
-            routeName: routeName,
-            params: params,
-            milliseconds: 0,
-            fullscreenDialog: fullscreenDialog);
-      }
+      var route = DNavigatorManager.materialRoute(
+          routeName: routeName,
+          params: params,
+          maintainState: maintainState,
+          pushAnimated: animated,
+          fullscreenDialog: fullscreenDialog);
       return _navigator.pushReplacement(route);
     } else {
       return Future.error('not flutter page');
@@ -280,14 +283,19 @@ class DNavigatorManager {
             bool boundary = arguments['boundary'];
             if (boundary != null && boundary) {
               /// 临界页面不开启动画
-              PageRouteBuilder route = DNavigatorManager.slideRoute(
-                  routeName: nodes.first, params: params, milliseconds: 0);
+              PageRoute route = DNavigatorManager.materialRoute(
+                routeName: nodes.first,
+                params: params,
+                fullscreenDialog: action == DStackConstant.present,
+                pushAnimated: false,
+              );
               return _navigator.push(route);
             } else {
               MaterialPageRoute route = DNavigatorManager.materialRoute(
                   routeName: nodes.first,
                   params: params,
                   fullscreenDialog: action == DStackConstant.present);
+
               return _navigator.push(route);
             }
           }
@@ -404,7 +412,6 @@ class DNavigatorManager {
       maintainState: maintainState,
       pageBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> secondaryAnimation) {
-        if (routeName == '/') {}
         DStackWidgetBuilder stackWidgetBuilder =
             DStack.instance.pageBuilder(routeName);
 
@@ -415,21 +422,33 @@ class DNavigatorManager {
     return pageRoute;
   }
 
-  // 创建PageRoute
+  /// 创建PageRoute
+  /// pushAnimated 是否有进场动画
+  /// popAnimated 是否有退场动画
   static PageRoute materialRoute(
       {String routeName,
       Map params,
+      bool pushAnimated = true,
+      bool popAnimated = true,
       bool maintainState = true,
-      bool fullscreenDialog = false}) {
+      bool fullscreenDialog = false,
+      WidgetBuilder builder}) {
     RouteSettings userSettings =
         RouteSettings(name: routeName, arguments: params);
 
-    DStackWidgetBuilder stackWidgetBuilder =
-        DStack.instance.pageBuilder(routeName);
-    WidgetBuilder widgetBuilder = stackWidgetBuilder(params);
+    if (builder == null) {
+      DStackWidgetBuilder stackWidgetBuilder =
+          DStack.instance.pageBuilder(routeName);
+      builder = stackWidgetBuilder(params);
+    }
 
     _DStackPageRouteBuilder route = _DStackPageRouteBuilder(
-        pageBuilder: widgetBuilder, settings: userSettings);
+      pageBuilder: builder,
+      settings: userSettings,
+      fullscreenDialog: fullscreenDialog,
+      pushTransition: pushAnimated ? defaultPushDuration : Duration.zero,
+      popTransition: popAnimated ? defaultPopDuration : Duration.zero,
+    );
     return route;
   }
 }
@@ -445,13 +464,15 @@ class _DStackPageRouteBuilder<T> extends PageRoute<T> {
   final Duration pushTransition;
   final Duration popTransition;
   final WidgetBuilder pageBuilder;
+  final bool fullscreenDialog;
 
-  _DStackPageRouteBuilder(
-      {@required this.pageBuilder,
-      RouteSettings settings,
-      this.pushTransition = const Duration(milliseconds: 300),
-      this.popTransition = const Duration(milliseconds: 250)})
-      : super(settings: settings);
+  _DStackPageRouteBuilder({
+    @required this.pageBuilder,
+    RouteSettings settings,
+    this.pushTransition = defaultPushDuration,
+    this.popTransition = defaultPopDuration,
+    this.fullscreenDialog = false,
+  }) : super(settings: settings, fullscreenDialog: fullscreenDialog);
 
   @override
   Color get barrierColor => null;
