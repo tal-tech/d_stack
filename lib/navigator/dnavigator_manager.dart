@@ -507,8 +507,7 @@ class _DStackPageRouteBuilder<T> extends PageRoute<T> {
     if (result != null && result is _DStackPopResult) {
       _DStackPopResult pop = result;
       if (!pop.animated) {
-        controller.animateTo(0, duration: Duration.zero);
-        return super.didPop(result);
+        controller.reverseDuration = Duration.zero;
       }
     }
     return super.didPop(result);
