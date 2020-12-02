@@ -100,7 +100,7 @@
         case 2:
         {
             [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DFlutterViewController.class
-                                                               route:@"page1"];
+                                                               route:@"page2"];
             break;
         }
         default:

@@ -12,6 +12,7 @@ import 'dart:io';
 import 'package:d_stack/constant/constant_config.dart';
 import 'package:d_stack/d_stack.dart';
 import 'package:d_stack/navigator/dnavigator_gesture_observer.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 /// 主要两个部分：
@@ -236,7 +237,9 @@ class DNavigatorManager {
 
   // 记录节点进出，如果已经是首页，则不再pop
   static Future gardPop([Map params]) {
-    if (DStackNavigatorObserver.instance.routerCount < 1) {
+    print(
+        "routerCount ======= ${DStackNavigatorObserver.instance.routerCount}");
+    if (DStackNavigatorObserver.instance.routerCount <= 1) {
       return Future.value('已经是首页，不再出栈');
     }
     _navigator.pop(params);
@@ -280,7 +283,7 @@ class DNavigatorManager {
                   routeName: nodes.first,
                   params: params,
                   fullscreenDialog: action == DStackConstant.present);
-
+              print("hashCode == ${route.hashCode}");
               return _navigator.push(route);
             } else {
               PageRouteBuilder route = DNavigatorManager.slideRoute(
@@ -292,7 +295,10 @@ class DNavigatorManager {
         break;
       case DStackConstant.pop:
         {
-          return DNavigatorManager.gardPop(params);
+          if (nodes != null && nodes.isNotEmpty) {
+            return DNavigatorManager.gardPop(params);
+          }
+          return Future.value(false);
         }
         break;
       case DStackConstant.popTo:
@@ -304,24 +310,33 @@ class DNavigatorManager {
       PopSkip:
       case DStackConstant.popSkip:
         {
-          Future pop;
-          for (int i = nodes.length - 1; i >= 0; i--) {
-            pop = DNavigatorManager.gardPop();
+          if (nodes != null && nodes.isNotEmpty) {
+            Future pop;
+            for (int i = nodes.length - 1; i >= 0; i--) {
+              pop = DNavigatorManager.gardPop();
+            }
+            return pop;
           }
-          return pop;
+          return Future.value(false);
         }
         break;
       case DStackConstant.dismiss:
         {
-          return DNavigatorManager.gardPop(params);
+          if (nodes != null && nodes.isNotEmpty) {
+            return DNavigatorManager.gardPop(params);
+          }
+          return Future.value(false);
         }
         break;
       case DStackConstant.gesture:
         {
           // native发消息过来时，需要处理返回至上一页
-          DStackNavigatorObserver.instance
-              .setGesturingRouteName('NATIVEGESTURE');
-          return DNavigatorManager.gardPop(params);
+          if (nodes != null && nodes.isNotEmpty) {
+            DStackNavigatorObserver.instance
+                .setGesturingRouteName('NATIVEGESTURE');
+            return DNavigatorManager.gardPop(params);
+          }
+          return Future.value(false);
         }
         break;
     }
@@ -384,9 +399,7 @@ class DNavigatorManager {
       maintainState: maintainState,
       pageBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> secondaryAnimation) {
-        if(routeName =='/') {
-
-        }
+        if (routeName == '/') {}
         DStackWidgetBuilder stackWidgetBuilder =
             DStack.instance.pageBuilder(routeName);
 
@@ -398,7 +411,7 @@ class DNavigatorManager {
   }
 
   // 创建materialRoute
-  static MaterialPageRoute materialRoute(
+  static PageRoute materialRoute(
       {String routeName,
       Map params,
       bool maintainState = true,
@@ -410,11 +423,79 @@ class DNavigatorManager {
         DStack.instance.pageBuilder(routeName);
     WidgetBuilder widgetBuilder = stackWidgetBuilder(params);
 
-    MaterialPageRoute materialRoute = MaterialPageRoute(
-        settings: userSettings,
-        builder: widgetBuilder,
-        maintainState: maintainState,
-        fullscreenDialog: fullscreenDialog);
-    return materialRoute;
+    // MaterialPageRoute materialRoute = MaterialPageRoute(
+    //     settings: userSettings,
+    //     builder: widgetBuilder,
+    //     maintainState: maintainState,
+    //     fullscreenDialog: fullscreenDialog);
+    // return materialRoute;
+
+    DStackPageRouteBuilder route = DStackPageRouteBuilder(
+        pageBuilder: widgetBuilder, settings: userSettings);
+    return route;
+  }
+}
+
+class DStackPageRouteBuilder<T> extends PageRoute<T> {
+  final Duration pushTransition;
+  final Duration popTransition;
+  final WidgetBuilder pageBuilder;
+
+  DStackPageRouteBuilder(
+      {@required this.pageBuilder,
+      RouteSettings settings,
+      this.pushTransition = const Duration(milliseconds: 300),
+      this.popTransition = const Duration(milliseconds: 250)})
+      : super(settings: settings);
+
+  @override
+  Color get barrierColor => null;
+
+  @override
+  String get barrierLabel => null;
+
+  @override
+  bool get maintainState => true;
+
+  @override
+  Duration get transitionDuration => pushTransition;
+
+  @override
+  Duration get reverseTransitionDuration => popTransition;
+
+  @override
+  bool canTransitionTo(TransitionRoute<dynamic> nextRoute) {
+    return (nextRoute is MaterialRouteTransitionMixin &&
+            !nextRoute.fullscreenDialog) ||
+        (nextRoute is CupertinoRouteTransitionMixin &&
+            !nextRoute.fullscreenDialog) ||
+        (nextRoute is DStackPageRouteBuilder && !nextRoute.fullscreenDialog);
+  }
+
+  @override
+  Widget buildPage(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation) {
+    final Widget result = pageBuilder(context);
+    assert(() {
+      if (result == null) {
+        throw FlutterError(
+            'The builder for route "${settings.name}" returned null.\n'
+            'Route builders must never return null.');
+      }
+      return true;
+    }());
+    return Semantics(
+      scopesRoute: true,
+      explicitChildNodes: true,
+      child: result,
+    );
+  }
+
+  @override
+  Widget buildTransitions(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation, Widget child) {
+    final PageTransitionsTheme theme = Theme.of(context).pageTransitionsTheme;
+    return theme.buildTransitions<T>(
+        this, context, animation, secondaryAnimation, child);
   }
 }
