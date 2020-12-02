@@ -41,6 +41,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// 是否开启进场动画
 @property (nonatomic, assign) BOOL animated;
 
+/// 是否是临界节点
+@property (nonatomic, assign) BOOL boundary;
+
 /// 唯一id
 /// 生成规则 controller类名+contorller的内存地址
 /// DFlutterViewController_0x28268d1d0

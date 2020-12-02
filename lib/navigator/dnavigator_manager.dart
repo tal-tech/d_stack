@@ -30,8 +30,8 @@ class DNavigatorManager {
   static Future push(String routeName, PageType pageType,
       [Map params, bool maintainState, bool animated = true]) {
     if (pageType == PageType.flutter) {
-      DNavigatorManager.nodeHandle(
-          routeName, pageType, DStackConstant.push, {});
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
+          result: {}, animated: animated);
       var route;
       if (animated) {
         route = DNavigatorManager.materialRoute(
@@ -42,8 +42,8 @@ class DNavigatorManager {
       }
       return _navigator.push(route);
     } else {
-      DNavigatorManager.nodeHandle(
-          routeName, pageType, DStackConstant.push, params);
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
+          result: params, animated: animated);
       return Future.value(true);
     }
   }
@@ -52,8 +52,8 @@ class DNavigatorManager {
   static Future present(String routeName, PageType pageType,
       [Map params, bool maintainState, bool animated = true]) {
     if (pageType == PageType.flutter) {
-      DNavigatorManager.nodeHandle(
-          routeName, pageType, DStackConstant.present, {});
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.present,
+          result: {}, animated: animated);
       var route;
       if (animated) {
         route = DNavigatorManager.materialRoute(
@@ -70,8 +70,8 @@ class DNavigatorManager {
       }
       return _navigator.push(route);
     } else {
-      DNavigatorManager.nodeHandle(
-          routeName, pageType, DStackConstant.present, params);
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.present,
+          result: params, animated: animated);
       return Future.value(true);
     }
   }
@@ -92,8 +92,8 @@ class DNavigatorManager {
     bool replace = false,
   ]) {
     if (pageType == PageType.flutter) {
-      DNavigatorManager.nodeHandle(
-          routeName, pageType, DStackConstant.push, {});
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
+          result: {});
       PageRouteBuilder route = DNavigatorManager.animationRoute(
         animatedBuilder: animatedBuilder,
         routeName: routeName,
@@ -112,8 +112,8 @@ class DNavigatorManager {
         return _navigator.push(route);
       }
     } else {
-      DNavigatorManager.nodeHandle(
-          routeName, pageType, DStackConstant.push, params);
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
+          result: params);
       return Future.value(true);
     }
   }
@@ -127,7 +127,8 @@ class DNavigatorManager {
       bool animated = true]) {
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(
-          routeName, PageType.flutter, DStackConstant.push, {});
+          routeName, PageType.flutter, DStackConstant.push,
+          result: {}, animated: animated);
       var route;
       if (animated) {
         RouteSettings userSettings =
@@ -143,8 +144,8 @@ class DNavigatorManager {
       }
       return _navigator.push(route);
     } else {
-      DNavigatorManager.nodeHandle(
-          routeName, pageType, DStackConstant.push, params);
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
+          result: params, animated: animated);
       return Future.value(true);
     }
   }
@@ -156,8 +157,8 @@ class DNavigatorManager {
       bool homePage = false,
       bool animated = true,
       bool fullscreenDialog = false}) {
-    DNavigatorManager.nodeHandle(
-        routeName, pageType, DStackConstant.replace, params, homePage);
+    DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.replace,
+        result: params, homePage: homePage, animated: animated);
     if (pageType == PageType.flutter) {
       var route;
       if (animated) {
@@ -178,49 +179,49 @@ class DNavigatorManager {
 
   /// result 返回值，可为空
   /// pop可以不传路由信息
-  static void pop([Map result]) {
-    DNavigatorManager.nodeHandle(null, null, DStackConstant.pop, result);
+  static void pop({Map result, bool animated = true}) {
+    DNavigatorManager.nodeHandle(null, null, DStackConstant.pop,
+        result: result, animated: animated);
   }
 
   static void popWithGesture() {
     DNavigatorManager.nodeHandle(null, null, DStackConstant.gesture);
   }
 
-  static void popTo(String routeName, PageType pageType, [Map result]) {
-    DNavigatorManager.nodeHandle(
-        routeName, pageType, DStackConstant.popTo, result);
+  static void popTo(String routeName, PageType pageType,
+      [Map result, bool animated = true]) {
+    DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.popTo,
+        result: result, animated: animated);
   }
 
-  static void popToRoot() {
-    DNavigatorManager.nodeHandle(null, null, DStackConstant.popToRoot);
+  static void popToRoot({bool animated = true}) {
+    DNavigatorManager.nodeHandle(null, null, DStackConstant.popToRoot,
+        animated: animated);
   }
 
   static void popToNativeRoot() {
     DNavigatorManager.nodeHandle(null, null, 'popToNativeRoot');
   }
 
-  static void popSkip(String skipName, [Map result]) {
-    DNavigatorManager.nodeHandle(
-        skipName, null, DStackConstant.popSkip, result);
+  static void popSkip(String skipName, [Map result, bool animated = true]) {
+    DNavigatorManager.nodeHandle(skipName, null, DStackConstant.popSkip,
+        result: result, animated: animated);
   }
 
-  static void dismiss([Map result]) {
-    DNavigatorManager.nodeHandle(null, null, DStackConstant.dismiss, result);
+  static void dismiss([Map result, bool animated = true]) {
+    DNavigatorManager.nodeHandle(null, null, DStackConstant.dismiss,
+        result: result, animated: animated);
   }
 
-  static void nodeHandle(
-    String target,
-    PageType pageType,
-    String actionType, [
-    Map result,
-    bool homePage,
-  ]) {
+  static void nodeHandle(String target, PageType pageType, String actionType,
+      {Map result, bool homePage, bool animated = true}) {
     Map arguments = {
       'target': target,
       'pageType': '$pageType'.split('.').last,
       'params': (result != null) ? result : {},
       'actionType': actionType,
       'homePage': homePage,
+      'animated': animated
     };
     DStack.instance.channel.sendNodeToNative(arguments);
   }
@@ -236,13 +237,11 @@ class DNavigatorManager {
   }
 
   // 记录节点进出，如果已经是首页，则不再pop
-  static Future gardPop([Map params]) {
-    print(
-        "routerCount ======= ${DStackNavigatorObserver.instance.routerCount}");
+  static Future gardPop([Map params, bool animated = true]) {
     if (DStackNavigatorObserver.instance.routerCount <= 1) {
       return Future.value('已经是首页，不再出栈');
     }
-    _navigator.pop(params);
+    _navigator.pop(_DStackPopResult<Map>(animated: animated, result: params));
     return Future.value(true);
   }
 
@@ -257,6 +256,7 @@ class DNavigatorManager {
     final List nodes = arguments['nodes'];
     final Map params = arguments['params'];
     bool homePage = arguments["homePage"];
+    bool animated = arguments['animated'];
     final Map pageTypeMap = arguments['pageType'];
     switch (action) {
       case DStackConstant.push:
@@ -277,17 +277,17 @@ class DNavigatorManager {
             return replace(router, pageType,
                 homePage: homePage, animated: false);
           } else {
-            bool animated = arguments['animated'];
-            if (animated != null && animated == true) {
+            bool boundary = arguments['boundary'];
+            if (boundary != null && boundary) {
+              /// 临界页面不开启动画
+              PageRouteBuilder route = DNavigatorManager.slideRoute(
+                  routeName: nodes.first, params: params, milliseconds: 0);
+              return _navigator.push(route);
+            } else {
               MaterialPageRoute route = DNavigatorManager.materialRoute(
                   routeName: nodes.first,
                   params: params,
                   fullscreenDialog: action == DStackConstant.present);
-              print("hashCode == ${route.hashCode}");
-              return _navigator.push(route);
-            } else {
-              PageRouteBuilder route = DNavigatorManager.slideRoute(
-                  routeName: nodes.first, params: params, milliseconds: 0);
               return _navigator.push(route);
             }
           }
@@ -296,7 +296,7 @@ class DNavigatorManager {
       case DStackConstant.pop:
         {
           if (nodes != null && nodes.isNotEmpty) {
-            return DNavigatorManager.gardPop(params);
+            return DNavigatorManager.gardPop(params, animated);
           }
           return Future.value(false);
         }
@@ -312,8 +312,13 @@ class DNavigatorManager {
         {
           if (nodes != null && nodes.isNotEmpty) {
             Future pop;
-            for (int i = nodes.length - 1; i >= 0; i--) {
-              pop = DNavigatorManager.gardPop();
+            int length = nodes.length - 1;
+            for (int i = length; i >= 0; i--) {
+              bool _animated = i == length;
+              if (!animated) {
+                _animated = animated;
+              }
+              pop = DNavigatorManager.gardPop(null, _animated);
             }
             return pop;
           }
@@ -323,7 +328,7 @@ class DNavigatorManager {
       case DStackConstant.dismiss:
         {
           if (nodes != null && nodes.isNotEmpty) {
-            return DNavigatorManager.gardPop(params);
+            return DNavigatorManager.gardPop(params, animated);
           }
           return Future.value(false);
         }
@@ -410,7 +415,7 @@ class DNavigatorManager {
     return pageRoute;
   }
 
-  // 创建materialRoute
+  // 创建PageRoute
   static PageRoute materialRoute(
       {String routeName,
       Map params,
@@ -423,25 +428,25 @@ class DNavigatorManager {
         DStack.instance.pageBuilder(routeName);
     WidgetBuilder widgetBuilder = stackWidgetBuilder(params);
 
-    // MaterialPageRoute materialRoute = MaterialPageRoute(
-    //     settings: userSettings,
-    //     builder: widgetBuilder,
-    //     maintainState: maintainState,
-    //     fullscreenDialog: fullscreenDialog);
-    // return materialRoute;
-
-    DStackPageRouteBuilder route = DStackPageRouteBuilder(
+    _DStackPageRouteBuilder route = _DStackPageRouteBuilder(
         pageBuilder: widgetBuilder, settings: userSettings);
     return route;
   }
 }
 
-class DStackPageRouteBuilder<T> extends PageRoute<T> {
+class _DStackPopResult<T> {
+  /// pop 返回时是否关闭返回动画
+  final bool animated;
+  final T result;
+  _DStackPopResult({this.animated = true, this.result});
+}
+
+class _DStackPageRouteBuilder<T> extends PageRoute<T> {
   final Duration pushTransition;
   final Duration popTransition;
   final WidgetBuilder pageBuilder;
 
-  DStackPageRouteBuilder(
+  _DStackPageRouteBuilder(
       {@required this.pageBuilder,
       RouteSettings settings,
       this.pushTransition = const Duration(milliseconds: 300),
@@ -465,11 +470,9 @@ class DStackPageRouteBuilder<T> extends PageRoute<T> {
 
   @override
   bool canTransitionTo(TransitionRoute<dynamic> nextRoute) {
-    return (nextRoute is MaterialRouteTransitionMixin &&
-            !nextRoute.fullscreenDialog) ||
-        (nextRoute is CupertinoRouteTransitionMixin &&
-            !nextRoute.fullscreenDialog) ||
-        (nextRoute is DStackPageRouteBuilder && !nextRoute.fullscreenDialog);
+    return (nextRoute is MaterialPageRoute && !nextRoute.fullscreenDialog) ||
+        (nextRoute is CupertinoPageRoute && !nextRoute.fullscreenDialog) ||
+        (nextRoute is _DStackPageRouteBuilder && !nextRoute.fullscreenDialog);
   }
 
   @override
@@ -497,5 +500,17 @@ class DStackPageRouteBuilder<T> extends PageRoute<T> {
     final PageTransitionsTheme theme = Theme.of(context).pageTransitionsTheme;
     return theme.buildTransitions<T>(
         this, context, animation, secondaryAnimation, child);
+  }
+
+  @override
+  bool didPop(T result) {
+    if (result != null && result is _DStackPopResult) {
+      _DStackPopResult pop = result;
+      if (!pop.animated) {
+        controller.animateTo(0, duration: Duration.zero);
+        return super.didPop(result);
+      }
+    }
+    return super.didPop(result);
   }
 }

@@ -168,32 +168,33 @@ class DStack {
   /// pop
   /// 可以不传路由信息
   /// result 返回值，可为空
-  static void pop({Map result}) {
-    DNavigatorManager.pop(result);
+  static void pop({Map result, bool animated = true}) {
+    DNavigatorManager.pop(result: result, animated: animated);
   }
 
   /// popTo指定页面
   /// 无法popTo到根页面
   /// 要popTo到根页面请调用popToRoot
-  static void popTo(String routeName, PageType pageType, {Map result}) {
-    DNavigatorManager.popTo(routeName, pageType, result);
+  static void popTo(String routeName, PageType pageType,
+      {Map result, bool animated = true}) {
+    DNavigatorManager.popTo(routeName, pageType, result, animated);
   }
 
   /// pop同一组页面
-  static void popSkip(String skipName, {Map result}) {
-    DNavigatorManager.popSkip(skipName, result);
+  static void popSkip(String skipName, {Map result, bool animated = true}) {
+    DNavigatorManager.popSkip(skipName, result, animated);
   }
 
   /// 关闭一个页面
   /// 如果是push进入的，等同pop
   /// 如果是present进入的，效果是从上往下缩回去
-  static void dismiss([Map result]) {
-    DNavigatorManager.dismiss(result);
+  static void dismiss({Map result, bool animated = true}) {
+    DNavigatorManager.dismiss(result, animated);
   }
 
   /// 回到根页面
-  static void popToRoot() {
-    DNavigatorManager.popToRoot();
+  static void popToRoot({bool animated = true}) {
+    DNavigatorManager.popToRoot(animated: animated);
   }
 
   @Deprecated('已废弃，请调用popToRoot')

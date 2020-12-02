@@ -100,7 +100,7 @@ class Page2 extends StatelessWidget {
               Student student = Student();
               student.name = '😁🍎33333';
               student.age = 12;
-              DStack.pop(result: {'params': 'value222'});
+              DStack.pop(result: {'params': 'value222'}, animated: false);
             },
           )),
       body: Center(

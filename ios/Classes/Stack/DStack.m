@@ -301,6 +301,7 @@
     NSString *identifier = [NSString stringWithFormat:@"%@_%p",
                             NSStringFromClass(controller.class), controller];
     node.identifier = identifier;
+    node.boundary = YES;
     node.animated = animated;
     node.isFlutterClass = YES;
     [[DNodeManager sharedInstance] checkNode:node];
@@ -347,6 +348,7 @@
     if (homePage && [homePage isKindOfClass:NSNumber.class]) {
         node.isFlutterHomePage = [homePage boolValue];
     }
+    node.animated = [call.arguments[@"animated"] boolValue];
     [[DNodeManager sharedInstance] checkNode:node];
     result(@"节点操作完成");
 }

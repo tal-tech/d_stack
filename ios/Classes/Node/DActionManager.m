@@ -244,7 +244,8 @@
         @"nodes": nodes,
         @"pageType": pageType,
         @"homePage": @(node.isFlutterHomePage),
-        @"animated": @(node.animated)
+        @"animated": @(node.animated),
+        @"boundary": @(node.boundary)
     };
     DStackLog(@"发送【sendActionToFlutter】消息至Flutter\n参数 == %@", dataToFlutter);
     [[DStackPlugin sharedInstance] invokeMethod:DStackMethodChannelSendActionToFlutter arguments:dataToFlutter result:^(id  _Nullable result) {
