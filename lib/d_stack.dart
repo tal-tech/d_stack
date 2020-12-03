@@ -112,12 +112,17 @@ class DStack {
   /// animationBuilder 进场动画的builder
   /// pushDuration 进场时间
   /// popDuration 退场时间
+  /// popGesture 是否支持手势返回
+  /// 只有是popGesture为true并且
+  /// MaterialApp(ThemeData(platform: TargetPlatform.iOS);
+  /// popGesture 才有效
   static Future pushWithAnimation(
     String routeName,
     PageType pageType,
     PushAnimationPageBuilder animationBuilder, {
     Map params,
     bool replace = false,
+    bool popGesture = false,
     Duration pushDuration = defaultPushDuration,
     Duration popDuration = defaultPopDuration,
   }) {
@@ -126,7 +131,8 @@ class DStack {
         params: params,
         replace: replace,
         pushDuration: pushDuration,
-        popDuration: popDuration);
+        popDuration: popDuration,
+        popGesture: popGesture);
   }
 
   /// 等同push

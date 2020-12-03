@@ -8,12 +8,16 @@
  */
 
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:d_stack/constant/constant_config.dart';
 import 'package:d_stack/d_stack.dart';
 import 'package:d_stack/navigator/dnavigator_gesture_observer.dart';
 import 'package:d_stack/navigator/node_entity.dart';
+import 'package:d_stack/widget/page_route.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 /// 主要两个部分：
@@ -78,37 +82,27 @@ class DNavigatorManager {
     bool replace,
     Duration pushDuration,
     Duration popDuration,
+    bool popGesture = false,
   }) {
     if (pageType == PageType.flutter) {
       RouteSettings settings =
           RouteSettings(name: routeName, arguments: params);
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
+          result: {});
       DStackWidgetBuilder stackWidgetBuilder =
           DStack.instance.pageBuilder(routeName);
       WidgetBuilder builder = stackWidgetBuilder(params);
-
-      // PageRouteBuilder route = PageRouteBuilder<dynamic>(
-      //   settings: settings,
-      //   transitionDuration: transitionDuration,
-      //   opaque: opaque,
-      //   barrierColor: barrierColor,
-      //   barrierDismissible: barrierDismissible,
-      //   barrierLabel: barrierLabel,
-      //   fullscreenDialog: fullscreenDialog,
-      //   maintainState: maintainState,
-      //   pageBuilder: (BuildContext context, Animation<double> animation,
-      //       Animation<double> secondaryAnimation) {
-      //     DStackWidgetBuilder stackWidgetBuilder =
-      //     DStack.instance.pageBuilder(routeName);
-      //
-      //     return animatedBuilder(
-      //         context, animation, secondaryAnimation, stackWidgetBuilder(params));
-      //   },
-      // );
-      //
-      // if (replace) {
-      //   return _navigator.pushReplacement(route);
-      // }
-      // return _navigator.push(route);
+      PageRoute route = DStackPageRouteBuilder(
+          pageBuilder: builder,
+          settings: settings,
+          pushTransition: pushDuration,
+          popTransition: popDuration,
+          animationBuilder: animationBuilder,
+          popGesture: popGesture);
+      if (replace) {
+        return _navigator.pushReplacement(route);
+      }
+      return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
           result: params);
@@ -270,7 +264,7 @@ class DNavigatorManager {
     if (DStackNavigatorObserver.instance.routerCount <= 1) {
       return Future.value('已经是首页，不再出栈');
     }
-    _navigator.pop(_DStackPopResult<Map>(animated: animated, result: params));
+    _navigator.pop(DStackPopResult<Map>(animated: animated, result: params));
     return Future.value(true);
   }
 
@@ -453,7 +447,7 @@ class DNavigatorManager {
       builder = stackWidgetBuilder(params);
     }
 
-    _DStackPageRouteBuilder route = _DStackPageRouteBuilder(
+    DStackPageRouteBuilder route = DStackPageRouteBuilder(
       pageBuilder: builder,
       settings: userSettings,
       maintainState: maintainState,
@@ -462,81 +456,5 @@ class DNavigatorManager {
       popTransition: popAnimated ? defaultPopDuration : Duration.zero,
     );
     return route;
-  }
-}
-
-class _DStackPopResult<T> {
-  /// pop 返回时是否关闭返回动画
-  final bool animated;
-  final T result;
-  _DStackPopResult({this.animated = true, this.result});
-}
-
-class _DStackPageRouteBuilder<T> extends PageRoute<T> {
-  final Duration pushTransition;
-  final Duration popTransition;
-  final WidgetBuilder pageBuilder;
-  final bool fullscreenDialog;
-
-  _DStackPageRouteBuilder({
-    @required this.pageBuilder,
-    RouteSettings settings,
-    this.pushTransition = defaultPushDuration,
-    this.popTransition = defaultPopDuration,
-    this.fullscreenDialog = false,
-    this.maintainState = true,
-  }) : super(settings: settings, fullscreenDialog: fullscreenDialog);
-
-  @override
-  Color get barrierColor => null;
-
-  @override
-  String get barrierLabel => null;
-
-  @override
-  final bool maintainState;
-
-  @override
-  Duration get transitionDuration => pushTransition;
-
-  @override
-  Duration get reverseTransitionDuration => popTransition;
-
-  @override
-  Widget buildPage(BuildContext context, Animation<double> animation,
-      Animation<double> secondaryAnimation) {
-    final Widget result = pageBuilder(context);
-    assert(() {
-      if (result == null) {
-        throw FlutterError(
-            'The builder for route "${settings.name}" returned null.\n'
-            'Route builders must never return null.');
-      }
-      return true;
-    }());
-    return Semantics(
-      scopesRoute: true,
-      explicitChildNodes: true,
-      child: result,
-    );
-  }
-
-  @override
-  Widget buildTransitions(BuildContext context, Animation<double> animation,
-      Animation<double> secondaryAnimation, Widget child) {
-    final PageTransitionsTheme theme = Theme.of(context).pageTransitionsTheme;
-    return theme.buildTransitions<T>(
-        this, context, animation, secondaryAnimation, child);
-  }
-
-  @override
-  bool didPop(T result) {
-    if (result != null && result is _DStackPopResult) {
-      _DStackPopResult pop = result;
-      if (!pop.animated) {
-        controller.reverseDuration = Duration.zero;
-      }
-    }
-    return super.didPop(result);
   }
 }

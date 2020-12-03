@@ -69,22 +69,22 @@ class _Page1 extends State<Page1> {
                 //     params: {'key1': 12},
                 //     transitionDuration: Duration(milliseconds: 250));
 
-                // DStack.pushWithAnimation('page2', PageType.flutter,
-                //     (context, animation, secondaryAnimation, child) {
-                //   Offset startOffset = const Offset(1.0, 0.0);
-                //   Offset endOffset = const Offset(0.0, 0.0);
-                //   return SlideTransition(
-                //     position: new Tween<Offset>(
-                //       begin: startOffset,
-                //       end: endOffset,
-                //     ).animate(animation),
-                //     child: child,
-                //   );
-                // }, pushDuration: Duration(milliseconds: 5000));
+                DStack.pushWithAnimation('page2', PageType.flutter,
+                    (context, animation, secondaryAnimation, child) {
+                  Offset startOffset = const Offset(1.0, 0.0);
+                  Offset endOffset = const Offset(0.0, 0.0);
+                  return SlideTransition(
+                    position: new Tween<Offset>(
+                      begin: startOffset,
+                      end: endOffset,
+                    ).animate(animation),
+                    child: child,
+                  );
+                }, popGesture: true);
 
-                DStack.push('page2', PageType.flutter).then((data) {
-                  return print('pop to Page1 result $data');
-                });
+                // DStack.push('page2', PageType.flutter).then((data) {
+                //   return print('pop to Page1 result $data');
+                // });
               },
             ),
           ],
@@ -114,15 +114,15 @@ class Page2 extends StatelessWidget {
               Student student = Student();
               student.name = '😁🍎33333';
               student.age = 12;
-              DStack.pop(result: {'params': 'value222'});
+              DStack.pop(result: {'params': 'value222'}, animated: false);
             },
           )),
       body: Center(
         child: RaisedButton(
           child: Text('present flutter page 3'),
           onPressed: () {
-            DStack.present('page3', PageType.flutter);
-            // DStack.push('page3', PageType.flutter);
+            // DStack.present('page3', PageType.flutter);
+            DStack.push('page3', PageType.flutter);
           },
         ),
       ),

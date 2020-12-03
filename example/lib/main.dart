@@ -1,8 +1,7 @@
 import 'package:d_stack/d_stack.dart';
 import 'package:d_stack/observer/life_cycle_observer.dart';
-import 'package:d_stack_example/will_pop_scope_route.dart';
-import 'package:flutter/material.dart';
 import 'package:d_stack/widget/home_widget.dart';
+import 'package:flutter/material.dart';
 
 import 'page_widgets.dart';
 
@@ -31,9 +30,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       navigatorKey: DStack.instance.navigatorKey,
       navigatorObservers: [DStack.instance.dStackNavigatorObserver],
       home: DStackWidget(),
-      theme: ThemeData(
-        platform: TargetPlatform.iOS
-      ),
+      theme: ThemeData(platform: TargetPlatform.iOS),
     );
   }
 }
