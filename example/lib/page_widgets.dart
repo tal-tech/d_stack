@@ -51,27 +51,40 @@ class _Page1 extends State<Page1> {
                 student.age = 12;
 
                 // 自定义动画
-                DStack.animationPage('page2', PageType.flutter,
-                    (BuildContext context,
-                        Animation<double> animation,
-                        Animation<double> secondaryAnimation,
-                        WidgetBuilder widgetBuilder) {
-                  Offset startOffset = const Offset(1.0, 0.0);
-                  Offset endOffset = const Offset(0.0, 0.0);
-                  return SlideTransition(
-                    position: new Tween<Offset>(
-                      begin: startOffset,
-                      end: endOffset,
-                    ).animate(animation),
-                    child: widgetBuilder(context),
-                  );
-                },
-                    params: {'key1': 12},
-                    transitionDuration: Duration(milliseconds: 250));
+                // DStack.animationPage('page2', PageType.flutter,
+                //     (BuildContext context,
+                //         Animation<double> animation,
+                //         Animation<double> secondaryAnimation,
+                //         WidgetBuilder widgetBuilder) {
+                //   Offset startOffset = const Offset(1.0, 0.0);
+                //   Offset endOffset = const Offset(0.0, 0.0);
+                //   return SlideTransition(
+                //     position: new Tween<Offset>(
+                //       begin: startOffset,
+                //       end: endOffset,
+                //     ).animate(animation),
+                //     child: widgetBuilder(context),
+                //   );
+                // },
+                //     params: {'key1': 12},
+                //     transitionDuration: Duration(milliseconds: 250));
 
-                // DStack.push('page2', PageType.flutter).then((data) {
-                //   return print('pop to Page1 result $data');
-                // });
+                // DStack.pushWithAnimation('page2', PageType.flutter,
+                //     (context, animation, secondaryAnimation, child) {
+                //   Offset startOffset = const Offset(1.0, 0.0);
+                //   Offset endOffset = const Offset(0.0, 0.0);
+                //   return SlideTransition(
+                //     position: new Tween<Offset>(
+                //       begin: startOffset,
+                //       end: endOffset,
+                //     ).animate(animation),
+                //     child: child,
+                //   );
+                // }, pushDuration: Duration(milliseconds: 5000));
+
+                DStack.push('page2', PageType.flutter).then((data) {
+                  return print('pop to Page1 result $data');
+                });
               },
             ),
           ],

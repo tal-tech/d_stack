@@ -12,6 +12,7 @@ import 'dart:io';
 import 'package:d_stack/constant/constant_config.dart';
 import 'package:d_stack/d_stack.dart';
 import 'package:d_stack/navigator/dnavigator_gesture_observer.dart';
+import 'package:d_stack/navigator/node_entity.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -79,19 +80,31 @@ class DNavigatorManager {
     Duration popDuration,
   }) {
     if (pageType == PageType.flutter) {
-      RouteSettings userSettings =
+      RouteSettings settings =
           RouteSettings(name: routeName, arguments: params);
       DStackWidgetBuilder stackWidgetBuilder =
           DStack.instance.pageBuilder(routeName);
       WidgetBuilder builder = stackWidgetBuilder(params);
 
-      // _DStackPageRouteBuilder route = _DStackPageRouteBuilder(
-      //   pageBuilder: builder,
-      //   settings: userSettings,
-      //   pushTransition: pushDuration,
-      //   popTransition: popDuration,
-      //   animationPageBuilder: animationBuilder,
+      // PageRouteBuilder route = PageRouteBuilder<dynamic>(
+      //   settings: settings,
+      //   transitionDuration: transitionDuration,
+      //   opaque: opaque,
+      //   barrierColor: barrierColor,
+      //   barrierDismissible: barrierDismissible,
+      //   barrierLabel: barrierLabel,
+      //   fullscreenDialog: fullscreenDialog,
+      //   maintainState: maintainState,
+      //   pageBuilder: (BuildContext context, Animation<double> animation,
+      //       Animation<double> secondaryAnimation) {
+      //     DStackWidgetBuilder stackWidgetBuilder =
+      //     DStack.instance.pageBuilder(routeName);
+      //
+      //     return animatedBuilder(
+      //         context, animation, secondaryAnimation, stackWidgetBuilder(params));
+      //   },
       // );
+      //
       // if (replace) {
       //   return _navigator.pushReplacement(route);
       // }
@@ -262,42 +275,37 @@ class DNavigatorManager {
   }
 
   /// 2.处理Native发过来的指令
-  /// argument里包含必选参数routeName，actionTpye，可选参数params
+  /// argument里包含必选参数routeName，actionType，可选参数params
   static Future handleActionToFlutter(Map arguments) {
-    // 处理实际跳转
+    /// 处理实际跳转
+    DNodeEntity nodeEntity = DNodeEntity.fromJson(arguments);
     debugPrint("【sendActionToFlutter】 \n"
-        "【arguments】$arguments \n"
+        "【arguments】${nodeEntity.toJson()} \n"
         "【navigator】$_navigator ");
-    final String action = arguments['action'];
-    final List nodes = arguments['nodes'];
-    final Map params = arguments['params'];
-    bool homePage = arguments["homePage"];
-    bool animated = arguments['animated'];
-    final Map pageTypeMap = arguments['pageType'];
+    final String action = nodeEntity.action;
     switch (action) {
       case DStackConstant.push:
         continue Present;
       Present:
       case DStackConstant.present:
         {
+          final DNode node = nodeEntity.nodeList.first;
+          final Map params = node.params;
+          final bool homePage = node.homePage;
+          final PageType pageType = node.pageType;
+          final String router = node.target;
+
           if (homePage != null &&
               homePage == true &&
               DStack.instance.hasHomePage == false) {
-            String router = nodes.first;
-            String pageTypeStr = pageTypeMap[router];
-            pageTypeStr = pageTypeStr.toLowerCase();
-            PageType pageType = PageType.native;
-            if (pageTypeStr == "flutter") {
-              pageType = PageType.flutter;
-            }
             return replace(router, pageType,
                 homePage: homePage, animated: false);
           } else {
-            bool boundary = arguments['boundary'];
+            bool boundary = node.boundary;
             if (boundary != null && boundary) {
               /// 临界页面不开启动画
               PageRoute route = DNavigatorManager.materialRoute(
-                routeName: nodes.first,
+                routeName: router,
                 params: params,
                 fullscreenDialog: action == DStackConstant.present,
                 pushAnimated: false,
@@ -305,10 +313,9 @@ class DNavigatorManager {
               return _navigator.push(route);
             } else {
               MaterialPageRoute route = DNavigatorManager.materialRoute(
-                  routeName: nodes.first,
+                  routeName: router,
                   params: params,
                   fullscreenDialog: action == DStackConstant.present);
-
               return _navigator.push(route);
             }
           }
@@ -316,10 +323,8 @@ class DNavigatorManager {
         break;
       case DStackConstant.pop:
         {
-          if (nodes != null && nodes.isNotEmpty) {
-            return DNavigatorManager.gardPop(params, animated);
-          }
-          return Future.value(false);
+          final DNode node = nodeEntity.nodeList.first;
+          return DNavigatorManager.gardPop(node.params, node.animated);
         }
         break;
       case DStackConstant.popTo:
@@ -331,38 +336,31 @@ class DNavigatorManager {
       PopSkip:
       case DStackConstant.popSkip:
         {
-          if (nodes != null && nodes.isNotEmpty) {
-            Future pop;
-            int length = nodes.length - 1;
-            for (int i = length; i >= 0; i--) {
-              bool _animated = i == length;
-              if (!animated) {
-                _animated = animated;
-              }
-              pop = DNavigatorManager.gardPop(null, _animated);
+          Future pop;
+          int length = nodeEntity.nodeList.length - 1;
+          for (int i = length; i >= 0; i--) {
+            bool _animated = i == length;
+            if (nodeEntity.animated == false) {
+              _animated = nodeEntity.animated;
             }
-            return pop;
+            pop = DNavigatorManager.gardPop(null, _animated);
           }
-          return Future.value(false);
+          return pop;
         }
         break;
       case DStackConstant.dismiss:
         {
-          if (nodes != null && nodes.isNotEmpty) {
-            return DNavigatorManager.gardPop(params, animated);
-          }
-          return Future.value(false);
+          final DNode node = nodeEntity.nodeList.first;
+          return DNavigatorManager.gardPop(node.params, node.animated);
         }
         break;
       case DStackConstant.gesture:
         {
           // native发消息过来时，需要处理返回至上一页
-          if (nodes != null && nodes.isNotEmpty) {
-            DStackNavigatorObserver.instance
-                .setGesturingRouteName('NATIVEGESTURE');
-            return DNavigatorManager.gardPop(params);
-          }
-          return Future.value(false);
+          final DNode node = nodeEntity.nodeList.first;
+          DStackNavigatorObserver.instance
+              .setGesturingRouteName('NATIVEGESTURE');
+          return DNavigatorManager.gardPop(node.params);
         }
         break;
     }

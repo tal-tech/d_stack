@@ -348,7 +348,10 @@
     if (homePage && [homePage isKindOfClass:NSNumber.class]) {
         node.isFlutterHomePage = [homePage boolValue];
     }
-    node.animated = [call.arguments[@"animated"] boolValue];
+    id animated = call.arguments[@"animated"];
+    if (animated && [animated isKindOfClass:NSNumber.class]) {
+        node.animated = [call.arguments[@"animated"] boolValue];
+    }
     [[DNodeManager sharedInstance] checkNode:node];
     result(@"节点操作完成");
 }

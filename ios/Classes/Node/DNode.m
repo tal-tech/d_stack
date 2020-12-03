@@ -116,6 +116,14 @@
     return actionType;
 }
 
+- (NSString *)target
+{
+    if (_target && [_target isKindOfClass:NSString.class]) {
+        return _target;
+    }
+    return @"";
+}
+
 - (NSString *)description
 {
     return [NSString stringWithFormat:@"[class:%@ %p] [action:%@] [pageType:%@] [target:%@] [params:%@]",
