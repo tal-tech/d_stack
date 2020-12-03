@@ -12,6 +12,7 @@ import tal.com.d_stack.channel.DStackMethodHandler;
 import tal.com.d_stack.node.DNode;
 import tal.com.d_stack.node.DNodeManager;
 import tal.com.d_stack.node.DNodeResponse;
+import tal.com.d_stack.node.constants.DNodeActionType;
 import tal.com.d_stack.node.constants.DNodePageType;
 import tal.com.d_stack.observer.DStackActivityManager;
 import tal.com.d_stack.utils.DStackUtils;
@@ -25,34 +26,34 @@ public class DActionManager {
      * 打开页面
      */
     public static void push(DNode node) {
-        enterPageWithNode(node);
+        enterPageWithNode(node, DNodeActionType.DNodeActionTypePush, node.isAnimated());
     }
 
     /**
      * 返回当前页面
      */
     public static void pop(DNode node) {
-        closePageWithNode(node);
+        closePageWithNode(node, DNodeActionType.DNodeActionTypePop, node.isAnimated());
     }
 
     /**
      * 返回指定页面
      */
     public static void popTo(DNode node, List<DNode> removeNodes) {
-        closePageWithNodes(node, removeNodes);
+        closePageWithNodes(node, removeNodes, DNodeActionType.DNodeActionTypePopTo, node.isAnimated());
     }
 
     /**
      * 返回指定模块页面
      */
     public static void popSkip(DNode node, List<DNode> removeNodes) {
-        closePageWithNodes(node, removeNodes);
+        closePageWithNodes(node, removeNodes, DNodeActionType.DNodeActionTypePopSkip, node.isAnimated());
     }
 
     /**
      * 打开页面，根据页面类型做不同处理
      */
-    private static void enterPageWithNode(DNode node) {
+    private static void enterPageWithNode(DNode node, String action, boolean animated) {
         if (node.isFromFlutter()) {
             // 来自flutter消息通道的node
             if (node.getPageType().equals(DNodePageType.DNodePageTypeNative)) {
@@ -76,7 +77,8 @@ public class DActionManager {
                     //flutter根节点，不发通知给flutter
                     return;
                 }
-                DStackMethodHandler.sendNode(DNodeManager.getInstance().createNodeResponse(node));
+                DNodeResponse nodeResponse = DNodeManager.getInstance().createNodeResponse(node);
+                DStackMethodHandler.sendNode(nodeResponse, action, animated);
             }
         }
     }
@@ -84,7 +86,7 @@ public class DActionManager {
     /**
      * 关闭页面
      */
-    private static void closePageWithNode(DNode node) {
+    private static void closePageWithNode(DNode node, String action, boolean animated) {
         if (node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
             if (node.isRootPage() || node.isHomePage()) {
                 //根节点不移除栈，去判断临界状态
@@ -92,14 +94,15 @@ public class DActionManager {
                 return;
             }
             //pop的是flutter页面，发消息至flutter
-            DStackMethodHandler.sendNode(DNodeManager.getInstance().createNodeResponse(node));
+            DNodeResponse nodeResponse = DNodeManager.getInstance().createNodeResponse(node);
+            DStackMethodHandler.sendNode(nodeResponse, action, animated);
         }
     }
 
     /**
      * 关闭已移除节点集合的所有页面，包括native和flutter
      */
-    private static void closePageWithNodes(final DNode node, List<DNode> nodes) {
+    private static void closePageWithNodes(final DNode node, List<DNode> nodes, final String action, final boolean animated) {
         final List<Map<String, Object>> flutterNodes = new ArrayList<>();
         List<String> nativeNodes = new ArrayList<>();
         int size = nodes.size();
@@ -115,7 +118,7 @@ public class DActionManager {
             }
         }
         //处理需要关闭的控制器
-        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
+        final DNode currentNode = DNodeManager.getInstance().getCurrentNode();
         DStackActivityManager.getInstance().closeActivityWithNode(currentNode);
         //发送消息给flutter侧处理
         //为了保证native侧页面顺利关闭，此处需要延迟一些时间给flutter发消息
@@ -123,7 +126,9 @@ public class DActionManager {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                DStackMethodHandler.sendNode(flutterNodes);
+                DStackMethodHandler.sendNode(flutterNodes,
+                        action,
+                        animated);
             }
         }, 150);
     }
@@ -131,10 +136,11 @@ public class DActionManager {
     /**
      * 替换当前页面
      */
-    public static void replace(DNode node) {
+    public static void replace(DNode node, String action, boolean animated) {
         if (node.isFromFlutter()) {
             if (node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-                DStackMethodHandler.sendNode(DNodeManager.getInstance().createNodeResponse(node));
+                DNodeResponse nodeResponse = DNodeManager.getInstance().createNodeResponse(node);
+                DStackMethodHandler.sendNode(nodeResponse, action, animated);
             }
         }
     }

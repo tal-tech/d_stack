@@ -79,11 +79,13 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
     /**
      * native侧发送单个节点给flutter侧
      */
-    public static void sendNode(DNodeResponse nodeResponse) {
+    public static void sendNode(DNodeResponse nodeResponse, String action, boolean animated) {
         Map<String, Object> resultMap = new HashMap();
         List<Map<String, Object>> nodes = new ArrayList<>();
         nodes.add(nodeResponse.toMap());
         resultMap.put("nodes", nodes);
+        resultMap.put("action", action);
+        resultMap.put("animated", animated);
         DStack.getInstance().getMethodChannel().invokeMethod("sendActionToFlutter", resultMap, new MethodChannel.Result() {
             @Override
             public void success(Object result) {
@@ -105,11 +107,13 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
     /**
      * native侧发送节点集合给flutter侧
      */
-    public static void sendNode(List<Map<String, Object>> flutterNodes) {
+    public static void sendNode(List<Map<String, Object>> flutterNodes, String action, boolean animated) {
         Map<String, Object> resultMap = new HashMap();
         List<Map<String, Object>> nodes = new ArrayList<>();
         nodes.addAll(flutterNodes);
         resultMap.put("nodes", nodes);
+        resultMap.put("action", action);
+        resultMap.put("animated", animated);
         DStack.getInstance().getMethodChannel().invokeMethod("sendActionToFlutter", resultMap, new MethodChannel.Result() {
             @Override
             public void success(Object result) {
