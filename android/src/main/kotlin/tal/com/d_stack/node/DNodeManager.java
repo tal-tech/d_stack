@@ -133,7 +133,8 @@ public class DNodeManager {
                 DLog.logD("----------popSkip方法结束----------");
                 break;
             case DNodeActionType.DNodeActionTypeGesture:
-                DLog.logD("android理论收不见flutter传来的Gesture消息");
+                nodeList.remove(nodeList.size() - 1);
+                updateNodes();
                 break;
             case DNodeActionType.DNodeActionTypeReplace:
                 DLog.logD("----------replace方法开始----------");
