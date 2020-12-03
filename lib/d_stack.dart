@@ -96,16 +96,16 @@ class DStack {
   /// animated 是否有进场动画
   static Future push(String routeName, PageType pageType,
       {Map params, bool maintainState = true, bool animated = true}) {
-    return DNavigatorManager.push(
-        routeName, pageType, params, maintainState, animated);
+    return DNavigatorManager.push(routeName, pageType,
+        params: params, maintainState: maintainState, animated: animated);
   }
 
   /// 弹出一个页面
   /// animated 是否有进场动画
   static Future present(String routeName, PageType pageType,
       {Map params, bool maintainState = true, bool animated = true}) {
-    return DNavigatorManager.present(
-        routeName, pageType, params, maintainState, animated);
+    return DNavigatorManager.replace(routeName, pageType,
+        params: params, maintainState: maintainState, animated: animated);
   }
 
   /// 自定义进场动画
@@ -138,8 +138,11 @@ class DStack {
       bool maintainState = true,
       bool fullscreenDialog = false,
       bool animated = true}) {
-    return DNavigatorManager.pushBuild(routeName, pageType, builder, params,
-        maintainState, fullscreenDialog, animated);
+    return DNavigatorManager.pushBuild(routeName, pageType, builder,
+        params: params,
+        maintainState: maintainState,
+        fullscreenDialog: fullscreenDialog,
+        animated: animated);
   }
 
   /// 只支持flutter使用，替换flutter页面
@@ -173,19 +176,20 @@ class DStack {
   /// 要popTo到根页面请调用popToRoot
   static void popTo(String routeName, PageType pageType,
       {Map result, bool animated = true}) {
-    DNavigatorManager.popTo(routeName, pageType, result, animated);
+    DNavigatorManager.popTo(routeName, pageType,
+        result: result, animated: animated);
   }
 
   /// pop同一组页面
   static void popSkip(String skipName, {Map result, bool animated = true}) {
-    DNavigatorManager.popSkip(skipName, result, animated);
+    DNavigatorManager.popSkip(skipName, result: result, animated: animated);
   }
 
   /// 关闭一个页面
   /// 如果是push进入的，等同pop
   /// 如果是present进入的，效果是从上往下缩回去
   static void dismiss({Map result, bool animated = true}) {
-    DNavigatorManager.dismiss(result, animated);
+    DNavigatorManager.dismiss(result: result, animated: animated);
   }
 
   /// 回到根页面

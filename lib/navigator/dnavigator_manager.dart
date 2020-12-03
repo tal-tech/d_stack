@@ -28,7 +28,7 @@ class DNavigatorManager {
       DStack.instance.navigatorKey.currentState;
 
   static Future push(String routeName, PageType pageType,
-      [Map params, bool maintainState, bool animated = true]) {
+      {Map params, bool maintainState, bool animated = true}) {
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
           result: {}, animated: animated);
@@ -47,7 +47,7 @@ class DNavigatorManager {
 
   /// 弹出页面
   static Future present(String routeName, PageType pageType,
-      [Map params, bool maintainState, bool animated = true]) {
+      {Map params, bool maintainState, bool animated = true}) {
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.present,
           result: {}, animated: animated);
@@ -135,10 +135,10 @@ class DNavigatorManager {
   /// 提供外界直接传builder的能力
   static Future pushBuild(
       String routeName, PageType pageType, WidgetBuilder builder,
-      [Map params,
+      {Map params,
       bool maintainState,
       bool fullscreenDialog,
-      bool animated = true]) {
+      bool animated = true}) {
     if (pageType == PageType.flutter) {
       DNavigatorManager.nodeHandle(
           routeName, PageType.flutter, DStackConstant.push,
@@ -192,7 +192,7 @@ class DNavigatorManager {
   }
 
   static void popTo(String routeName, PageType pageType,
-      [Map result, bool animated = true]) {
+      {Map result, bool animated = true}) {
     DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.popTo,
         result: result, animated: animated);
   }
@@ -206,12 +206,12 @@ class DNavigatorManager {
     DNavigatorManager.nodeHandle(null, null, 'popToNativeRoot');
   }
 
-  static void popSkip(String skipName, [Map result, bool animated = true]) {
+  static void popSkip(String skipName, {Map result, bool animated = true}) {
     DNavigatorManager.nodeHandle(skipName, null, DStackConstant.popSkip,
         result: result, animated: animated);
   }
 
-  static void dismiss([Map result, bool animated = true]) {
+  static void dismiss({Map result, bool animated = true}) {
     DNavigatorManager.nodeHandle(null, null, DStackConstant.dismiss,
         result: result, animated: animated);
   }
@@ -445,6 +445,7 @@ class DNavigatorManager {
     _DStackPageRouteBuilder route = _DStackPageRouteBuilder(
       pageBuilder: builder,
       settings: userSettings,
+      maintainState: maintainState,
       fullscreenDialog: fullscreenDialog,
       pushTransition: pushAnimated ? defaultPushDuration : Duration.zero,
       popTransition: popAnimated ? defaultPopDuration : Duration.zero,
@@ -472,6 +473,7 @@ class _DStackPageRouteBuilder<T> extends PageRoute<T> {
     this.pushTransition = defaultPushDuration,
     this.popTransition = defaultPopDuration,
     this.fullscreenDialog = false,
+    this.maintainState = true,
   }) : super(settings: settings, fullscreenDialog: fullscreenDialog);
 
   @override
@@ -481,7 +483,7 @@ class _DStackPageRouteBuilder<T> extends PageRoute<T> {
   String get barrierLabel => null;
 
   @override
-  bool get maintainState => true;
+  final bool maintainState;
 
   @override
   Duration get transitionDuration => pushTransition;
