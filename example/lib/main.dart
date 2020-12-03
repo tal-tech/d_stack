@@ -31,6 +31,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       navigatorKey: DStack.instance.navigatorKey,
       navigatorObservers: [DStack.instance.dStackNavigatorObserver],
       home: DStackWidget(),
+      theme: ThemeData(
+        platform: TargetPlatform.iOS
+      ),
     );
   }
 }

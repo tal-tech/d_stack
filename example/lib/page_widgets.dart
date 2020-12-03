@@ -161,9 +161,9 @@ class Page3 extends StatelessWidget {
           RaisedButton(
             child: Text('打开NativePage'),
             onPressed: () {
-              // DStack.push("NativePage", PageType.native,
-              //     params: {"name": "flutter 传递的", "id": 1000000});
-              DStack.popTo("page1", PageType.flutter, animated: true);
+              DStack.push("NativePage", PageType.native,
+                  params: {"name": "flutter 传递的", "id": 1000000});
+              // DStack.popTo("page1", PageType.flutter, animated: true);
             },
           ),
           present(),

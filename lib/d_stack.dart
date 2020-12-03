@@ -104,7 +104,7 @@ class DStack {
   /// animated 是否有进场动画
   static Future present(String routeName, PageType pageType,
       {Map params, bool maintainState = true, bool animated = true}) {
-    return DNavigatorManager.replace(routeName, pageType,
+    return DNavigatorManager.present(routeName, pageType,
         params: params, maintainState: maintainState, animated: animated);
   }
 
