@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,37 +45,6 @@ public class DNodeManager {
                 return factory;
             }
         }
-    }
-
-    /**
-     * /创建节点
-     *
-     * @param target      路由信息
-     * @param uniqueId    唯一id
-     * @param pageType    页面类型
-     * @param actionType  页面动作类型
-     * @param params      参数
-     * @param fromFlutter 是否来自flutter消息通道
-     * @return
-     */
-    public DNode createNode(String target,
-                            String uniqueId,
-                            String pageType,
-                            String actionType,
-                            Map<String, Object> params,
-                            boolean fromFlutter,
-                            boolean homePage,
-                            boolean rootPage) {
-        DNode node = new DNode();
-        node.setTarget(target);
-        node.setUniqueId(uniqueId);
-        node.setAction(actionType);
-        node.setPageType(pageType);
-        node.setParams(params);
-        node.setFromFlutter(fromFlutter);
-        node.setHomePage(homePage);
-        node.setRootPage(rootPage);
-        return node;
     }
 
     //获取当前节点
@@ -413,6 +383,22 @@ public class DNodeManager {
             }
         }
         return false;
+    }
+
+
+    public DNodeResponse createNodeResponse(DNode node) {
+        DNodeResponse nodeResponse = new DNodeResponse();
+        nodeResponse.target = node.getTarget();
+        nodeResponse.pageType = node.getPageType();
+        nodeResponse.action = node.getAction();
+        nodeResponse.params = node.getParams();
+        nodeResponse.homePage = node.isHomePage();
+        nodeResponse.animated = node.isAnimated();
+        nodeResponse.boundary = node.isBoundary();
+        DLog.logD("-----createNodeResponse开始-----");
+        DLog.logD(nodeResponse.toString());
+        DLog.logD("-----createNodeResponse结束-----");
+        return nodeResponse;
     }
 
 }

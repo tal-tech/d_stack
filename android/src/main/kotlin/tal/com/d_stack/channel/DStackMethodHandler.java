@@ -12,8 +12,7 @@ import tal.com.d_stack.DStack;
 import tal.com.d_stack.lifecycle.PageModel;
 import tal.com.d_stack.node.DNode;
 import tal.com.d_stack.node.DNodeManager;
-import tal.com.d_stack.utils.DLog;
-import tal.com.d_stack.utils.DStackUtils;
+import tal.com.d_stack.node.DNodeResponse;
 
 /**
  * 框架消息通道
@@ -43,44 +42,48 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
     }
 
     /**
-     * 处理发来的节点信息
+     * flutter侧发来的节点信息
      */
     private static void handleSendNodeToNative(Map<String, Object> args) {
-        if (args == null) {
-            return;
+        DNode node = createNodeFromFlutter(args);
+        if (node != null) {
+            DNodeManager.getInstance().checkNode(node);
         }
-        String actionType = (String) args.get("actionType");
-        String target = (String) args.get("target");
-        String pageType = (String) args.get("pageType");
-        Map<String, Object> params = (Map<String, Object>) args.get("params");
-        boolean homePage = false;
-        if (args.get("homePage") != null) {
-            homePage = (boolean) args.get("homePage");
-        }
-        //创建Node节点信息
-        DNode node = DNodeManager.getInstance().createNode(
-                target,
-                DStackUtils.generateUniqueId(),
-                pageType,
-                actionType,
-                params,
-                true,
-                homePage, false);
-        DNodeManager.getInstance().checkNode(node);
     }
 
-    //native侧发送节点给flutter侧
-    public static void sendNode(List<String> flutterNodes, DNode node) {
+    /**
+     * flutter侧发来的要移除的节点信息
+     */
+    private static void handleSendRemoveFlutterPageNode(Map<String, Object> args) {
+        DNode node = createNodeFromFlutter(args);
+        if (node != null) {
+            DNodeManager.getInstance().handleNeedRemoveFlutterNode(node);
+        }
+    }
+
+    /**
+     * flutter侧发来的获取节点列表
+     */
+    private void handleSendNodeList(MethodChannel.Result result) {
+        List<DNode> nodeList = DNodeManager.getInstance().getNodeList();
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        for (DNode node : nodeList) {
+            Map<String, Object> tempMap = new HashMap<>();
+            tempMap.put("route", node.getTarget());
+            tempMap.put("pageType", node.getPageType());
+            resultList.add(tempMap);
+        }
+        result.success(resultList);
+    }
+
+    /**
+     * native侧发送单个节点给flutter侧
+     */
+    public static void sendNode(DNodeResponse nodeResponse) {
         Map<String, Object> resultMap = new HashMap();
-        List<String> nodes = new ArrayList<>();
-        nodes.addAll(flutterNodes);
-        resultMap.put("action", node.getAction());
+        List<Map<String, Object>> nodes = new ArrayList<>();
+        nodes.add(nodeResponse.toMap());
         resultMap.put("nodes", nodes);
-        resultMap.put("params", node.getParams());
-        resultMap.put("homePage", node.isHomePage());
-        resultMap.put("pageType", node.getPageTypeMap());
-        DLog.logD("sendNode信息发送到flutter侧 action: " + node.getAction());
-        DLog.logD("sendNode信息发送到flutter侧 nodes: " + nodes.toString());
         DStack.getInstance().getMethodChannel().invokeMethod("sendActionToFlutter", resultMap, new MethodChannel.Result() {
             @Override
             public void success(Object result) {
@@ -100,42 +103,29 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
     }
 
     /**
-     * 处理发来的要移除的节点信息
+     * native侧发送节点集合给flutter侧
      */
-    private static void handleSendRemoveFlutterPageNode(Map<String, Object> args) {
-        if (args == null) {
-            return;
-        }
-        String target = (String) args.get("target");
-        String pageType = (String) args.get("pageType");
-        String actionType = (String) args.get("actionType");
-        boolean homePage = false;
-        if (args.get("homePage") != null) {
-            homePage = (boolean) args.get("homePage");
-        }
-        DNode node = DNodeManager.getInstance().createNode(
-                target,
-                "",
-                pageType,
-                actionType,
-                null,
-                true, homePage, false);
-        DNodeManager.getInstance().handleNeedRemoveFlutterNode(node);
-    }
+    public static void sendNode(List<Map<String, Object>> flutterNodes) {
+        Map<String, Object> resultMap = new HashMap();
+        List<Map<String, Object>> nodes = new ArrayList<>();
+        nodes.addAll(flutterNodes);
+        resultMap.put("nodes", nodes);
+        DStack.getInstance().getMethodChannel().invokeMethod("sendActionToFlutter", resultMap, new MethodChannel.Result() {
+            @Override
+            public void success(Object result) {
 
-    /**
-     * 处理发来的获取节点列表信息
-     */
-    private void handleSendNodeList(MethodChannel.Result result) {
-        List<DNode> nodeList = DNodeManager.getInstance().getNodeList();
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        for (DNode node : nodeList) {
-            Map<String, Object> tempMap = new HashMap<>();
-            tempMap.put("route", node.getTarget());
-            tempMap.put("pageType", node.getPageType());
-            resultList.add(tempMap);
-        }
-        result.success(resultList);
+            }
+
+            @Override
+            public void error(String errorCode, String errorMessage, Object errorDetails) {
+
+            }
+
+            @Override
+            public void notImplemented() {
+
+            }
+        });
     }
 
 
@@ -195,5 +185,49 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
 
             }
         });
+    }
+
+    /**
+     * 根据flutter侧传来的信息创建节点
+     */
+    public static DNode createNodeFromFlutter(Map<String, Object> args) {
+        if (args == null) {
+            return null;
+        }
+        String target = "";
+        String pageType = "";
+        String actionType = "";
+        Map<String, Object> params = new HashMap<>();
+        boolean homePage = false;
+        boolean animated = false;
+        if (args.get("target") != null) {
+            target = (String) args.get("target");
+        }
+        if (args.get("pageType") != null) {
+            pageType = (String) args.get("pageType");
+        }
+        if (args.get("actionType") != null) {
+            actionType = (String) args.get("actionType");
+        }
+        if (args.get("params") != null) {
+            params = (Map<String, Object>) args.get("params");
+        }
+        if (args.get("homePage") != null) {
+            homePage = (boolean) args.get("homePage");
+        }
+        if (args.get("animated") != null) {
+            animated = (boolean) args.get("animated");
+        }
+        //创建Node节点信息
+        DNode node = new DNode.Builder()
+                .target(target)
+                .pageType(pageType)
+                .action(actionType)
+                .params(params)
+                .isHomePage(homePage)
+                .animated(animated)
+                .fromFlutter(true)
+                .build();
+        return node;
     }
 }

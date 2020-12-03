@@ -5,13 +5,16 @@ import android.os.Handler;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import tal.com.d_stack.DStack;
 import tal.com.d_stack.channel.DStackMethodHandler;
 import tal.com.d_stack.node.DNode;
 import tal.com.d_stack.node.DNodeManager;
+import tal.com.d_stack.node.DNodeResponse;
 import tal.com.d_stack.node.constants.DNodePageType;
 import tal.com.d_stack.observer.DStackActivityManager;
+import tal.com.d_stack.utils.DStackUtils;
 
 /**
  * 页面实际跳转动作管理
@@ -60,10 +63,11 @@ public class DActionManager {
                         node.getParams()
                 );
             } else if (node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
+                // 打开flutter页面
                 // 给当前flutter节点设置对应的activity
-                DNodeManager.getInstance().getCurrentNode().setActivity(
-                        new WeakReference(DStackActivityManager.getInstance().getTopActivity())
-                );
+                DNode currentNode = DNodeManager.getInstance().getCurrentNode();
+                currentNode.setUniqueId(DStackUtils.generateUniqueId());
+                currentNode.setActivity(new WeakReference(DStackActivityManager.getInstance().getTopActivity()));
             }
         } else {
             // 只是来自native的node，并且是需要打开Flutter页面的，发消息至flutter，打开页面
@@ -72,9 +76,7 @@ public class DActionManager {
                     //flutter根节点，不发通知给flutter
                     return;
                 }
-                List<String> flutterNodes = new ArrayList<>();
-                flutterNodes.add(node.getTarget());
-                DStackMethodHandler.sendNode(flutterNodes, node);
+                DStackMethodHandler.sendNode(DNodeManager.getInstance().createNodeResponse(node));
             }
         }
     }
@@ -90,9 +92,7 @@ public class DActionManager {
                 return;
             }
             //pop的是flutter页面，发消息至flutter
-            List<String> flutterNodes = new ArrayList<>();
-            flutterNodes.add(node.getTarget());
-            DStackMethodHandler.sendNode(flutterNodes, node);
+            DStackMethodHandler.sendNode(DNodeManager.getInstance().createNodeResponse(node));
         }
     }
 
@@ -100,14 +100,15 @@ public class DActionManager {
      * 关闭已移除节点集合的所有页面，包括native和flutter
      */
     private static void closePageWithNodes(final DNode node, List<DNode> nodes) {
-        final List<String> flutterNodes = new ArrayList<>();
+        final List<Map<String, Object>> flutterNodes = new ArrayList<>();
         List<String> nativeNodes = new ArrayList<>();
         int size = nodes.size();
         for (int i = 0; i < size; i++) {
             DNode loopNode = nodes.get(i);
             if (loopNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
                 if (!loopNode.isHomePage()) {
-                    flutterNodes.add(loopNode.getTarget());
+                    DNodeResponse nodeResponse = DNodeManager.getInstance().createNodeResponse(loopNode);
+                    flutterNodes.add(nodeResponse.toMap());
                 }
             } else {
                 nativeNodes.add(loopNode.getUniqueId());
@@ -122,7 +123,7 @@ public class DActionManager {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                DStackMethodHandler.sendNode(flutterNodes, node);
+                DStackMethodHandler.sendNode(flutterNodes);
             }
         }, 150);
     }
@@ -133,9 +134,7 @@ public class DActionManager {
     public static void replace(DNode node) {
         if (node.isFromFlutter()) {
             if (node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-                List<String> flutterNodes = new ArrayList<>();
-                flutterNodes.add(node.getTarget());
-                DStackMethodHandler.sendNode(flutterNodes, node);
+                DStackMethodHandler.sendNode(DNodeManager.getInstance().createNodeResponse(node));
             }
         }
     }

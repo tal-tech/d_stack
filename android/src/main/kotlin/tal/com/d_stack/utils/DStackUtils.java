@@ -74,7 +74,6 @@ public class DStackUtils {
         }
         flutterView.detachFromFlutterEngine();
         flutterView.attachToFlutterEngine(flutterEngine);
-        DStack.getInstance().setHasBeenExecutedResetAttachEngine(true);
     }
 
     /**

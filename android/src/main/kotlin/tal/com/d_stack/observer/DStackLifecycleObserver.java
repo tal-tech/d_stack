@@ -34,8 +34,7 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
-        boolean canAdd = FilterActivityManager.getInstance().canAdd(activity);
-        if (!canAdd) {
+        if (!FilterActivityManager.getInstance().canAdd(activity)) {
             return;
         }
         DStackActivityManager.getInstance().addActivity(activity);
@@ -46,41 +45,36 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
             //应用刚刚启动时
             if (DStackActivityManager.getInstance().isFlutterActivity(activity)) {
                 //是flutter工程，添加根节点
-                node = DNodeManager.getInstance().createNode(
-                        "/",
-                        DStackUtils.generateUniqueId(),
-                        DNodePageType.DNodePageTypeFlutter,
-                        DNodeActionType.DNodeActionTypePush,
-                        null,
-                        false,
-                        true,
-                        true);
+                node = new DNode.Builder()
+                        .target("/")
+                        .pageType(DNodePageType.DNodePageTypeFlutter)
+                        .action(DNodeActionType.DNodeActionTypePush)
+                        .uniqueId(DStackUtils.generateUniqueId())
+                        .isHomePage(true)
+                        .isRootPage(true)
+                        .build();
             } else {
                 //是native工程，添加根节点
-                node = DNodeManager.getInstance().createNode(
-                        "/",
-                        DStackUtils.generateUniqueId(),
-                        DNodePageType.DNodePageTypeNative,
-                        DNodeActionType.DNodeActionTypePush,
-                        null,
-                        false,
-                        true,
-                        true);
+                node = new DNode.Builder()
+                        .target("/")
+                        .pageType(DNodePageType.DNodePageTypeNative)
+                        .action(DNodeActionType.DNodeActionTypePush)
+                        .uniqueId(DStackUtils.generateUniqueId())
+                        .isHomePage(true)
+                        .isRootPage(true)
+                        .build();
             }
             DNodeManager.getInstance().checkNode(node);
         } else {
             //应用已经启动，打开新的activity
             if (!DStackActivityManager.getInstance().isFlutterActivity(activity)) {
                 //是native工程，添加普通节点
-                DNode node = DNodeManager.getInstance().createNode(
-                        activity.getClass().getName(),
-                        DStackUtils.generateUniqueId(),
-                        DNodePageType.DNodePageTypeNative,
-                        DNodeActionType.DNodeActionTypePush,
-                        null,
-                        false,
-                        false,
-                        false);
+                DNode node = new DNode.Builder()
+                        .target(activity.getClass().getName())
+                        .pageType(DNodePageType.DNodePageTypeNative)
+                        .action(DNodeActionType.DNodeActionTypePush)
+                        .uniqueId(DStackUtils.generateUniqueId())
+                        .build();
                 DNodeManager.getInstance().checkNode(node);
             }
         }
@@ -93,6 +87,9 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityStarted(@NonNull Activity activity) {
+        if (!FilterActivityManager.getInstance().canAdd(activity)) {
+            return;
+        }
         appCount++;
         if (!isFrontApp) {
             isFrontApp = true;
@@ -102,8 +99,7 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityResumed(@NonNull Activity activity) {
-        boolean canAdd = FilterActivityManager.getInstance().canAdd(activity);
-        if (!canAdd) {
+        if (!FilterActivityManager.getInstance().canAdd(activity)) {
             return;
         }
         if (activeActivity != activity) {
@@ -122,11 +118,16 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityPaused(@NonNull Activity activity) {
-
+        if (!FilterActivityManager.getInstance().canAdd(activity)) {
+            return;
+        }
     }
 
     @Override
     public void onActivityStopped(@NonNull Activity activity) {
+        if (!FilterActivityManager.getInstance().canAdd(activity)) {
+            return;
+        }
         appCount--;
         if (!isFrontApp()) {
             isFrontApp = false;
@@ -136,23 +137,20 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityDestroyed(@NonNull Activity activity) {
-        boolean canAdd = FilterActivityManager.getInstance().canAdd(activity);
-        if (!canAdd) {
+        if (!FilterActivityManager.getInstance().canAdd(activity)) {
             return;
         }
         boolean isPopTo = DStackActivityManager.getInstance().isExecuteStack();
         DStackActivityManager.getInstance().removeActivity(activity);
         DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-        DNode node = DNodeManager.getInstance().createNode(
-                currentNode.getTarget(),
-                currentNode.getUniqueId(),
-                currentNode.getPageType(),
-                DNodeActionType.DNodeActionTypePop,
-                currentNode.getParams(),
-                false,
-                currentNode.isHomePage(),
-                currentNode.isRootPage());
-        node.setPopTo(isPopTo);
+        DNode node = new DNode.Builder()
+                .target(currentNode.getTarget())
+                .pageType(currentNode.getPageType())
+                .action(DNodeActionType.DNodeActionTypePop)
+                .isHomePage(currentNode.isHomePage())
+                .isRootPage(currentNode.isRootPage())
+                .isPopTo(isPopTo)
+                .build();
         DNodeManager.getInstance().checkNode(node);
     }
 

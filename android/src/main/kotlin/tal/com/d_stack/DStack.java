@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.text.TextUtils;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -56,9 +55,6 @@ public class DStack {
     private Context context;
 
     private INativeRouter nativeRouter;
-
-    //是否执行过重置引擎的操作
-    private boolean hasBeenExecutedResetAttachEngine = false;
 
     /**
      * 初始化DStack
@@ -140,20 +136,19 @@ public class DStack {
      */
     public void pushFlutterPage(String pageRouter, Map<String, Object> params, Class<?> containerCls) {
         DLog.logD("要打开的flutter页面路由是：" + pageRouter);
-        DNode node = DNodeManager.getInstance().createNode(
-                pageRouter,
-                DStackActivityManager.getInstance().generateUniqueId(),
-                DNodePageType.DNodePageTypeFlutter,
-                DNodeActionType.DNodeActionTypePush,
-                params,
-                false,
-                false, false);
+        DNode node = new DNode.Builder()
+                .target(pageRouter)
+                .params(params)
+                .pageType(DNodePageType.DNodePageTypeFlutter)
+                .action(DNodeActionType.DNodeActionTypePush)
+                .boundary(true)
+                .build();
+
         if (!DStack.getInstance().isFlutterApp()) {
+            //原生工程
             if (!DStackActivityManager.getInstance().haveFlutterContainer()) {
+                //第一次打开flutter页面，设置flutter页面的homepage为true
                 node.setHomePage(true);
-                Map<String, String> pageTypeMap = new HashMap<>();
-                pageTypeMap.put(node.getTarget(), node.getPageType());
-                node.setPageTypeMap(pageTypeMap);
             }
         }
 
@@ -174,36 +169,28 @@ public class DStack {
      */
     public void pop() {
         DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-        if (currentNode == null) {
-            return;
-        }
         if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-            DNode node = DNodeManager.getInstance().createNode(
-                    currentNode.getTarget(),
-                    currentNode.getUniqueId(),
-                    DNodePageType.DNodePageTypeFlutter,
-                    DNodeActionType.DNodeActionTypePop,
-                    currentNode.getParams(),
-                    false, false,
-                    currentNode.isHomePage());
+            DNode node = new DNode.Builder().target(currentNode.getTarget())
+                    .pageType(DNodePageType.DNodePageTypeFlutter)
+                    .action(DNodeActionType.DNodeActionTypePop)
+                    .isHomePage(currentNode.isHomePage()).build();
             DNodeManager.getInstance().checkNode(node);
         }
     }
 
     /**
-     * native侧关闭flutter页面
+     * native侧关闭当前页面，暂时只处理关闭flutter页面，带参数
      */
-    public void popFlutterPage(String pageRouter, Map<String, Object> params) {
-        DLog.logE("要关闭的flutter页面路由是：" + pageRouter);
-        DNode node = DNodeManager.getInstance().createNode(
-                pageRouter,
-                "",
-                DNodePageType.DNodePageTypeFlutter,
-                DNodeActionType.DNodeActionTypePop,
-                params,
-                false,
-                false, false);
-        DNodeManager.getInstance().checkNode(node);
+    public void pop(Map<String, Object> params) {
+        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
+        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
+            DNode node = new DNode.Builder().target(currentNode.getTarget())
+                    .pageType(DNodePageType.DNodePageTypeFlutter)
+                    .action(DNodeActionType.DNodeActionTypePop)
+                    .params(params)
+                    .isHomePage(currentNode.isHomePage()).build();
+            DNodeManager.getInstance().checkNode(node);
+        }
     }
 
     /**
@@ -223,20 +210,23 @@ public class DStack {
      * 返回根页面
      */
     public void popToRoot() {
-        DNode rootNode = DNodeManager.getInstance().createNode(""
-                , "", "", DNodeActionType.DNodeActionTypePopToRoot
-                , null, false, false, false);
-        DNodeManager.getInstance().checkNode(rootNode);
+        DNode node = new DNode.Builder()
+                .target("/")
+                .action(DNodeActionType.DNodeActionTypePopToRoot)
+                .build();
+        DNodeManager.getInstance().checkNode(node);
     }
 
     /**
      * 返回根页面，带参数
      */
     public void popToRoot(Map<String, Object> params) {
-        DNode rootNode = DNodeManager.getInstance().createNode(""
-                , "", "", DNodeActionType.DNodeActionTypePopToRoot
-                , params, false, false, false);
-        DNodeManager.getInstance().checkNode(rootNode);
+        DNode node = new DNode.Builder()
+                .target("/")
+                .action(DNodeActionType.DNodeActionTypePopToRoot)
+                .params(params)
+                .build();
+        DNodeManager.getInstance().checkNode(node);
     }
 
     /**
@@ -249,8 +239,6 @@ public class DStack {
     /**
      * 添加过滤器
      * 某些功能性Activity，不需要做节点管理的，添加至过滤
-     *
-     * @param filterString 过滤字符串
      */
     public void addFilter(String filterString) {
         if (TextUtils.isEmpty(filterString)) {
@@ -261,8 +249,6 @@ public class DStack {
 
     /**
      * 移除已添加的过滤器
-     *
-     * @param filterString
      */
     public void removeFilter(String filterString) {
         if (TextUtils.isEmpty(filterString)) {
@@ -276,27 +262,6 @@ public class DStack {
      * 监听flutter控制器的返回键，处理多个flutter控制器，根节点无法返回的问题
      */
     public void listenBackPressed() {
-//        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-//        if (currentNode == null) {
-//            return;
-//        }
-//        if (DStack.getInstance().isFlutterApp()) {
-//            return;
-//        }
-//        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-//            if (currentNode.isHomePage()) {
-//                if (hasBeenExecutedResetAttachEngine) {
-//                    DStackActivityManager.getInstance().closeTopFlutterActivity();
-//                    hasBeenExecutedResetAttachEngine = false;
-//                }
-//            }
-//        }
-    }
 
-    /**
-     * 设置是否重置过引擎
-     */
-    public void setHasBeenExecutedResetAttachEngine(boolean hasBeenExecutedResetAttachEngine) {
-        this.hasBeenExecutedResetAttachEngine = hasBeenExecutedResetAttachEngine;
     }
 }
