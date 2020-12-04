@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 
 import 'page_widgets.dart';
 
+final bool isFlutterProject = true;
+
 void main() {
   // 注册路由builder , 生命周期监听
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +31,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return MaterialApp(
       navigatorKey: DStack.instance.navigatorKey,
       navigatorObservers: [DStack.instance.dStackNavigatorObserver],
-      home: DStackWidget(),
+      home: isFlutterProject ? DStackWidget(homePage: Page1()) : DStackWidget(),
       theme: ThemeData(platform: TargetPlatform.iOS),
     );
   }

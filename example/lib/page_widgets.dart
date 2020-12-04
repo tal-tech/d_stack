@@ -17,13 +17,6 @@ class Student {
   String address;
 }
 
-class Page1 extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() {
-    return _Page1();
-  }
-}
-
 Widget _caseWidget(List<Map> items) {
   return Center(
     child: ListView.builder(
@@ -47,26 +40,23 @@ Widget _caseWidget(List<Map> items) {
   );
 }
 
+class Page1 extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return _Page1();
+  }
+}
+
 class _Page1 extends State<Page1> {
   @override
   Widget build(BuildContext context) {
+    final Map args = ModalRoute.of(context).settings.arguments;
+    debugPrint('page1收到前一个页面传来的参数 ==> $args');
     return Scaffold(
-      appBar: AppBar(
-          title: Text('flutter page1'),
-          leading: RaisedButton(
-            child: Text('返回'),
-            onPressed: () {
-              DStack.pop();
-            },
-          )),
+      appBar: AppBar(title: Text('flutter page1'), leading: Container()),
       backgroundColor: Colors.white,
       body: _caseWidget(TestCase.openFlutterPageCase),
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }
 
@@ -74,7 +64,7 @@ class Page2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map args = ModalRoute.of(context).settings.arguments;
-    debugPrint(' ==page2收到前一个页面传来的参数=====  $args');
+    debugPrint('page2收到前一个页面传来的参数 ==> $args');
 
     return Scaffold(
       appBar: AppBar(

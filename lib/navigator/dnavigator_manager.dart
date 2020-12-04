@@ -317,7 +317,7 @@ class DNavigatorManager {
               homePage == true &&
               DStack.instance.hasHomePage == false) {
             return replace(router, pageType,
-                homePage: homePage, animated: false);
+                homePage: homePage, animated: false, params: node.params);
           } else {
             bool boundary = node.boundary;
             if (boundary != null && boundary) {

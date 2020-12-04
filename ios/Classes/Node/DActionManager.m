@@ -103,14 +103,11 @@
 /// @param nodeList 待关闭node列表
 + (void)closePageWithNode:(DNode *)node willRemovedList:(nullable NSArray<DNode *> *)nodeList
 {
-    if (node.action == DNodeActionTypeUnknow) {return;}
-    DNode *targetNode = nodeList.firstObject;
-    if (!targetNode) { return;}
-    
+    if (node.action == DNodeActionTypeUnknow || !nodeList.count) {return;}
     DNode *preNode = [DNodeManager sharedInstance].preNode;
     DNode *currentNode = [DNodeManager sharedInstance].currentNode;
     
-    if (!currentNode) { return;}
+    if (!currentNode || currentNode.isRootPage) { return;}
     if (currentNode.pageType == DNodePageTypeFlutter) {
         switch (preNode.pageType) {
             case DNodePageTypeFlutter:

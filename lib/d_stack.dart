@@ -58,6 +58,11 @@ class DStack {
   bool get hasHomePage => _hasHomePage;
   set homePage(bool page) {
     _hasHomePage = page;
+    if (_hasHomePage) {
+      /// 如果设置了homePage，说明是以flutter为入口的工程
+      /// 根节点设置为flutter页面的信息
+      channel.sendFlutterRootNode();
+    }
   }
 
   final Map<String, DStackWidgetBuilder> _pageBuilders =

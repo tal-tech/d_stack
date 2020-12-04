@@ -43,8 +43,12 @@ class DChannel {
 
   Future sendRemoveFlutterPageNode(Map arguments) async {
     assert(arguments != null);
-
     return _methodChannel.invokeMethod(DStackConstant.checkRemoved, arguments);
+  }
+
+  /// 设置flutter根节点
+  Future sendFlutterRootNode() async {
+    return _methodChannel.invokeMethod(DStackConstant.sendFlutterRootNode);
   }
 
   Future<List<DStackNode>> getNodeList() async {

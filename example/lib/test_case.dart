@@ -16,6 +16,20 @@ class TestCase {
   /// 打开flutter页面用例
   static List<Map> openFlutterPageCase = [
     {
+      "text": "【pop】 有动画",
+      "clicked": () {
+        DStack.pop();
+      }
+    },
+    {
+      "text": "【pop】 无动画",
+      "clicked": () {
+        DStack.pop(animated: false);
+      }
+    },
+    {"text": "", "clicked": () {}},
+    {"text": "", "clicked": () {}},
+    {
       "text": "【push】 flutter page2 有动画",
       "clicked": () {
         DStack.push('page2', PageType.flutter);

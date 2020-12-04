@@ -14,6 +14,7 @@ DStackMethodChannelName const DStackMethodChannelSendActionToFlutter = @"sendAct
 DStackMethodChannelName const DStackMethodChannelSendRemoveFlutterPageNode = @"sendRemoveFlutterPageNode";
 DStackMethodChannelName const DStackMethodChannelSendLifeCircle = @"sendLifeCycle";
 DStackMethodChannelName const DStackMethodChannelSendNodeList = @"sendNodeList";
+DStackMethodChannelName const DStackMethodChannelSendFlutterRootNode = @"sendFlutterRootNode";
 
 
 @interface DStackPlugin ()
@@ -50,6 +51,11 @@ DStackMethodChannelName const DStackMethodChannelSendNodeList = @"sendNodeList";
       DStack *stack = [DStack sharedInstance];
       if ([stack respondsToSelector:@selector(sendNodeListToFlutter:)]) {
           [stack sendNodeListToFlutter:result];
+      }
+  } else if ([DStackMethodChannelSendFlutterRootNode isEqualToString:call.method]) {
+      DStack *stack = [DStack sharedInstance];
+      if ([stack respondsToSelector:@selector(setFlutterRootNode)]) {
+          [stack setFlutterRootNode];
       }
   } else {
       result(FlutterMethodNotImplemented);

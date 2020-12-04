@@ -394,6 +394,12 @@
     }
 }
 
+/// 设置根节点为flutter的信息
+- (void)setFlutterRootNode
+{
+    [[DNodeManager sharedInstance] updateRootNodeWithFlutter];
+}
+
 - (FlutterEngine *)engine
 {
     if (!_engine) {

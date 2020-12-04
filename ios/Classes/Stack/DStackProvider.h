@@ -73,6 +73,9 @@ typedef NS_ENUM(NSInteger, DStackApplicationState) {
 /// @param result result
 - (void)sendNodeListToFlutter:(FlutterResult)result;
 
+/// 设置根节点为flutter的信息
+- (void)setFlutterRootNode;
+
 @end
 
 #endif /* DStackProvider_h */

@@ -3,12 +3,17 @@
 #import "GeneratedPluginRegistrant.h"
 #import "ThirdViewController.h"
 #import "FourViewController.h"
+#import "DStackViewController.h"
+#import "HomeViewController.h"
+#import "DemoFlutterViewController.h"
 
 @DStackInject(AppDelegate);
 
 @interface AppDelegate () <DStackDelegate>
 
 @end
+
+static BOOL isFlutterProject = YES;
 
 @implementation AppDelegate
 
@@ -18,8 +23,25 @@
     [[DStack sharedInstance] startWithDelegate:self];
     [GeneratedPluginRegistrant registerWithRegistry:[DStack sharedInstance].engine];
     [[DStack sharedInstance] logEnable:YES];
-
-  return YES;
+    
+    UIViewController *rootVC = nil;
+    if (isFlutterProject) {
+        DemoFlutterViewController *home = [[DemoFlutterViewController alloc] init];
+        DStackViewController *navi = [[DStackViewController alloc] initWithRootViewController:home];
+        rootVC = navi;
+    } else {
+        HomeViewController *home = [[HomeViewController alloc] init];
+        UITabBarController *tab = [[UITabBarController alloc] init];
+        DStackViewController *navi = [[DStackViewController alloc] initWithRootViewController:home];
+        navi.tabBarItem.title = @"home";
+        [tab setViewControllers:@[navi]];
+        rootVC = tab;
+    }
+    self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    self.window.backgroundColor = [UIColor whiteColor];
+    self.window.rootViewController = rootVC;
+    [self.window makeKeyAndVisible];
+    return YES;
 }
 
 + (FlutterEngine *)dStackForFlutterEngine

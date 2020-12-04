@@ -12,9 +12,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface HomeViewController : UIViewController
 
-@property (nonatomic, assign) BOOL showCloseButton;
-@property (weak, nonatomic) IBOutlet UIButton *closeButton;
-
 @end
 
 NS_ASSUME_NONNULL_END
