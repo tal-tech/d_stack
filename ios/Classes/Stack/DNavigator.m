@@ -351,12 +351,7 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
                 canCheckNode = checkBlock([(UITabBarController *)controller selectedViewController]);
             }
             if (canCheckNode) {
-                NSString *scheme = NSStringFromClass(targetController.class);
-                DNode *node = [[DNodeManager sharedInstance] nextPageScheme:scheme
-                                                                   pageType:DNodePageTypeNative
-                                                                     action:DNodeActionTypePresent
-                                                                     params:nil];
-                [[DNodeManager sharedInstance] checkNode:node];
+                checkNode(targetController, DNodeActionTypePresent);
             }
         }
     }
@@ -486,10 +481,7 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 - (void)removeGesturePopNode
 {
     if (self.isGesturePoped && self.isBeginPoped) {
-        DNode *node = [[DNode alloc] init];
-        node.action = DNodeActionTypeGesture;
-        node.target = NSStringFromClass(self.class);
-        [[DNodeManager sharedInstance] checkNode:node];
+        checkNode(self, DNodeActionTypeGesture);
     }
 }
 
@@ -624,10 +616,7 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
             // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
             if (!controller.isGesturePoped) {
                 // 手势返回的需要特殊处理，手势返回的在 viewDidDisappear 里面处理了
-                DNode *node = [[DNode alloc] init];
-                node.action = DNodeActionTypePop;
-                node.target = NSStringFromClass(controller.class);
-                [[DNodeManager sharedInstance] checkNode:node];
+                checkNode(controller, DNodeActionTypePop);
             }
         }
     }
@@ -640,7 +629,6 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
     // 出栈管理，要注意移除掉当前controller到viewController之间的controller
     if ([viewController isCustomClass]) {
         if (![self.dStackFlutterNodeMessage boolValue]) {
-            // 如果是FlutterViewController，会在消息通道里面checkNode
             checkNode(viewController, DNodeActionTypePopTo);
         }
     }
@@ -651,7 +639,6 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 {
     // 出栈管理，要注意移除掉当前controller到RootViewController之间的controller
     if (![self.dStackFlutterNodeMessage boolValue]) {
-        // 如果是FlutterViewController，会在消息通道里面checkNode
         checkNode(self.viewControllers.firstObject, DNodeActionTypePopToRoot);
     }
     return [self d_stackPopToRootViewControllerAnimated:animated];
@@ -673,9 +660,7 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 
 - (void)dStack_setupViewControllerBasedNavigationBarAppearanceIfNeeded:(UIViewController *)appearingViewController
 {
-    if (!self.dStack_viewControllerBasedNavigationBarAppearanceEnabled) {
-        return;
-    }
+    if (!self.dStack_viewControllerBasedNavigationBarAppearanceEnabled) {return;}
     __weak typeof(self) weakSelf = self;
     _DStackViewControllerWillAppearInjectBlock block = ^(UIViewController *viewController, BOOL animated) {
         __strong typeof(weakSelf) strongSelf = weakSelf;

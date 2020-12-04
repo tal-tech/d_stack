@@ -127,13 +127,15 @@
         {
             if (!node.canRemoveNode) {
                 DNode *lastNode = self.nodeList.lastObject;
-                if (lastNode) { subArray = @[lastNode];}
+                if (lastNode) {
+                    subArray = [self checkRemovedNode:node needRemove:lastNode];
+                }
             }
             break;
         }
         case DNodeActionTypeDidPop:
         {
-            DNode *targetNode = [self nodeWithTarget:node.target];
+            DNode *targetNode = [self nodeWithNode:node];
             if (targetNode) { subArray = @[targetNode]; }
             break;
         }
@@ -166,9 +168,7 @@
             if (node.fromFlutter) {
                 subArray = @[lastNode];
             } else {
-                if ([lastNode.target isEqualToString:node.target]) {
-                    subArray = @[lastNode];
-                }
+                subArray = [self checkRemovedNode:node needRemove:lastNode];
             }
         }
     }
@@ -229,6 +229,21 @@
             default:break;
         }
     }
+}
+
+/// 检查移除节点的准确性
+/// @param removed 实际已经不在显示的节点页面
+/// @param need 栈中最后一个节点，需要被移除的
+- (NSArray *)checkRemovedNode:(DNode *)removed needRemove:(DNode *)need
+{
+    NSArray *subArray = @[];
+    BOOL match = [need.identifier isEqualToString:removed.identifier];
+    NSString *assert = [NSString stringWithFormat:@"已经不在屏幕节点的id：%@，栈中最后一个节点id：%@，两者不一致，请注意排查。", removed.identifier, need.identifier];
+    NSAssert(match, assert);
+    if (match) {
+        subArray = @[need];
+    }
+    return subArray;
 }
 
 /// 进栈
@@ -350,6 +365,20 @@
     for (NSInteger i = self.nodeList.count - 1; i >= 0; i --) {
         DNode *node = self.nodeList[i];
         if ([node.target isEqualToString:target]) {
+            targetNode = node; break;
+        }
+    }
+    return targetNode;
+}
+
+- (DNode *)nodeWithNode:(DNode *)messageNode
+{
+    DNode *targetNode = nil;
+    if (!messageNode.target || [messageNode.target isEqual:NSNull.null]) {return targetNode;}
+    for (NSInteger i = self.nodeList.count - 1; i >= 0; i --) {
+        DNode *node = self.nodeList[i];
+        if ([node.target isEqualToString:messageNode.target] &&
+            [node.identifier isEqualToString:messageNode.identifier]) {
             targetNode = node; break;
         }
     }

@@ -352,6 +352,7 @@
     if (animated && [animated isKindOfClass:NSNumber.class]) {
         node.animated = [call.arguments[@"animated"] boolValue];
     }
+    node.identifier = call.arguments[@"identifier"];
     [[DNodeManager sharedInstance] checkNode:node];
     result(@"节点操作完成");
 }
@@ -369,6 +370,7 @@
     node.pageType = pageType;
     node.action = actionType;
     node.canRemoveNode = YES;
+    node.identifier = call.arguments[@"identifier"];
     [[DNodeManager sharedInstance] checkNode:node];
     result(@"节点移除完成");
 }

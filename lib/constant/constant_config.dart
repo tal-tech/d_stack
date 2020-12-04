@@ -24,4 +24,7 @@ class DStackConstant {
   static const String checkRemoved = "sendRemoveFlutterPageNode";
   static const String lifeCycle = "sendLifeCycle";
   static const String nodeList = "sendNodeList";
+
+  /// 其他标识
+  static const String nativeDidPopGesture = "nativeDidPopGesture";
 }

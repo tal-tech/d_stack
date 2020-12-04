@@ -7,6 +7,7 @@
  * tartget: 拦截flutter手势，生成节点信息，然后将节点信息发送到native侧
  */
 
+import 'package:d_stack/constant/constant_config.dart';
 import 'package:flutter/material.dart';
 
 import 'dnavigator_manager.dart';
@@ -60,14 +61,15 @@ class DStackNavigatorObserver extends NavigatorObserver {
     if (gesturingRouteName != null &&
         gesturingRouteName == route.settings.name) {
       // 由手势导致的pop事件
-      DNavigatorManager.popWithGesture();
+      DNavigatorManager.popWithGesture(route);
     } else if (gesturingRouteName != null &&
-        gesturingRouteName == 'NATIVEGESTURE') {
-      // native手势引起的didpop，native侧已经删除节点，flutter侧不再removeFlutterNode
+        gesturingRouteName == DStackConstant.nativeDidPopGesture) {
+      // native手势引起的didPop，native侧已经删除节点，flutter侧不再removeFlutterNode
       DStackNavigatorObserver.instance.setGesturingRouteName(null);
     } else {
       if (route.settings.name != null) {
-        DNavigatorManager.removeFlutterNode(route.settings.name);
+        DNavigatorManager.removeFlutterNode(route.settings.name,
+            identifier: DNavigatorManager.identifierWithRoute(route));
       }
     }
   }

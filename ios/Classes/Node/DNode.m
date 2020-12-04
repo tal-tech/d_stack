@@ -126,13 +126,14 @@
 
 - (NSString *)description
 {
-    return [NSString stringWithFormat:@"[class:%@ %p] [action:%@] [pageType:%@] [target:%@] [params:%@]",
+    return [NSString stringWithFormat:@"[class:%@ %p][action:%@][pageType:%@][target:%@][params:%@][identifier:%@]",
             NSStringFromClass(self.class),
             self,
             self.actionTypeString,
             self.pageTypeString,
             _target,
-            _params];
+            _params,
+            _identifier];
 }
 
 @end

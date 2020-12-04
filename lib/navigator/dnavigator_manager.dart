@@ -35,13 +35,13 @@ class DNavigatorManager {
   static Future push(String routeName, PageType pageType,
       {Map params, bool maintainState, bool animated = true}) {
     if (pageType == PageType.flutter) {
-      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
-          result: {}, animated: animated);
       var route = DNavigatorManager.materialRoute(
           routeName: routeName,
           params: params,
           maintainState: maintainState,
           pushAnimated: animated);
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
+          result: {}, animated: animated, route: route);
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
@@ -54,14 +54,14 @@ class DNavigatorManager {
   static Future present(String routeName, PageType pageType,
       {Map params, bool maintainState, bool animated = true}) {
     if (pageType == PageType.flutter) {
-      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.present,
-          result: {}, animated: animated);
       var route = DNavigatorManager.materialRoute(
           routeName: routeName,
           params: params,
           maintainState: maintainState,
           pushAnimated: animated,
           fullscreenDialog: true);
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.present,
+          result: {}, animated: animated, route: route);
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.present,
@@ -87,8 +87,6 @@ class DNavigatorManager {
     if (pageType == PageType.flutter) {
       RouteSettings settings =
           RouteSettings(name: routeName, arguments: params);
-      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
-          result: {});
       DStackWidgetBuilder stackWidgetBuilder =
           DStack.instance.pageBuilder(routeName);
       WidgetBuilder builder = stackWidgetBuilder(params);
@@ -99,6 +97,8 @@ class DNavigatorManager {
           popTransition: popDuration,
           animationBuilder: animationBuilder,
           popGesture: popGesture);
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
+          result: {}, route: route);
       if (replace) {
         return _navigator.pushReplacement(route);
       }
@@ -126,8 +126,6 @@ class DNavigatorManager {
     bool replace = false,
   ]) {
     if (pageType == PageType.flutter) {
-      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
-          result: {});
       PageRouteBuilder route = DNavigatorManager.animationRoute(
         animatedBuilder: animatedBuilder,
         routeName: routeName,
@@ -140,6 +138,8 @@ class DNavigatorManager {
         maintainState: maintainState,
         fullscreenDialog: fullscreenDialog,
       );
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
+          result: {}, route: route);
       if (replace) {
         return _navigator.pushReplacement(route);
       } else {
@@ -160,9 +160,6 @@ class DNavigatorManager {
       bool fullscreenDialog,
       bool animated = true}) {
     if (pageType == PageType.flutter) {
-      DNavigatorManager.nodeHandle(
-          routeName, PageType.flutter, DStackConstant.push,
-          result: {}, animated: animated);
       var route = DNavigatorManager.materialRoute(
           routeName: routeName,
           params: params,
@@ -170,6 +167,9 @@ class DNavigatorManager {
           pushAnimated: animated,
           fullscreenDialog: fullscreenDialog,
           builder: builder);
+      DNavigatorManager.nodeHandle(
+          routeName, PageType.flutter, DStackConstant.push,
+          result: {}, animated: animated, route: route);
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
@@ -185,8 +185,6 @@ class DNavigatorManager {
       bool homePage = false,
       bool animated = true,
       bool fullscreenDialog = false}) {
-    DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.replace,
-        result: params, homePage: homePage, animated: animated);
     if (pageType == PageType.flutter) {
       var route = DNavigatorManager.materialRoute(
           routeName: routeName,
@@ -194,8 +192,12 @@ class DNavigatorManager {
           maintainState: maintainState,
           pushAnimated: animated,
           fullscreenDialog: fullscreenDialog);
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.replace,
+          result: params, homePage: homePage, animated: animated, route: route);
       return _navigator.pushReplacement(route);
     } else {
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.replace,
+          result: params, homePage: homePage, animated: animated);
       return Future.error('not flutter page');
     }
   }
@@ -207,8 +209,9 @@ class DNavigatorManager {
         result: result, animated: animated);
   }
 
-  static void popWithGesture() {
-    DNavigatorManager.nodeHandle(null, null, DStackConstant.gesture);
+  static void popWithGesture(Route route) {
+    DNavigatorManager.nodeHandle(null, null, DStackConstant.gesture,
+        route: route);
   }
 
   static void popTo(String routeName, PageType pageType,
@@ -237,26 +240,44 @@ class DNavigatorManager {
   }
 
   static void nodeHandle(String target, PageType pageType, String actionType,
-      {Map result, bool homePage, bool animated = true}) {
+      {Map result, bool homePage, bool animated = true, Route route}) {
     Map arguments = {
       'target': target,
       'pageType': '$pageType'.split('.').last,
       'params': (result != null) ? result : {},
       'actionType': actionType,
       'homePage': homePage,
-      'animated': animated
+      'animated': animated,
+      'identifier': identifierWithRoute(route)
     };
     DStack.instance.channel.sendNodeToNative(arguments);
   }
 
-  static void removeFlutterNode(String target) {
+  /// 移除flutter的节点
+  static void removeFlutterNode(String target, {String identifier}) {
     String actionType = (Platform.isAndroid ? 'pop' : 'didPop');
     Map arguments = {
       'target': target,
       'pageType': 'flutter',
-      'actionType': actionType
+      'actionType': actionType,
+      'identifier': identifier
     };
     DStack.instance.channel.sendRemoveFlutterPageNode(arguments);
+  }
+
+  /// 生成route的唯一标识
+  static String identifierWithRoute(Route route) {
+    String identifier = "";
+    if (route != null) {
+      if (route.settings != null) {
+        if (route.settings.name.isNotEmpty) {
+          identifier = "${route.settings.name}_${route.hashCode}";
+        } else {
+          identifier = "${route.toString()}_${route.hashCode}";
+        }
+      }
+    }
+    return identifier;
   }
 
   // 记录节点进出，如果已经是首页，则不再pop
@@ -353,7 +374,7 @@ class DNavigatorManager {
           // native发消息过来时，需要处理返回至上一页
           final DNode node = nodeEntity.nodeList.first;
           DStackNavigatorObserver.instance
-              .setGesturingRouteName('NATIVEGESTURE');
+              .setGesturingRouteName(DStackConstant.nativeDidPopGesture);
           return DNavigatorManager.gardPop(node.params);
         }
         break;
