@@ -40,7 +40,7 @@
     UINavigationController *navi = [self dStack:stack navigationControllerForNode:node];
     if ([node.route isEqualToString:@"NativePage2"]) {
         didPushController = [[FourViewController alloc] init];
-        [navi.topViewController presentViewController:didPushController animated:YES completion:nil];
+        [navi.topViewController presentViewController:didPushController animated:node.animated completion:nil];
     }
 }
 
@@ -50,7 +50,7 @@
     UINavigationController *navi = [self dStack:stack navigationControllerForNode:node];
     if ([node.route isEqualToString:@"NativePage"]) {
         didPresentController = [[ThirdViewController alloc] init];
-        [navi pushViewController:didPresentController animated:YES];
+        [navi pushViewController:didPresentController animated:node.animated];
     }
 }
 

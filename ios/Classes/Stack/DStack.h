@@ -222,6 +222,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy, nullable) NSString *route;
 /// 携带参数
 @property (nonatomic, strong, nullable) NSDictionary *params;
+/// 转场动画
+@property (nonatomic, assign) BOOL animated;
 
 @end
 

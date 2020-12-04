@@ -118,7 +118,7 @@
                 // 前一个页面是Flutter
                 if (node.action == DNodeActionTypeDismiss) {
                     // 当前的flutter页面是被单独的flutterViewController 承载的，要dismiss
-                    [self dismissViewController];
+                    [self dismissViewControllerWithAnimated:node.animated];
                 }
                 [self sendMessageToFlutterWithFlutterNodes:nodeList
                                                       node:node];
@@ -255,18 +255,18 @@
     if (node.action == DNodeActionTypePop) {
         UINavigationController *controller = [self currentNavigationControllerWithNode:node];
         [controller setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
-        [controller popViewControllerAnimated:YES];
+        [controller popViewControllerAnimated:node.animated];
         [controller setValue:@(NO) forKey:@"dStackFlutterNodeMessage"];
     } else if (node.action == DNodeActionTypeDismiss) {
-        [self dismissViewController];
+        [self dismissViewControllerWithAnimated:node.animated];
     }
 }
 
-+ (void)dismissViewController
++ (void)dismissViewControllerWithAnimated:(BOOL)animated
 {
     UIViewController *currentVC = self.currentController;
     [currentVC setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
-    [currentVC dismissViewControllerAnimated:YES completion:nil];
+    [currentVC dismissViewControllerAnimated:animated completion:nil];
     [currentVC setValue:@(NO) forKey:@"dStackFlutterNodeMessage"];
 }
 
@@ -278,6 +278,7 @@
     stackNode.params = node.params;
     stackNode.pageType = node.pageType;
     stackNode.actionType = node.action;
+    stackNode.animated = node.animated;
     return stackNode;
 }
 

@@ -97,11 +97,14 @@ class DNavigatorManager {
           popTransition: popDuration,
           animationBuilder: animationBuilder,
           popGesture: popGesture);
-      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
-          result: {}, route: route);
       if (replace) {
+        DNavigatorManager.nodeHandle(
+            routeName, pageType, DStackConstant.replace,
+            result: {}, route: route);
         return _navigator.pushReplacement(route);
       }
+      DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
+          result: {}, route: route);
       return _navigator.push(route);
     } else {
       DNavigatorManager.nodeHandle(routeName, pageType, DStackConstant.push,
@@ -339,7 +342,7 @@ class DNavigatorManager {
       case DStackConstant.pop:
         {
           final DNode node = nodeEntity.nodeList.first;
-          return DNavigatorManager.gardPop(node.params, node.animated);
+          return DNavigatorManager.gardPop(node.params, nodeEntity.animated);
         }
         break;
       case DStackConstant.popTo:
@@ -366,7 +369,7 @@ class DNavigatorManager {
       case DStackConstant.dismiss:
         {
           final DNode node = nodeEntity.nodeList.first;
-          return DNavigatorManager.gardPop(node.params, node.animated);
+          return DNavigatorManager.gardPop(node.params, nodeEntity.animated);
         }
         break;
       case DStackConstant.gesture:

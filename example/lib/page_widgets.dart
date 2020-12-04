@@ -7,10 +7,8 @@
  * tartget: page_widgets
  */
 
-//import 'package:battery/battery.dart';
-import 'dart:io';
-
 import 'package:d_stack/d_stack.dart';
+import 'package:d_stack_example/test_case.dart';
 import 'package:flutter/material.dart';
 
 class Student {
@@ -26,6 +24,29 @@ class Page1 extends StatefulWidget {
   }
 }
 
+Widget _caseWidget(List<Map> items) {
+  return Center(
+    child: ListView.builder(
+      itemExtent: 60,
+      itemCount: items.length,
+      itemBuilder: (BuildContext context, index) {
+        Map caseMap = items[index];
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+                border:
+                    Border(bottom: BorderSide(color: Colors.grey, width: 0.5))),
+            child: Text(caseMap["text"]),
+          ),
+          onTap: caseMap["clicked"],
+        );
+      },
+    ),
+  );
+}
+
 class _Page1 extends State<Page1> {
   @override
   Widget build(BuildContext context) {
@@ -39,57 +60,7 @@ class _Page1 extends State<Page1> {
             },
           )),
       backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          children: [
-            TextField(),
-            RaisedButton(
-              child: Text('push flutter page 2'),
-              onPressed: () {
-                Student student = Student();
-                student.name = '😁🍎111';
-                student.age = 12;
-
-                // 自定义动画
-                // DStack.animationPage('page2', PageType.flutter,
-                //     (BuildContext context,
-                //         Animation<double> animation,
-                //         Animation<double> secondaryAnimation,
-                //         WidgetBuilder widgetBuilder) {
-                //   Offset startOffset = const Offset(1.0, 0.0);
-                //   Offset endOffset = const Offset(0.0, 0.0);
-                //   return SlideTransition(
-                //     position: new Tween<Offset>(
-                //       begin: startOffset,
-                //       end: endOffset,
-                //     ).animate(animation),
-                //     child: widgetBuilder(context),
-                //   );
-                // },
-                //     params: {'key1': 12},
-                //     transitionDuration: Duration(milliseconds: 250));
-
-                // DStack.pushWithAnimation('page2', PageType.flutter,
-                //     (context, animation, secondaryAnimation, child) {
-                //   Offset startOffset = const Offset(1.0, 0.0);
-                //   Offset endOffset = const Offset(0.0, 0.0);
-                //   return SlideTransition(
-                //     position: new Tween<Offset>(
-                //       begin: startOffset,
-                //       end: endOffset,
-                //     ).animate(animation),
-                //     child: child,
-                //   );
-                // }, popGesture: true);
-
-                DStack.push('page2', PageType.flutter).then((data) {
-                  return print('pop to Page1 result $data');
-                });
-              },
-            ),
-          ],
-        ),
-      ),
+      body: _caseWidget(TestCase.openFlutterPageCase),
     );
   }
 
@@ -111,21 +82,10 @@ class Page2 extends StatelessWidget {
           leading: RaisedButton(
             child: Text('返回'),
             onPressed: () {
-              Student student = Student();
-              student.name = '😁🍎33333';
-              student.age = 12;
-              DStack.pop(result: {'params': 'value222'}, animated: false);
+              DStack.pop();
             },
           )),
-      body: Center(
-        child: RaisedButton(
-          child: Text('present flutter page 3'),
-          onPressed: () {
-            // DStack.present('page3', PageType.flutter);
-            DStack.push('page3', PageType.flutter);
-          },
-        ),
-      ),
+      body: _caseWidget(TestCase.closeFlutterPage),
     );
   }
 }
@@ -133,19 +93,6 @@ class Page2 extends StatelessWidget {
 class Page3 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    Widget present() {
-      if (Platform.isIOS) {
-        return RaisedButton(
-          child: Text('Present打开NativePage2'),
-          onPressed: () {
-            DStack.push("NativePage2", PageType.native,
-                params: {"name": "flutter 传递的", "id": 1000000});
-          },
-        );
-      }
-      return Container();
-    }
-
     return Scaffold(
       appBar: AppBar(
           title: Text('flutter page3'),
@@ -155,20 +102,7 @@ class Page3 extends StatelessWidget {
               DStack.pop();
             },
           )),
-      body: Center(
-          child: Column(
-        children: <Widget>[
-          RaisedButton(
-            child: Text('打开NativePage'),
-            onPressed: () {
-              // DStack.push("NativePage", PageType.native,
-              //     params: {"name": "flutter 传递的", "id": 1000000});
-              DStack.popTo("page1", PageType.flutter, animated: true);
-            },
-          ),
-          present(),
-        ],
-      )),
+      body: _caseWidget(TestCase.popToPage),
     );
   }
 }
