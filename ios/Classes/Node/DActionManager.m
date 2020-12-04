@@ -162,11 +162,10 @@
 /// @param nodeList 待关闭node列表
 + (void)closePageListWithNode:(DNode *)node willRemovedList:(nullable NSArray<DNode *> *)nodeList
 {
-    // 拆分出native的节点和flutter的节点
     if (!nodeList.count) { return; }
     // 临界节点 DFlutterViewController
     int boundaryCount = 0;
-    
+    // 拆分出native的节点和flutter的节点
     NSMutableArray <DNode *>*nativeNodes = [[NSMutableArray alloc] init];
     NSMutableArray <DNode *>*flutterNodes = [[NSMutableArray alloc] init];
     for (DNode *obj in nodeList) {
@@ -182,6 +181,10 @@
     
     if (flutterNodes.count) {
         // flutter的节点信息直接发消息到flutter
+        if (node.action == DNodeActionTypePopToRoot ||
+            node.action == DNodeActionTypePopToNativeRoot) {
+            node.animated = nativeNodes.count == 0;
+        }
         [self sendMessageToFlutterWithFlutterNodes:flutterNodes node:node];
     }
     if (!node.fromFlutter) { return;}
@@ -199,8 +202,9 @@
     index = index < 0 ? 0 : index;
     UIViewController *target = navigation.viewControllers[index];
     if (target) {
+        if (target == navigation.topViewController) {return;}
         [navigation setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
-        [navigation popToViewController:target animated:YES];
+        [navigation popToViewController:target animated:NO];
         [navigation setValue:@(NO) forKey:@"dStackFlutterNodeMessage"];
     } else {
         DStackError(@"%@", @"没有找到需要关闭的controller");

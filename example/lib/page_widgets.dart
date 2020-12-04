@@ -69,22 +69,22 @@ class _Page1 extends State<Page1> {
                 //     params: {'key1': 12},
                 //     transitionDuration: Duration(milliseconds: 250));
 
-                DStack.pushWithAnimation('page2', PageType.flutter,
-                    (context, animation, secondaryAnimation, child) {
-                  Offset startOffset = const Offset(1.0, 0.0);
-                  Offset endOffset = const Offset(0.0, 0.0);
-                  return SlideTransition(
-                    position: new Tween<Offset>(
-                      begin: startOffset,
-                      end: endOffset,
-                    ).animate(animation),
-                    child: child,
-                  );
-                }, popGesture: true);
+                // DStack.pushWithAnimation('page2', PageType.flutter,
+                //     (context, animation, secondaryAnimation, child) {
+                //   Offset startOffset = const Offset(1.0, 0.0);
+                //   Offset endOffset = const Offset(0.0, 0.0);
+                //   return SlideTransition(
+                //     position: new Tween<Offset>(
+                //       begin: startOffset,
+                //       end: endOffset,
+                //     ).animate(animation),
+                //     child: child,
+                //   );
+                // }, popGesture: true);
 
-                // DStack.push('page2', PageType.flutter).then((data) {
-                //   return print('pop to Page1 result $data');
-                // });
+                DStack.push('page2', PageType.flutter).then((data) {
+                  return print('pop to Page1 result $data');
+                });
               },
             ),
           ],
@@ -161,9 +161,9 @@ class Page3 extends StatelessWidget {
           RaisedButton(
             child: Text('打开NativePage'),
             onPressed: () {
-              DStack.push("NativePage", PageType.native,
-                  params: {"name": "flutter 传递的", "id": 1000000});
-              // DStack.popTo("page1", PageType.flutter, animated: true);
+              // DStack.push("NativePage", PageType.native,
+              //     params: {"name": "flutter 传递的", "id": 1000000});
+              DStack.popTo("page1", PageType.flutter, animated: true);
             },
           ),
           present(),
@@ -192,7 +192,7 @@ class Page4 extends StatelessWidget {
             RaisedButton(
               child: Text('popTo Flutter Page 2'),
               onPressed: () {
-                DStack.popTo("page2", PageType.flutter);
+                DStack.popTo("HomeViewController", PageType.flutter);
               },
             ),
             RaisedButton(

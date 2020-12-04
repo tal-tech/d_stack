@@ -79,13 +79,15 @@
             // 从栈底开始遍历出需要移除的节点
             if (!(!node.target || [node.target isEqual:NSNull.null])) {
                 NSMutableArray *removeArray = [[NSMutableArray alloc] init];
-                NSUInteger count = self.nodeList.count;
-                for (NSUInteger i = count - 1; i >= 0; i --) {
+                NSInteger count = self.nodeList.count;
+                for (NSInteger i = count - 1; i >= 0; i --) {
                     DNode *obj = self.nodeList[i];
                     if ([obj.target isEqualToString:node.target]) {
                         break;
                     } else {
-                        [removeArray addObject:obj];
+                        if (!obj.isRootPage) {
+                            [removeArray addObject:obj];
+                        }
                     }
                 }
                 subArray = [removeArray copy];
