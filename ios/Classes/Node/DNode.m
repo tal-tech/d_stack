@@ -47,8 +47,8 @@
         case DNodeActionTypePush:{action = @"push";break;}
         case DNodeActionTypePresent:{action = @"present";break;}
         case DNodeActionTypePop:{action = @"pop";break;}
-        case DNodeActionTypePopTo:{action = @"popTo";}
-        case DNodeActionTypePopToRoot:{action = @"popToRoot";}
+        case DNodeActionTypePopTo:{action = @"popTo";break;}
+        case DNodeActionTypePopToRoot:{action = @"popToRoot";break;}
         case DNodeActionTypePopToNativeRoot:{action = @"popToNativeRoot";break;}
         case DNodeActionTypePopSkip:{action = @"popSkip";break;}
         case DNodeActionTypeGesture:{action = @"gesture";break;}

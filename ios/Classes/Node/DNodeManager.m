@@ -63,6 +63,9 @@
                 DNode *lastNode = self.nodeList.lastObject;
                 if (lastNode) {
                     DStackLog(@"被Replace的节点 === %@", lastNode);
+                    [self sendPageLifeCicleToFlutterWithAppearNode:node
+                                                     disappearNode:lastNode
+                                                        actionType:node.actionTypeString];
                     [lastNode copyWithNode:node];
                     self.pageCount = self.nodeList.count;
                     [self dStackDelegateSafeWithSEL:@selector(dStack:inStack:) exe:^(DStack *stack) {
@@ -170,7 +173,10 @@
             if (node.fromFlutter) {
                 subArray = @[lastNode];
             } else {
-                subArray = [self checkRemovedNode:node needRemove:lastNode];
+                BOOL match = [node.identifier isEqualToString:lastNode.identifier];
+                if (match) {
+                    subArray = @[lastNode];
+                }
             }
         }
     }
@@ -266,7 +272,7 @@
     }];
     [self sendPageLifeCicleToFlutterWithAppearNode:node
                                      disappearNode:self.preNode
-                                            isPush:YES];
+                                        actionType:node.actionTypeString];
     DStackLog(@"来自【%@】的【%@】消息，入栈节点为 == %@, 入栈后的节点列表 == %@", [self _page:node], node.actionTypeString, subArray, self.nodeList);
     [self writeLogWithNode:node];
     return subArray;
@@ -277,6 +283,14 @@
 /// @param subArray 出栈列表
 - (void)outStackWithNode:(DNode *)node nodeArray:(NSArray *)subArray
 {
+    // 根节点不能出出栈
+    NSMutableArray *tempArray = [[NSMutableArray alloc] init];
+    for (DNode *x in subArray) {
+        if (!x.isRootPage) {
+            [tempArray addObject:x];
+        }
+    }
+    subArray = [tempArray copy];
     if (!subArray.count) { return;}
     [self.nodeList removeObjectsInArray:subArray];
     self.removedNodes = [subArray copy];
@@ -291,7 +305,7 @@
     }];
     [self sendPageLifeCicleToFlutterWithAppearNode:self.currentNode
                                      disappearNode:subArray.lastObject
-                                            isPush:NO];
+                                        actionType:node.actionTypeString];
     [self writeLogWithNode:node];
     if ([[DStack sharedInstance] debugMode]) {
         // 加入节点检查
@@ -333,7 +347,7 @@
 
 - (void)sendPageLifeCicleToFlutterWithAppearNode:(DNode *)appear
                                    disappearNode:(DNode *)disappear
-                                          isPush:(BOOL)isPush
+                                      actionType:(NSString *)actionType
 {
     DStack *stack = [DStack sharedInstance];
     DStackNode *stackAppearNode = [DActionManager stackNodeFromNode:appear];
@@ -345,7 +359,7 @@
     NSString *disappearRoute = stackDisappearNode.route ? stackDisappearNode.route : @"";
     NSDictionary *params = @{
         @"page": @{
-                @"actionType": isPush ? @"push" : @"pop",
+                @"actionType": actionType,
                 @"appearRoute": appearRoute,
                 @"disappearRoute": disappearRoute,
                 @"appearPageType": appear.pageString ? appear.pageString : @"",
