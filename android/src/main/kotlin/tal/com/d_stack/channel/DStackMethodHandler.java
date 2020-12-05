@@ -192,6 +192,36 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
     }
 
     /**
+     * native侧发送节点的操作
+     */
+    public static void sendNodeOperation(DNodeResponse nodeResponse) {
+        Map<String, Object> resultMap = new HashMap();
+        resultMap.put("target", nodeResponse.target);
+        resultMap.put("pageType", nodeResponse.pageType);
+        resultMap.put("action", nodeResponse.action);
+        resultMap.put("params", nodeResponse.params);
+        resultMap.put("homePage", nodeResponse.homePage);
+        resultMap.put("boundary", nodeResponse.boundary);
+        resultMap.put("animated", nodeResponse.animated);
+        DStack.getInstance().getMethodChannel().invokeMethod("sendOperationNodeToFlutter", resultMap, new MethodChannel.Result() {
+            @Override
+            public void success(Object result) {
+
+            }
+
+            @Override
+            public void error(String errorCode, String errorMessage, Object errorDetails) {
+
+            }
+
+            @Override
+            public void notImplemented() {
+
+            }
+        });
+    }
+
+    /**
      * 根据flutter侧传来的信息创建节点
      */
     public static DNode createNodeFromFlutter(Map<String, Object> args) {

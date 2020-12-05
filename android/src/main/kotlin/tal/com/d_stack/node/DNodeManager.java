@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import tal.com.d_stack.action.DActionManager;
+import tal.com.d_stack.action.DOperationManager;
 import tal.com.d_stack.lifecycle.PageLifecycleManager;
 import tal.com.d_stack.node.constants.DNodeActionType;
 import tal.com.d_stack.node.constants.DNodePageType;
@@ -116,7 +117,7 @@ public class DNodeManager {
                 DNode popToRootNode = getCurrentNode();
                 deleteNodes();
                 updateNodes();
-                DActionManager.popTo(node, needRemoveNodes);
+                DActionManager.popToRoot(node, needRemoveNodes);
                 PageLifecycleManager.pageDisappear(popToRootNode);
                 DLog.logD("----------popToRoot方法结束----------");
                 break;
@@ -133,8 +134,11 @@ public class DNodeManager {
                 DLog.logD("----------popSkip方法结束----------");
                 break;
             case DNodeActionType.DNodeActionTypeGesture:
+                DLog.logD("----------gesture方法开始----------");
                 nodeList.remove(nodeList.size() - 1);
+                DLog.logD("----------gesture方法结束----------");
                 updateNodes();
+                DActionManager.gesture(node);
                 break;
             case DNodeActionType.DNodeActionTypeReplace:
                 DLog.logD("----------replace方法开始----------");
@@ -146,6 +150,7 @@ public class DNodeManager {
                 }
                 updateNodes();
                 PageLifecycleManager.pageAppearWithReplace(preNode, currentNode);
+                DActionManager.replace(node);
                 DLog.logD("----------replace方法结束----------");
                 break;
             default:
@@ -179,15 +184,24 @@ public class DNodeManager {
     private List<DNode> needRemoveNodes(DNode node) {
         List<DNode> removeNodeList = new ArrayList<>();
         boolean startAddRemoveList = true;
+        boolean existNode = false;
         int size = nodeList.size();
-        for (int i = size - 1; i >= 0; i--) {
-            DNode currentNode = nodeList.get(i);
-            if (currentNode.getTarget().equals(node.getTarget())) {
-                startAddRemoveList = false;
+        for (DNode tempNode : nodeList) {
+            if (tempNode.getTarget().equals(node.getTarget())) {
+                existNode = true;
+                break;
             }
-            if (startAddRemoveList) {
-                removeNodeList.add(currentNode);
-                needRemoveNodesIndex.add(i);
+        }
+        if (existNode) {
+            for (int i = size - 1; i >= 0; i--) {
+                DNode currentNode = nodeList.get(i);
+                if (currentNode.getTarget().equals(node.getTarget())) {
+                    startAddRemoveList = false;
+                }
+                if (startAddRemoveList) {
+                    removeNodeList.add(currentNode);
+                    needRemoveNodesIndex.add(i);
+                }
             }
         }
         Collections.reverse(removeNodeList);
@@ -312,6 +326,7 @@ public class DNodeManager {
                     nodeList.remove(currentNode);
                     updateNodes();
                     PageLifecycleManager.pageDisappear(node);
+                    DOperationManager.operation(node);
                 }
             }
         }
@@ -332,6 +347,7 @@ public class DNodeManager {
         if (needRemoveNode != null) {
             nodeList.remove(needRemoveNode);
             PageLifecycleManager.pageDisappear(node);
+            DOperationManager.operation(node);
         }
         updateNodes();
         DLog.logD("----------removeNodeWithOnDestroyed方法结束----------");
@@ -396,9 +412,6 @@ public class DNodeManager {
         nodeResponse.homePage = node.isHomePage();
         nodeResponse.animated = node.isAnimated();
         nodeResponse.boundary = node.isBoundary();
-        DLog.logD("-----createNodeResponse开始-----");
-        DLog.logD(nodeResponse.toString());
-        DLog.logD("-----createNodeResponse结束-----");
         return nodeResponse;
     }
 

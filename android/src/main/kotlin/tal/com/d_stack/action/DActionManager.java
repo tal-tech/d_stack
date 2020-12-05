@@ -27,6 +27,7 @@ public class DActionManager {
      */
     public static void push(DNode node) {
         enterPageWithNode(node, DNodeActionType.DNodeActionTypePush, node.isAnimated());
+        DOperationManager.operation(node);
     }
 
     /**
@@ -34,20 +35,45 @@ public class DActionManager {
      */
     public static void pop(DNode node) {
         closePageWithNode(node, DNodeActionType.DNodeActionTypePop, node.isAnimated());
+        DOperationManager.operation(node);
     }
 
     /**
      * 返回指定页面
      */
     public static void popTo(DNode node, List<DNode> removeNodes) {
-        closePageWithNodes(node, removeNodes, DNodeActionType.DNodeActionTypePopTo, node.isAnimated());
+        closePageWithNodes(removeNodes, DNodeActionType.DNodeActionTypePopTo, node.isAnimated());
+        DOperationManager.operation(node);
+    }
+
+    /**
+     * 返回根页面
+     */
+    public static void popToRoot(DNode node, List<DNode> removeNodes) {
+        closePageWithNodes(removeNodes, DNodeActionType.DNodeActionTypePopToRoot, node.isAnimated());
+        DOperationManager.operation(node);
     }
 
     /**
      * 返回指定模块页面
      */
     public static void popSkip(DNode node, List<DNode> removeNodes) {
-        closePageWithNodes(node, removeNodes, DNodeActionType.DNodeActionTypePopSkip, node.isAnimated());
+        closePageWithNodes(removeNodes, DNodeActionType.DNodeActionTypePopSkip, node.isAnimated());
+        DOperationManager.operation(node);
+    }
+
+    /**
+     * 替换页面
+     */
+    public static void replace(DNode node) {
+        DOperationManager.operation(node);
+    }
+
+    /**
+     * 手势返回页面
+     */
+    public static void gesture(DNode node) {
+        DOperationManager.operation(node);
     }
 
     /**
@@ -102,7 +128,7 @@ public class DActionManager {
     /**
      * 关闭已移除节点集合的所有页面，包括native和flutter
      */
-    private static void closePageWithNodes(final DNode node, List<DNode> nodes, final String action, final boolean animated) {
+    private static void closePageWithNodes(List<DNode> nodes, final String action, final boolean animated) {
         final List<Map<String, Object>> flutterNodes = new ArrayList<>();
         List<String> nativeNodes = new ArrayList<>();
         int size = nodes.size();

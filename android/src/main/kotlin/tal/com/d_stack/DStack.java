@@ -22,6 +22,7 @@ import tal.com.d_stack.observer.DStackActivityManager;
 import tal.com.d_stack.observer.DStackLifecycleObserver;
 import tal.com.d_stack.observer.FilterActivityManager;
 import tal.com.d_stack.router.INativeRouter;
+import tal.com.d_stack.router.INodeOperation;
 import tal.com.d_stack.utils.DLog;
 
 /**
@@ -55,6 +56,10 @@ public class DStack {
     private Context context;
 
     private INativeRouter nativeRouter;
+
+    private INodeOperation nodeOperation;
+
+    private boolean openNodeOperation;
 
     /**
      * 初始化DStack
@@ -263,5 +268,33 @@ public class DStack {
      */
     public void listenBackPressed() {
 
+    }
+
+    /**
+     * 设置节点操作监听
+     */
+    public void setNodeOperation(INodeOperation nodeOperation) {
+        this.nodeOperation = nodeOperation;
+    }
+
+    /**
+     * 获取节点操作监听
+     */
+    public INodeOperation getNodeOperation() {
+        return nodeOperation;
+    }
+
+    /**
+     * 节点操作是否开启
+     */
+    public boolean isOpenNodeOperation() {
+        return openNodeOperation;
+    }
+
+    /**
+     * 设置是否开启节点操作
+     */
+    public void setOpenNodeOperation(boolean openNodeOperation) {
+        this.openNodeOperation = openNodeOperation;
     }
 }

@@ -116,7 +116,7 @@ class Page4 extends StatelessWidget {
             RaisedButton(
               child: Text('popTo Flutter Page 2'),
               onPressed: () {
-                DStack.popTo("HomeViewController", PageType.flutter);
+                DStack.popTo("page2", PageType.flutter);
               },
             ),
             RaisedButton(
