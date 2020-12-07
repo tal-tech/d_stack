@@ -380,10 +380,10 @@
     NSDictionary *params;
     if (node.target) {
         params = @{
-            @"action": node.actionTypeString,
-            @"pageType": node.pageTypeString,
-            @"target": node.target,
-            @"params": node.params,
+            @"action": node.actionTypeString != nil ? node.actionTypeString : @"unknown",
+            @"pageType": node.pageTypeString!= nil ? node.pageTypeString : @"unknown",
+            @"target": node.target != nil ? node.target : @"unknown",
+            @"params": node.params != nil ? node.params : @{},
             @"homePage": @(node.isFlutterHomePage),
             @"boundary": @(node.boundary),
             @"animated": @(node.animated),
