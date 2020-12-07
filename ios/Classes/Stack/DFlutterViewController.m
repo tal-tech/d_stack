@@ -17,7 +17,7 @@
     if(self = [super initWithEngine:[DStack sharedInstance].engine
                             nibName:nil
                              bundle:nil]) {
-        self.view.backgroundColor = [UIColor whiteColor];
+        [self config];
     }
     return self;
 }
@@ -27,9 +27,15 @@
     if(self = [super initWithEngine:[DStack sharedInstance].engine
                             nibName:nil
                              bundle:nil]) {
-        self.view.backgroundColor = [UIColor whiteColor];
+        [self config];
     }
     return self;
+}
+
+- (void)config
+{
+    self.view.backgroundColor = [UIColor whiteColor];
+    [self addNotification];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -68,6 +74,34 @@
             [invocation invoke];
         }
     }
+}
+
+- (void)addNotification
+{
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(changeBottomBarVisible:)
+                                                 name:DStackNotificationNameChangeBottomBarVisible
+                                               object:nil];
+}
+
+- (void)changeBottomBarVisible:(NSNotification *)notification
+{
+    NSDictionary *userInfo = notification.userInfo;
+    if (!userInfo) {
+        if (self.tabBarController.tabBar.hidden == NO) {
+            [self.tabBarController.tabBar setHidden:YES];
+        }
+    } else {
+        BOOL hidden = [userInfo[@"hidden"] boolValue];
+        if (self.tabBarController.tabBar.hidden) {
+            [self.tabBarController.tabBar setHidden:hidden];
+        }
+    }
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 @end

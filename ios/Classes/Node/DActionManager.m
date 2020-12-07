@@ -59,6 +59,7 @@
             [self sendMessageToFlutterWithFlutterNodes:nodeList
                                                   node:popNode];
         }
+        [self _checkTabBarWithNode:node popNodeList:nodeList];
     }
 }
 
@@ -74,8 +75,8 @@
 + (void)enterPageWithNode:(DNode *)node
 {
     if (node.fromFlutter) {
-       // 只处理来自Flutter消息通道的Node，并且是打开Native页面
        if (node.pageType == DNodePageTypeNative) {
+           // 处理来自Flutter消息通道的Node，并且是打开Native页面
            // flutter打开naive页面
            DStackNode *stackNode = [self stackNodeFromNode:node];
            if (node.action == DNodeActionTypePush) {
@@ -87,6 +88,10 @@
                    [stack.delegate dStack:stack presentWithNode:stackNode];
                }];
            }
+       } else if (node.pageType == DNodePageTypeFlutter) {
+           // flutter打开flutter页面，检查tabBar是否隐藏
+           [[NSNotificationCenter defaultCenter] postNotificationName:DStackNotificationNameChangeBottomBarVisible
+                                                               object:nil];
        }
     } else {
         // 来自Native的Node，并且是需要打开Flutter页面的，发消息至flutter，打开页面
@@ -152,6 +157,7 @@
     } else if (currentNode.pageType == DNodePageTypeNative) {
         DStackLog(@"当前页面是Native，直接返回上一个页面，不需要处理");
     }
+    [self _checkTabBarWithNode:node popNodeList:nodeList];
 }
 
 /// 关闭一组页面
@@ -185,13 +191,13 @@
         [self sendMessageToFlutterWithFlutterNodes:flutterNodes node:node];
     }
     if (!node.fromFlutter) { return;}
-    
     UINavigationController *navigation = [self currentNavigationControllerWithNode:node];
     if (node.action == DNodeActionTypePopToRoot ||
         node.action == DNodeActionTypePopToNativeRoot) {
         [navigation setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
         [navigation popToRootViewControllerAnimated:YES];
         [navigation setValue:@(NO) forKey:@"dStackFlutterNodeMessage"];
+        [self _checkTabBarWithNode:node popNodeList:nodeList];
         return;
     }
 
@@ -199,12 +205,38 @@
     index = index < 0 ? 0 : index;
     UIViewController *target = navigation.viewControllers[index];
     if (target) {
-        if (target == navigation.topViewController) {return;}
+        if (target == navigation.topViewController) {
+            [self _checkTabBarWithNode:node popNodeList:nodeList];
+            return;
+        }
         [navigation setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
         [navigation popToViewController:target animated:NO];
         [navigation setValue:@(NO) forKey:@"dStackFlutterNodeMessage"];
+        [self _checkTabBarWithNode:node popNodeList:nodeList];
     } else {
         DStackError(@"%@", @"没有找到需要关闭的controller");
+    }
+}
+
+/// 检查tabBar 的显示状态
+/// @param node node消息
+/// @param nodeList 节点列表
++ (void)_checkTabBarWithNode:(DNode *)node popNodeList:(NSArray <DNode *>*)nodeList
+{
+    DNode *preNode = nil;
+    DNode *target = nodeList.lastObject;
+    if (node.action == DNodeActionTypePopToRoot ||
+        node.action == DNodeActionTypePopToNativeRoot) {
+        target = nodeList.firstObject;
+    }
+    NSInteger index = [[DNodeManager sharedInstance].currentNodeList indexOfObject:target];
+    if (index >= 1) {
+        preNode = [[DNodeManager sharedInstance].currentNodeList objectAtIndex:index - 1];
+    }
+    if (preNode && preNode.isRootPage) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:DStackNotificationNameChangeBottomBarVisible
+                                                            object:nil
+                                                          userInfo:@{@"hidden": @(NO)}];
     }
 }
 

@@ -289,5 +289,11 @@ applicationState:(DStackApplicationState)state
 
 @end
 
+
+#pragma mark -DStackNotificationName
+
+typedef NSString *DStackNotificationName;
+UIKIT_EXTERN DStackNotificationName const DStackNotificationNameChangeBottomBarVisible; // tabBar显示状态
+
 NS_ASSUME_NONNULL_END
 
