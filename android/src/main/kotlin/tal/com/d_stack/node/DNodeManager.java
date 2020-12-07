@@ -349,6 +349,7 @@ public class DNodeManager {
         if (needRemoveNode != null) {
             nodeList.remove(needRemoveNode);
             PageLifecycleManager.pageDisappear(node);
+            node.setBoundary(needRemoveNode.isBoundary());
             DOperationManager.operation(node);
         }
         updateNodes();
