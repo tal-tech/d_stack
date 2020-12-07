@@ -22,6 +22,7 @@
                 @"text": @"打开SecondViewController",
                 @"clicked": ^(UIViewController *controller) {
                     SecondViewController *secondVC = [[SecondViewController alloc] init];
+                    secondVC.hidesBottomBarWhenPushed = YES;
                     [controller.navigationController pushViewController:secondVC animated:YES];
                 }
             },

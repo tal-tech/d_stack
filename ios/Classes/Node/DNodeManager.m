@@ -387,6 +387,7 @@
             @"homePage": @(node.isFlutterHomePage),
             @"boundary": @(node.boundary),
             @"animated": @(node.animated),
+            @"identifier": node.identifier != nil ? node.identifier : @"unknown",
         };
     } else {
         params = @{};

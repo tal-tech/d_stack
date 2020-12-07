@@ -543,3 +543,9 @@ static void _dstack_engine_dyld_callback(const struct mach_header * mhp, intptr_
 __attribute__((constructor)) void _dstack_registerDyldCallback() {
     _dyld_register_func_for_add_image(_dstack_engine_dyld_callback);
 }
+
+
+
+#pragma mark -DStackNotificationName
+
+DStackNotificationName const DStackNotificationNameChangeBottomBarVisible = @"__DStackNotificationNameChangeBottomBarVisible";

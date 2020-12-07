@@ -65,6 +65,9 @@ class DNode {
   /// 是否为临界节点
   bool boundary;
 
+  /// 页面唯一id
+  String identifier;
+
   DNode.fromJson(Map json) {
     target = json["target"];
     action = json["action"];
@@ -72,6 +75,7 @@ class DNode {
     homePage = json["homePage"] ?? false;
     animated = json["animated"] ?? true;
     boundary = json["boundary"] ?? false;
+    identifier = json["identifier"];
     String pageString = json["pageType"];
     if (pageString.toLowerCase() == "flutter") {
       pageType = PageType.flutter;
@@ -88,6 +92,7 @@ class DNode {
     json["homePage"] = this.homePage;
     json["boundary"] = this.boundary;
     json["animated"] = this.animated;
+    json["identifier"] = this.identifier;
     switch (this.pageType) {
       case PageType.flutter:
         {

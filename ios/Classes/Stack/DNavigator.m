@@ -594,7 +594,9 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
         }
         
         if ([controller isFlutterViewController]) {
-            controller.hidesBottomBarWhenPushed = YES;
+            if (self.dStackRootViewController != controller && self.viewControllers.count == 1) {
+                controller.hidesBottomBarWhenPushed = YES;
+            }
         }
         
         if (!controller.isFlutterViewController && self.dStackRootViewController != controller) {
