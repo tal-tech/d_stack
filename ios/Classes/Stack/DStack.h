@@ -267,6 +267,10 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param nodes 出栈节点列表
 - (void)dStack:(DStack *)stack outStack:(NSArray <DStackNode *>*)nodes;
 
+/// 用户操作的所有行为都将会从这个api传出，可以基于此做行为回放
+/// 将要进行操作的节点
+- (void)operationNode:(DStackNode *)node;
+
 /// 节点显示与消失
 /// @param stack stack
 /// @param appear 正在显示的node

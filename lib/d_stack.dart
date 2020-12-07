@@ -10,6 +10,7 @@
 import 'package:d_stack/channel/dchannel.dart';
 import 'package:d_stack/navigator/dnavigator_gesture_observer.dart';
 import 'package:d_stack/navigator/dnavigator_manager.dart';
+import 'package:d_stack/observer/d_node_observer.dart';
 import 'package:d_stack/observer/life_cycle_observer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -53,6 +54,8 @@ class DStack {
 
   /// 用来监听 应用生命周期
   DLifeCycleObserver dLifeCycleObserver;
+  /// 用来监听节点操作
+  DNodeObserver dNodeObserver;
 
   bool _hasHomePage = false;
   bool get hasHomePage => _hasHomePage;
@@ -68,11 +71,13 @@ class DStack {
   /// observer 生命周期监听者
   void register(
       {Map<String, DStackWidgetBuilder> builders,
-      DLifeCycleObserver observer}) {
+      DLifeCycleObserver observer,
+      DNodeObserver nodeObserver}) {
     if (builders?.isNotEmpty == true) {
       _pageBuilders.addAll(builders);
     }
     dLifeCycleObserver = observer;
+    dNodeObserver = nodeObserver;
   }
 
   /// 获取一个 DStackWidgetBuilder

@@ -374,6 +374,33 @@
     
 #pragma mark -- private
 
+- (void)operationNode:(DNode *)node {
+    
+    // 发送给flutter侧
+    NSDictionary *params;
+    if (node.target) {
+        params = @{
+            @"action": node.actionTypeString,
+            @"pageType": node.pageTypeString,
+            @"target": node.target,
+            @"params": node.params,
+            @"homePage": @(node.isFlutterHomePage),
+            @"boundary": @(node.boundary),
+            @"animated": @(node.animated),
+        };
+    } else {
+        params = @{};
+    }
+    
+    [[DStackPlugin sharedInstance] invokeMethod:DStackMethodChannelSendOperationNodeToFlutter
+                                      arguments:params
+                                         result:nil];
+    // 发送调给native侧
+    [self dStackDelegateSafeWithSEL:@selector(operationNode:) exe:^(DStack *stack) {
+        [stack.delegate operationNode:[node copy]];
+    }];
+}
+
 - (DNode *)nodeWithTarget:(NSString *)target
 {
     DNode *targetNode = nil;
@@ -469,6 +496,7 @@
 
 - (void)writeLogWithNode:(DNode *)node
 {
+    [self operationNode:node];
     dispatch_async(self.logQueue, ^{
         if (!self.logPath || !node) { return;}
         NSString *target = node.target;

@@ -11,6 +11,7 @@ import 'dart:async';
 
 import 'package:d_stack/constant/constant_config.dart';
 import 'package:d_stack/navigator/dnavigator_manager.dart';
+import 'package:d_stack/observer/d_node_observer.dart';
 import 'package:d_stack/observer/life_cycle_observer.dart';
 import 'package:flutter/services.dart';
 
@@ -27,6 +28,8 @@ class DChannel {
         return DNavigatorManager.handleActionToFlutter(call.arguments);
       } else if (DStackConstant.lifeCycle == call.method) {
         return LifeCycleHandler.handleLifecycleMessage(call.arguments);
+      } else if (DStackConstant.sendOperationNodeToFlutter == call.method) {
+        return DNodeObserverHandler.handlerNodeMessage(call.arguments);
       }
       return Future.value();
     });
