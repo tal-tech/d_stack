@@ -210,7 +210,7 @@ class DStack {
 
   @Deprecated('已废弃，请调用popToRoot')
   static void popToNativeRoot() {
-    DNavigatorManager.popToNativeRoot();
+    DNavigatorManager.popToRoot();
   }
 
   /// 自定义转场动画进入页面
