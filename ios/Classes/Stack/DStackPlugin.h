@@ -17,6 +17,7 @@ UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendRemoveFlutterP
 UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendLifeCircle; // 生命周期通道
 UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendNodeList; // 节点列表
 UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendFlutterRootNode; // 设置flutter根节点
+UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendOperationNodeToFlutter; // Operation节点
 
 @interface DStackPlugin : NSObject<FlutterPlugin>
 

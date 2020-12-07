@@ -15,6 +15,7 @@ DStackMethodChannelName const DStackMethodChannelSendRemoveFlutterPageNode = @"s
 DStackMethodChannelName const DStackMethodChannelSendLifeCircle = @"sendLifeCycle";
 DStackMethodChannelName const DStackMethodChannelSendNodeList = @"sendNodeList";
 DStackMethodChannelName const DStackMethodChannelSendFlutterRootNode = @"sendFlutterRootNode";
+DStackMethodChannelName const DStackMethodChannelSendOperationNodeToFlutter = @"sendOperationNodeToFlutter";
 
 
 @interface DStackPlugin ()
