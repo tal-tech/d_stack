@@ -10,7 +10,7 @@ import tal.com.d_stack.utils.DLog;
 
 /**
  * 节点操作行为记录
- */
+ */          
 public class DOperationManager {
     public static void operation(DNode node) {
         if (!DStack.getInstance().isOpenNodeOperation()) {

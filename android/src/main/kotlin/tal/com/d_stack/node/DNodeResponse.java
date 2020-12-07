@@ -14,6 +14,7 @@ public class DNodeResponse {
     public boolean homePage = false;
     public boolean animated = false;
     public boolean boundary = false;
+    public String identifier = "";
 
     @Override
     public String toString() {
@@ -26,6 +27,7 @@ public class DNodeResponse {
             jo.put("homePage", homePage);
             jo.put("animated", animated);
             jo.put("boundary", boundary);
+            jo.put("identifier", identifier);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -41,6 +43,7 @@ public class DNodeResponse {
         map.put("homePage", homePage);
         map.put("animated", animated);
         map.put("boundary", boundary);
+        map.put("identifier", identifier);
         return map;
     }
 }

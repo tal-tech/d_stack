@@ -1,6 +1,10 @@
 package tal.com.d_stack.channel;
 
 
+import android.util.Log;
+
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +17,7 @@ import tal.com.d_stack.lifecycle.PageModel;
 import tal.com.d_stack.node.DNode;
 import tal.com.d_stack.node.DNodeManager;
 import tal.com.d_stack.node.DNodeResponse;
+import tal.com.d_stack.utils.DLog;
 
 /**
  * 框架消息通道
@@ -47,6 +52,9 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
     private static void handleSendNodeToNative(Map<String, Object> args) {
         DNode node = createNodeFromFlutter(args);
         if (node != null) {
+            DLog.logD("----------接收handleSendNodeToNative消息----------");
+            DLog.logD(node.toString());
+            DLog.logD("----------接收handleSendNodeToNative消息----------");
             DNodeManager.getInstance().checkNode(node);
         }
     }
@@ -57,6 +65,9 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
     private static void handleSendRemoveFlutterPageNode(Map<String, Object> args) {
         DNode node = createNodeFromFlutter(args);
         if (node != null) {
+            DLog.logD("----------接收handleSendRemoveFlutterPageNode消息----------");
+            DLog.logD(node.toString());
+            DLog.logD("----------接收handleSendRemoveFlutterPageNode消息----------");
             DNodeManager.getInstance().handleNeedRemoveFlutterNode(node);
         }
     }
@@ -102,6 +113,10 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
 
             }
         });
+        DLog.logD("----------发送sendNode消息----------");
+        JSONObject jsonObject = new JSONObject(resultMap);
+        DLog.logD(jsonObject.toString());
+        DLog.logD("----------发送sendNode消息----------");
     }
 
     /**
@@ -130,6 +145,10 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
 
             }
         });
+        DLog.logD("----------发送sendNode消息----------");
+        JSONObject jsonObject = new JSONObject(resultMap);
+        DLog.logD(jsonObject.toString());
+        DLog.logD("----------发送sendNode消息----------");
     }
 
 
@@ -203,6 +222,7 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
         resultMap.put("homePage", nodeResponse.homePage);
         resultMap.put("boundary", nodeResponse.boundary);
         resultMap.put("animated", nodeResponse.animated);
+        resultMap.put("identifier", nodeResponse.identifier);
         DStack.getInstance().getMethodChannel().invokeMethod("sendOperationNodeToFlutter", resultMap, new MethodChannel.Result() {
             @Override
             public void success(Object result) {
@@ -234,6 +254,7 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
         Map<String, Object> params = new HashMap<>();
         boolean homePage = false;
         boolean animated = false;
+        String identifier = "";
         if (args.get("target") != null) {
             target = (String) args.get("target");
         }
@@ -252,6 +273,9 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
         if (args.get("animated") != null) {
             animated = (boolean) args.get("animated");
         }
+        if (args.get("identifier") != null) {
+            identifier = (String) args.get("identifier");
+        }
         //创建Node节点信息
         DNode node = new DNode.Builder()
                 .target(target)
@@ -260,6 +284,7 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
                 .params(params)
                 .isHomePage(homePage)
                 .animated(animated)
+                .identifier(identifier)
                 .fromFlutter(true)
                 .build();
         return node;

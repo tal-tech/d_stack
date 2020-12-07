@@ -21,9 +21,6 @@ public class DNode {
     // flutter页面时，是route，native唯一id
     private String target;
 
-    //native页面的唯一id
-    private String uniqueId;
-
     // 附带参数
     private Map<String, Object> params;
 
@@ -48,6 +45,9 @@ public class DNode {
     //是否开启转场动画
     private boolean animated;
 
+    //页面唯一标识
+    private String identifier;
+
     public DNode(Builder builder) {
         this.action = builder.action;
         this.pageType = builder.pageType;
@@ -60,7 +60,15 @@ public class DNode {
         this.activity = builder.activity;
         this.popTo = builder.popTo;
         this.rootPage = builder.rootPage;
-        this.uniqueId = builder.uniqueId;
+        this.identifier = builder.identifier;
+    }
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
     }
 
 
@@ -76,7 +84,7 @@ public class DNode {
         private WeakReference<Activity> activity = null;
         private boolean popTo = false;
         private boolean rootPage = false;
-        private String uniqueId = "";
+        private String identifier = "";
 
         public Builder action(String action) {
             this.action = action;
@@ -133,8 +141,8 @@ public class DNode {
             return this;
         }
 
-        public Builder uniqueId(String uniqueId) {
-            this.uniqueId = uniqueId;
+        public Builder identifier(String identifier) {
+            this.identifier = identifier;
             return this;
         }
 
@@ -184,14 +192,6 @@ public class DNode {
         this.pageType = pageType;
     }
 
-    public String getUniqueId() {
-        return uniqueId;
-    }
-
-    public void setUniqueId(String uniqueId) {
-        this.uniqueId = uniqueId;
-    }
-
     public WeakReference<Activity> getActivity() {
         return activity;
     }
@@ -238,5 +238,23 @@ public class DNode {
 
     public void setAnimated(boolean animated) {
         this.animated = animated;
+    }
+
+    @Override
+    public String toString() {
+        return "DNode{" +
+                "action='" + action + '\'' +
+                ", pageType='" + pageType + '\'' +
+                ", target='" + target + '\'' +
+                ", params=" + params + '\'' +
+                ", fromFlutter=" + fromFlutter + '\'' +
+                ", activity=" + activity + '\'' +
+                ", popTo=" + popTo + '\'' +
+                ", homePage=" + homePage + '\'' +
+                ", rootPage=" + rootPage + '\'' +
+                ", boundary=" + boundary + '\'' +
+                ", animated=" + animated + '\'' +
+                ", identifier='" + identifier + '\'' +
+                '}';
     }
 }

@@ -22,6 +22,6 @@ public class DStackApplication extends FlutterApplication {
                 application.startActivity(intent);
             }
         });
-        DStack.getInstance().setOpenNodeOperation(true);
+        DStack.getInstance().setOpenNodeOperation(false);
     }
 }

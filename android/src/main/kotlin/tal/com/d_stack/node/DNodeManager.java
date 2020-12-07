@@ -87,6 +87,7 @@ public class DNodeManager {
                     node.setPageType(currentNode.getPageType());
                     node.setHomePage(currentNode.isHomePage());
                     node.setRootPage(currentNode.isRootPage());
+                    node.setIdentifier(currentNode.getIdentifier());
                     DActionManager.pop(node);
                     updateNodes();
                 } else {
@@ -315,6 +316,7 @@ public class DNodeManager {
         if (isCritical) {
             //临界状态，当前清除节点flutter，上一个节点native
             if (DStackActivityManager.getInstance().isExecuteStack()) {
+                //正在进行popTo等关闭多个页面操作，直接返回
                 return;
             }
             //关闭栈顶flutter控制器
@@ -412,6 +414,7 @@ public class DNodeManager {
         nodeResponse.homePage = node.isHomePage();
         nodeResponse.animated = node.isAnimated();
         nodeResponse.boundary = node.isBoundary();
+        nodeResponse.identifier = node.getIdentifier();
         return nodeResponse;
     }
 

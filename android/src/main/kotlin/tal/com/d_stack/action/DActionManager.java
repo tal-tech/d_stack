@@ -93,7 +93,6 @@ public class DActionManager {
                 // 打开flutter页面
                 // 给当前flutter节点设置对应的activity
                 DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-                currentNode.setUniqueId(DStackUtils.generateUniqueId());
                 currentNode.setActivity(new WeakReference(DStackActivityManager.getInstance().getTopActivity()));
             }
         } else {
@@ -140,7 +139,7 @@ public class DActionManager {
                     flutterNodes.add(nodeResponse.toMap());
                 }
             } else {
-                nativeNodes.add(loopNode.getUniqueId());
+                nativeNodes.add(loopNode.getIdentifier());
             }
         }
         //处理需要关闭的控制器

@@ -10,7 +10,6 @@ import androidx.annotation.Nullable;
 import java.lang.ref.WeakReference;
 
 import io.flutter.embedding.android.FlutterView;
-import tal.com.d_stack.DStack;
 import tal.com.d_stack.lifecycle.PageLifecycleManager;
 import tal.com.d_stack.node.DNode;
 import tal.com.d_stack.node.DNodeManager;
@@ -49,7 +48,7 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
                         .target("/")
                         .pageType(DNodePageType.DNodePageTypeFlutter)
                         .action(DNodeActionType.DNodeActionTypePush)
-                        .uniqueId(DStackUtils.generateUniqueId())
+                        .identifier(DStackUtils.generateUniqueId())
                         .isHomePage(true)
                         .isRootPage(true)
                         .build();
@@ -59,7 +58,7 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
                         .target("/")
                         .pageType(DNodePageType.DNodePageTypeNative)
                         .action(DNodeActionType.DNodeActionTypePush)
-                        .uniqueId(DStackUtils.generateUniqueId())
+                        .identifier(DStackUtils.generateUniqueId())
                         .isHomePage(true)
                         .isRootPage(true)
                         .build();
@@ -73,7 +72,7 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
                         .target(activity.getClass().getName())
                         .pageType(DNodePageType.DNodePageTypeNative)
                         .action(DNodeActionType.DNodeActionTypePush)
-                        .uniqueId(DStackUtils.generateUniqueId())
+                        .identifier(DStackUtils.generateUniqueId())
                         .build();
                 DNodeManager.getInstance().checkNode(node);
             }
@@ -149,6 +148,7 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
                 .action(DNodeActionType.DNodeActionTypePop)
                 .isHomePage(currentNode.isHomePage())
                 .isRootPage(currentNode.isRootPage())
+                .identifier(currentNode.getIdentifier())
                 .isPopTo(isPopTo)
                 .build();
         DNodeManager.getInstance().checkNode(node);
