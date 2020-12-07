@@ -1,26 +1,20 @@
 PODS:
   - d_stack (0.0.1):
     - Flutter
-  - d_stack_spy (0.0.1):
-    - Flutter
   - Flutter (1.0.0)
 
 DEPENDENCIES:
   - d_stack (from `.symlinks/plugins/d_stack/ios`)
-  - d_stack_spy (from `.symlinks/plugins/d_stack_spy/ios`)
   - Flutter (from `Flutter`)
 
 EXTERNAL SOURCES:
   d_stack:
     :path: ".symlinks/plugins/d_stack/ios"
-  d_stack_spy:
-    :path: ".symlinks/plugins/d_stack_spy/ios"
   Flutter:
     :path: Flutter
 
 SPEC CHECKSUMS:
   d_stack: 218a394e5759f06ed1f1aacbeea9c78314bdcfd6
-  d_stack_spy: 6894898f3f681296224a57a6419e9e361fee19f7
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
 
 PODFILE CHECKSUM: 9d0ac94d3d11f2290fe3fb976f070609fc82675b

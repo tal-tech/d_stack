@@ -12,11 +12,14 @@ class DStackWidget extends StatelessWidget {
   /// 默认的homePage
   final Widget homePage;
 
-  DStackWidget({Key key, this.homePage}) : super(key: key);
+  /// homepage的route
+  final String homePageRoute;
+
+  DStackWidget({Key key, this.homePage, this.homePageRoute}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    DStack.instance.homePage = (homePage != null);
+    DStack.instance.homePageRoute = homePageRoute;
     return homePage ?? Container(color: Colors.white);
   }
 }

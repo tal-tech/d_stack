@@ -12,6 +12,8 @@
 
 @implementation DActionManager
 
+static DNode *_preFlutterNode = nil;
+
 + (void)handlerActionWithNodeList:(NSArray<DNode *> *)nodeList node:(nonnull DNode *)node
 {
     // didPop 不处理跳转，只需要删节点
@@ -223,6 +225,7 @@
 /// @param nodeList 节点列表
 + (void)_checkTabBarWithNode:(DNode *)node popNodeList:(NSArray <DNode *>*)nodeList
 {
+    if (!node.fromFlutter) {return;}
     DNode *preNode = nil;
     DNode *target = nodeList.lastObject;
     if (node.action == DNodeActionTypePopToRoot ||
@@ -238,6 +241,7 @@
                                                             object:nil
                                                           userInfo:@{@"hidden": @(NO)}];
     }
+    _preFlutterNode = target;
 }
 
 /// 发消息至Flutter
@@ -311,7 +315,22 @@
     return stackNode;
 }
 
+
 #pragma mark ============== controller 操作 ===============
+
++ (void)tabBarWillSelectViewController:(UIViewController *)viewController
+                         homePageRoute:(NSString *)route
+{
+    if ([self _checkIsFlutterControllerWithController:viewController]) {
+        if (!_preFlutterNode || [_preFlutterNode.target isEqualToString:route]) {
+            return;
+        }
+        DNode *node = [[DNode alloc] init];
+        node.target = route;
+        node.action = DNodeActionTypeReplace;
+        [self sendMessageToFlutterWithFlutterNodes:@[node] node:node];
+    }
+}
 
 /// 前后台切换时，需要检查FlutterEngine里面的flutterViewController是否还存在
 /// 如果不存在了而不处理的话会引发crash
@@ -363,6 +382,11 @@
 {
     UITabBarController *tabVC = (UITabBarController *)rootVC;
     UIViewController *selectedVC = [tabVC selectedViewController];
+    return [self _checkIsFlutterControllerWithController:selectedVC];
+}
+
++ (BOOL)_checkIsFlutterControllerWithController:(UIViewController *)selectedVC
+{
     if ([selectedVC isKindOfClass:UINavigationController.class]) {
         UIViewController *rootController = [[(UINavigationController *)selectedVC viewControllers] firstObject];
         if ([rootController isKindOfClass:FlutterViewController.class]) {

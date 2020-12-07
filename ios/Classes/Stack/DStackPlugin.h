@@ -18,6 +18,7 @@ UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendLifeCircle; //
 UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendNodeList; // 节点列表
 UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendFlutterRootNode; // 设置flutter根节点
 UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendOperationNodeToFlutter; // Operation节点
+UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendSendHomePageRoute; // 发送homePageRoute
 
 @interface DStackPlugin : NSObject<FlutterPlugin>
 

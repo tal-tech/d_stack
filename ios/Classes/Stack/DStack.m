@@ -17,6 +17,7 @@
 @interface DStack ()
 
 @property (nonatomic, assign) BOOL logEnable;
+@property (nonatomic, copy) NSString *homePageRoute;
 @property (nonatomic, copy) NSString *engineRealizeClass;
 @property (nonatomic, strong, readwrite) FlutterEngine *engine;
 
@@ -328,6 +329,12 @@
     }
 }
 
+- (void)tabBarController:(UITabBarController *)tabBarController
+ willSelectViewController:(UIViewController *)viewController
+{
+    [DActionManager tabBarWillSelectViewController:viewController homePageRoute:self.homePageRoute];
+}
+
 
 #pragma mark -- DStackPluginProtocol
 
@@ -391,6 +398,11 @@
     if (result) {
         result(list);
     }
+}
+
+- (void)sendHomePageRoute:(FlutterMethodCall *)call
+{
+    self.homePageRoute = call.arguments[@"homePageRoute"];
 }
 
 - (FlutterEngine *)engine

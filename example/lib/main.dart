@@ -31,7 +31,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return MaterialApp(
       navigatorKey: DStack.instance.navigatorKey,
       navigatorObservers: [DStack.instance.dStackNavigatorObserver],
-      home: isFlutterProject ? DStackWidget(homePage: Page1()) : DStackWidget(),
+      home: isFlutterProject
+          ? DStackWidget(
+              homePage: Page1(),
+              homePageRoute: 'page1',
+            )
+          : DStackWidget(),
       theme: ThemeData(platform: TargetPlatform.iOS),
     );
   }

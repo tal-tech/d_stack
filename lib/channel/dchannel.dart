@@ -65,4 +65,9 @@ class DChannel {
       return null;
     });
   }
+
+  Future sendHomePageRoute(String route) {
+    return _methodChannel.invokeMethod(
+        DStackConstant.sendHomePageRoute, {"homePageRoute": route});
+  }
 }

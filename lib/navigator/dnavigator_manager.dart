@@ -313,7 +313,8 @@ class DNavigatorManager {
 
           if (homePage != null &&
               homePage == true &&
-              DStack.instance.hasHomePage == false) {
+              node.boundary != null &&
+              node.boundary == true) {
             return replace(router, pageType,
                 homePage: homePage, animated: false, params: node.params);
           } else {
@@ -377,6 +378,14 @@ class DNavigatorManager {
           DStackNavigatorObserver.instance
               .setGesturingRouteName(DStackConstant.nativeDidPopGesture);
           return DNavigatorManager.gardPop(node.params);
+        }
+        break;
+      case DStackConstant.replace:
+        {
+          final DNode node = nodeEntity.nodeList.first;
+          var route = DNavigatorManager.materialRoute(
+              routeName: node.target, params: node.params, pushAnimated: false);
+          return _navigator.pushReplacement(route);
         }
         break;
     }

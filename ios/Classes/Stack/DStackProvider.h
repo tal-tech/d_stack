@@ -73,6 +73,9 @@ typedef NS_ENUM(NSInteger, DStackApplicationState) {
 /// @param result result
 - (void)sendNodeListToFlutter:(FlutterResult)result;
 
+/// 发送homePageRoute
+/// @param call call
+- (void)sendHomePageRoute:(FlutterMethodCall *)call;
 
 @end
 

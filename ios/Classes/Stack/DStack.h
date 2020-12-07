@@ -5,6 +5,7 @@
 //  Created by TAL on 2020/1/19.
 //
 
+#import <UIKit/UIKit.h>
 #import "DStackProvider.h"
 
 @protocol DStackDelegate;
@@ -208,6 +209,15 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)popToPageWithFlutterRoute:(NSString *)route
                            params:(nullable NSDictionary *)params
                          animated:(BOOL)animated;
+
+/// tabBarController点击事件
+/// @param tabBarController tabBarController
+/// @param viewController viewController description
+/// 当项目中tabBarController的viewControllers里面有DFlutterViewController
+/// 或者NavigationViewController的rootViewController是DFlutterViewController作为入口时
+/// 项目中必须实现tabBarController的delegate，并且调用该函数
+- (void)tabBarController:(UITabBarController *)tabBarController
+willSelectViewController:(UIViewController *)viewController;
 
 @end
 

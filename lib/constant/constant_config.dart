@@ -26,6 +26,7 @@ class DStackConstant {
   static const String nodeList = "sendNodeList";
   static const String sendFlutterRootNode = "sendFlutterRootNode";
   static const String sendOperationNodeToFlutter = 'sendOperationNodeToFlutter';
+  static const String sendHomePageRoute = 'sendHomePageRoute';
 
   /// 其他标识
   static const String nativeDidPopGesture = "nativeDidPopGesture";

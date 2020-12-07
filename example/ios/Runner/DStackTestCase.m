@@ -27,10 +27,10 @@
                 }
             },
             @{
-                @"text": @"打开Flutter page1 无参数",
+                @"text": @"打开Flutter page4",
                 @"clicked": ^(UIViewController *controller) {
                     [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DFlutterViewController.class
-                                                                       route:@"page1"];
+                                                                       route:@"page4"];
                 }
             },
             @{

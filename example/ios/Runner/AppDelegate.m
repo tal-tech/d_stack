@@ -9,7 +9,7 @@
 
 @DStackInject(AppDelegate);
 
-@interface AppDelegate () <DStackDelegate>
+@interface AppDelegate () <DStackDelegate, UITabBarControllerDelegate>
 
 @end
 
@@ -40,6 +40,9 @@ static BOOL isFlutterProject = NO;
         navi1.tabBarItem.title = @"flutter";
         
         [tab setViewControllers:@[navi0, navi1]];
+        
+        tab.delegate = self;
+        
         rootVC = tab;
     }
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
@@ -48,6 +51,20 @@ static BOOL isFlutterProject = NO;
     [self.window makeKeyAndVisible];
     return YES;
 }
+
+/// 当项目中tabBarController的viewControllers里面有DFlutterViewController
+/// 或者NavigationViewController的rootViewController是DFlutterViewController作为入口时
+/// 项目中必须实现tabBarController的delegate的，
+/// - (BOOL)tabBarController:shouldSelectViewController:并且调用DStack的
+/// [[DStack sharedInstance] tabBarController:tabBarController willSelectViewController:viewController];
+- (BOOL)tabBarController:(UITabBarController *)tabBarController
+shouldSelectViewController:(UIViewController *)viewController
+{
+    [[DStack sharedInstance] tabBarController:tabBarController willSelectViewController:viewController];
+    return YES;
+}
+
+
 
 + (FlutterEngine *)dStackForFlutterEngine
 {

@@ -45,6 +45,15 @@ class DStack {
 
   DChannel get channel => _stackChannel;
 
+  String _homePageRoute;
+  String get homeRoute => _homePageRoute;
+  set homePageRoute(String route) {
+    _homePageRoute = route;
+    if (_homePageRoute != null) {
+      channel.sendHomePageRoute(_homePageRoute);
+    }
+  }
+
   /// navigatorKey
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -54,14 +63,9 @@ class DStack {
 
   /// 用来监听 应用生命周期
   DLifeCycleObserver dLifeCycleObserver;
+
   /// 用来监听节点操作
   DNodeObserver dNodeObserver;
-
-  bool _hasHomePage = false;
-  bool get hasHomePage => _hasHomePage;
-  set homePage(bool page) {
-    _hasHomePage = page;
-  }
 
   final Map<String, DStackWidgetBuilder> _pageBuilders =
       <String, DStackWidgetBuilder>{};

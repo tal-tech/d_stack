@@ -36,6 +36,12 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param node DStackNode
 + (DStackNode *)stackNodeFromNode:(DNode *)node;
 
+/// tabBar切换事件
+/// @param viewController 将要切换的viewController
+/// @param route homePageRoute
++ (void)tabBarWillSelectViewController:(UIViewController *)viewController
+                         homePageRoute:(NSString *)route;
+
 @end
 
 NS_ASSUME_NONNULL_END

@@ -110,31 +110,7 @@ class Page4 extends StatelessWidget {
           },
         ),
       ),
-      body: Center(
-        child: Column(
-          children: <Widget>[
-            RaisedButton(
-              child: Text('popTo Flutter Page 2'),
-              onPressed: () {
-                DStack.popTo("page2", PageType.flutter);
-              },
-            ),
-            RaisedButton(
-              child: Text('popTo Root'),
-              onPressed: () {
-                DStack.popToNativeRoot();
-              },
-            ),
-            RaisedButton(
-              child: Text('打开NativePage'),
-              onPressed: () {
-                DStack.push("NativePage", PageType.native,
-                    params: {"name": "flutter 传递的", "id": 1000000});
-              },
-            ),
-          ],
-        ),
-      ),
+      body: _caseWidget(TestCase.openFlutterPageCase),
     );
   }
 }
