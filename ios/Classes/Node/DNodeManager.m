@@ -371,16 +371,6 @@
                                          result:nil];
 }
 
-- (void)updateRootNodeWithFlutter
-{
-    DNode *rootNode = self.nodeList.firstObject;
-    if (rootNode && rootNode.isRootPage) {
-        rootNode.isFlutterHomePage = YES;
-        rootNode.pageType = DNodePageTypeFlutter;
-        rootNode.fromFlutter = YES;
-    }
-}
-
     
 #pragma mark -- private
 

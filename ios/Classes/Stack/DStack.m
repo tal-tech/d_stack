@@ -303,7 +303,6 @@
     node.identifier = identifier;
     node.boundary = YES;
     node.animated = animated;
-    node.isFlutterClass = YES;
     [[DNodeManager sharedInstance] checkNode:node];
 }
 
@@ -392,12 +391,6 @@
     if (result) {
         result(list);
     }
-}
-
-/// 设置根节点为flutter的信息
-- (void)setFlutterRootNode
-{
-    [[DNodeManager sharedInstance] updateRootNodeWithFlutter];
 }
 
 - (FlutterEngine *)engine

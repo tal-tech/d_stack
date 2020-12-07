@@ -46,11 +46,6 @@ class DChannel {
     return _methodChannel.invokeMethod(DStackConstant.checkRemoved, arguments);
   }
 
-  /// 设置flutter根节点
-  Future sendFlutterRootNode() async {
-    return _methodChannel.invokeMethod(DStackConstant.sendFlutterRootNode);
-  }
-
   Future<List<DStackNode>> getNodeList() async {
     return _methodChannel
         .invokeMethod(DStackConstant.nodeList, null)

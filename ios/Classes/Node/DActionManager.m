@@ -170,7 +170,7 @@
             [nativeNodes addObject:obj];
         } else if (obj.pageType == DNodePageTypeFlutter) {
             [flutterNodes addObject:obj];
-            if (obj.isFlutterClass) {
+            if (obj.boundary) {
                 boundaryCount += 1;
             }
         }
@@ -234,8 +234,8 @@
         [nodeList addObject:wrap(flutterNodes.firstObject)];
     } else {
         for (DNode *x in flutterNodes) {
-            if (!x.isFlutterHomePage) {
-                // homePage 页面不能pop，不然会黑屏
+            // homePage 页面不能pop，不然会黑屏
+            if (!(x.isFlutterHomePage && x.boundary)) {
                 [nodeList addObject:wrap(x)];
             }
         }

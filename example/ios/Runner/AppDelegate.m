@@ -13,7 +13,7 @@
 
 @end
 
-static BOOL isFlutterProject = YES;
+static BOOL isFlutterProject = NO;
 
 @implementation AppDelegate
 
@@ -32,9 +32,14 @@ static BOOL isFlutterProject = YES;
     } else {
         HomeViewController *home = [[HomeViewController alloc] init];
         UITabBarController *tab = [[UITabBarController alloc] init];
-        DStackViewController *navi = [[DStackViewController alloc] initWithRootViewController:home];
-        navi.tabBarItem.title = @"home";
-        [tab setViewControllers:@[navi]];
+        DStackViewController *navi0 = [[DStackViewController alloc] initWithRootViewController:home];
+        navi0.tabBarItem.title = @"home";
+        
+        DemoFlutterViewController *flutter = [[DemoFlutterViewController alloc] init];
+        DStackViewController *navi1 = [[DStackViewController alloc] initWithRootViewController:flutter];
+        navi1.tabBarItem.title = @"flutter";
+        
+        [tab setViewControllers:@[navi0, navi1]];
         rootVC = tab;
     }
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];

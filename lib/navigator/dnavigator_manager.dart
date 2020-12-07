@@ -7,7 +7,6 @@
  * tartget: flutter侧用户调用入口
  */
 
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:d_stack/constant/constant_config.dart';
@@ -258,11 +257,10 @@ class DNavigatorManager {
 
   /// 移除flutter的节点
   static void removeFlutterNode(String target, {String identifier}) {
-    String actionType = (Platform.isAndroid ? 'pop' : 'didPop');
     Map arguments = {
       'target': target,
       'pageType': 'flutter',
-      'actionType': actionType,
+      'actionType': 'didPop',
       'identifier': identifier
     };
     DStack.instance.channel.sendRemoveFlutterPageNode(arguments);
