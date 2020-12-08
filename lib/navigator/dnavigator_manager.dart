@@ -31,6 +31,9 @@ class DNavigatorManager {
   static NavigatorState get _navigator =>
       DStack.instance.navigatorKey.currentState;
 
+  /// homePage被replace了
+  static bool _hasReplaceHomePage = false;
+
   static Future push(String routeName, PageType pageType,
       {Map params, bool maintainState, bool animated = true}) {
     if (pageType == PageType.flutter) {
@@ -315,6 +318,7 @@ class DNavigatorManager {
               homePage == true &&
               node.boundary != null &&
               node.boundary == true) {
+            _hasReplaceHomePage = true;
             return replace(router, pageType,
                 homePage: homePage, animated: false, params: node.params);
           } else {
@@ -382,10 +386,16 @@ class DNavigatorManager {
         break;
       case DStackConstant.replace:
         {
-          final DNode node = nodeEntity.nodeList.first;
-          var route = DNavigatorManager.materialRoute(
-              routeName: node.target, params: node.params, pushAnimated: false);
-          return _navigator.pushReplacement(route);
+          if (_hasReplaceHomePage) {
+            _hasReplaceHomePage = false;
+            final DNode node = nodeEntity.nodeList.first;
+            var route = DNavigatorManager.materialRoute(
+                routeName: node.target,
+                params: node.params,
+                pushAnimated: false);
+            return _navigator.pushReplacement(route);
+          }
+          return Future.value(true);
         }
         break;
     }

@@ -173,10 +173,7 @@
             if (node.fromFlutter) {
                 subArray = @[lastNode];
             } else {
-                BOOL match = [node.identifier isEqualToString:lastNode.identifier];
-                if (match) {
-                    subArray = @[lastNode];
-                }
+                subArray = [self checkRemovedNode:node needRemove:lastNode];
             }
         }
     }

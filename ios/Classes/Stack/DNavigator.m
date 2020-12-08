@@ -38,6 +38,7 @@ BOOL hasFDClass()
 
 void checkNode(UIViewController *targetVC, DNodeActionType action)
 {
+    if (!targetVC) {return;}
     NSString *scheme = NSStringFromClass(targetVC.class);
     DNode *node = [[DNodeManager sharedInstance] nextPageScheme:scheme
                                                        pageType:DNodePageTypeNative
@@ -49,6 +50,23 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
     [[DNodeManager sharedInstance] checkNode:node];
 }
 
+UIViewController *_DStackCurrentController(UIViewController *controller)
+{
+    if (!controller) { return nil;}
+    UIViewController *presented = controller.presentedViewController;
+    if (presented) { return _DStackCurrentController(presented);}
+    if ([controller isKindOfClass:[UINavigationController class]]) {
+        UINavigationController *navi = (UINavigationController *)controller;
+        if (!navi.viewControllers.count) { return navi;}
+        return _DStackCurrentController(navi.topViewController);
+    } else if ([controller isKindOfClass:[UITabBarController class]]) {
+        UITabBarController *tab = (UITabBarController *)controller;
+        if (!tab.viewControllers.count) { return tab;}
+        return _DStackCurrentController(tab.selectedViewController);
+    } else {
+        return controller;
+    }
+}
 
 
 #pragma mark ########### 声明 ###########
@@ -193,6 +211,11 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 - (BOOL)presentationControllerShouldDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
 {
     NSString *name = presentationController.oldDismissDelegateName;
+    UIViewController *presented = presentationController.presentedViewController;
+    if ([presented isKindOfClass:UINavigationController.class]) {
+        presented = [(UINavigationController *)presented topViewController];
+    }
+    presented.isGesturePoped = YES;
     if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
         id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
         if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationControllerShouldDismiss:)]) {
@@ -384,7 +407,11 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
     // 出栈管理
     if ([self isCustomClass]) {
         if (![self.dStackFlutterNodeMessage boolValue]) {
-            checkNode(self, DNodeActionTypeDismiss);
+            UIViewController *dismiss = _DStackCurrentController(self);
+            if (!dismiss.isGesturePoped) {
+                // 不是手势触发的dismiss
+                checkNode(dismiss, DNodeActionTypeDismiss);
+            }
         }
     }
     [self d_stackDismissViewControllerAnimated:flag completion:completion];

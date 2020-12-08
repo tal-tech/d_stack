@@ -106,11 +106,45 @@ class Page4 extends StatelessWidget {
         leading: RaisedButton(
           child: Text('返回'),
           onPressed: () {
-            DStack.pop(result: {'key3': 23});
+            DStack.pop();
           },
         ),
       ),
       body: _caseWidget(TestCase.openFlutterPageCase),
+    );
+  }
+}
+
+class Page5 extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('flutter page5'),
+        leading: RaisedButton(
+          child: Text('返回'),
+          onPressed: () {
+            DStack.pop();
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class Page6 extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('flutter page6'),
+        leading: RaisedButton(
+          child: Text('返回'),
+          onPressed: () {
+            DStack.pop();
+          },
+        ),
+      ),
     );
   }
 }

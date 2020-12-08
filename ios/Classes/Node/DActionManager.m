@@ -12,8 +12,6 @@
 
 @implementation DActionManager
 
-static DNode *_preFlutterNode = nil;
-
 + (void)handlerActionWithNodeList:(NSArray<DNode *> *)nodeList node:(nonnull DNode *)node
 {
     // didPop 不处理跳转，只需要删节点
@@ -241,7 +239,6 @@ static DNode *_preFlutterNode = nil;
                                                             object:nil
                                                           userInfo:@{@"hidden": @(NO)}];
     }
-    _preFlutterNode = target;
 }
 
 /// 发消息至Flutter
@@ -322,9 +319,6 @@ static DNode *_preFlutterNode = nil;
                          homePageRoute:(NSString *)route
 {
     if ([self _checkIsFlutterControllerWithController:viewController]) {
-        if (!_preFlutterNode || [_preFlutterNode.target isEqualToString:route]) {
-            return;
-        }
         DNode *node = [[DNode alloc] init];
         node.target = route;
         node.action = DNodeActionTypeReplace;

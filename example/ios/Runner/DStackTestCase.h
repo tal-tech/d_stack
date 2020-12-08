@@ -13,6 +13,10 @@ NS_ASSUME_NONNULL_BEGIN
 @interface DStackTestCase : NSObject
 
 @property (nonatomic, readonly) NSArray <NSDictionary *>*homeTestCases;
+@property (nonatomic, readonly) NSArray <NSDictionary *>*secondVCTestCases;
+@property (nonatomic, readonly) NSArray <NSDictionary *>*thirdVCTestCases;
+@property (nonatomic, readonly) NSArray <NSDictionary *>*fourVCTestCases;
+@property (nonatomic, readonly) NSArray <NSDictionary *>*fiveVCTestCases;
 
 @end
 

@@ -7,12 +7,9 @@
 //
 
 #import "HomeViewController.h"
-#import "DStackTestCase.h"
-
 
 @interface HomeViewController ()<UITableViewDelegate, UITableViewDataSource>
 
-@property (nonatomic, strong) DStackTestCase *testCase;
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) UILabel *titleView;
 
@@ -31,11 +28,12 @@
     // Do any additional setup after loading the view.
     [self.view addSubview:self.titleView];
     [self.view addSubview:self.tableView];
+    [self setNavigationTitle];
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return self.testCase.homeTestCases.count;
+    return [[self dataSource] count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -44,23 +42,34 @@
     if (!cell) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"cell"];
     }
-    cell.selectionStyle = UITableViewCellSelectionStyleNone;
     cell.textLabel.textColor = [UIColor blackColor];
     cell.textLabel.textAlignment = NSTextAlignmentCenter;
     cell.backgroundColor = [UIColor whiteColor];
-    NSDictionary *data = self.testCase.homeTestCases[indexPath.row];
+    NSDictionary *data = self.dataSource[indexPath.row];
     cell.textLabel.text = data[@"text"];
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSDictionary *data = self.testCase.homeTestCases[indexPath.row];
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    NSDictionary *data = self.dataSource[indexPath.row];
     void (^block)(UIViewController *) = data[@"clicked"];
     if (block) {
         block(self);
     }
 }
+
+- (void)setNavigationTitle
+{
+    self.titleView.text = NSStringFromClass(self.class);
+}
+
+- (NSArray *)dataSource
+{
+    return self.testCase.homeTestCases;
+}
+
 
 - (UITableView *)tableView
 {
@@ -80,7 +89,6 @@
     if (!_titleView) {
         CGFloat height = [UIApplication sharedApplication].statusBarFrame.size.height + 44;
         _titleView = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, height)];
-        _titleView.text = @"HomeViewController";
         _titleView.textAlignment = NSTextAlignmentCenter;
         _titleView.backgroundColor = [UIColor orangeColor];
     }

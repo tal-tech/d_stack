@@ -49,6 +49,8 @@ class RouterBuilder {
       'page2': page2Builder,
       'page3': page3Builder,
       'page4': page4Builder,
+      'page5': page5Builder,
+      'page6': page6Builder,
     };
     return builders;
   }
@@ -74,6 +76,18 @@ class RouterBuilder {
   static DStackWidgetBuilder page4Builder = (Map params) {
     return (BuildContext context) {
       return Page4();
+    };
+  };
+
+  static DStackWidgetBuilder page5Builder = (Map params) {
+    return (BuildContext context) {
+      return Page5();
+    };
+  };
+
+  static DStackWidgetBuilder page6Builder = (Map params) {
+    return (BuildContext context) {
+      return Page6();
     };
   };
 }

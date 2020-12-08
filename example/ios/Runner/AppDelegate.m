@@ -75,7 +75,7 @@ shouldSelectViewController:(UIViewController *)viewController
 
 - (nonnull UINavigationController *)dStack:(nonnull DStack *)stack navigationControllerForNode:(nonnull DStackNode *)node
 {
-    return self.currentController.navigationController;
+    return [[self currentController] navigationController];
 }
 
 - (void)dStack:(nonnull DStack *)stack presentWithNode:(nonnull DStackNode *)node
@@ -87,7 +87,7 @@ shouldSelectViewController:(UIViewController *)viewController
         [navi.topViewController presentViewController:didPushController animated:node.animated completion:nil];
     }
 }
-
+//navi = 0x000000016d5720b0
 - (void)dStack:(nonnull DStack *)stack pushWithNode:(nonnull DStackNode *)node
 {
     UIViewController *didPresentController = nil;
