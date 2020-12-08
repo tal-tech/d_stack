@@ -77,6 +77,10 @@ typedef NS_ENUM(NSInteger, DStackApplicationState) {
 /// @param call call
 - (void)sendHomePageRoute:(FlutterMethodCall *)call;
 
+/// 更新临界节点信息
+/// @param call call
+- (void)updateBoundaryNode:(FlutterMethodCall *)call;
+
 @end
 
 #endif /* DStackProvider_h */

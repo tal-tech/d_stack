@@ -85,7 +85,7 @@
                 NSInteger count = self.nodeList.count;
                 for (NSInteger i = count - 1; i >= 0; i --) {
                     DNode *obj = self.nodeList[i];
-                    if ([obj.target isEqualToString:node.target]) {
+                    if ([obj.identifier isEqualToString:node.identifier]) {
                         break;
                     } else {
                         if (!obj.isRootPage) {
@@ -244,6 +244,10 @@
     NSArray *subArray = @[];
     BOOL match = [need.identifier isEqualToString:removed.identifier];
     NSString *assert = [NSString stringWithFormat:@"已经不在屏幕节点的id：%@，栈中最后一个节点id：%@，两者不一致，请注意排查。", removed.identifier, need.identifier];
+    if (removed.boundary && (removed.pageType == need.pageType) &&
+        (removed.action == DNodeActionTypeGesture)) {
+        match = YES;
+    }
     NSAssert(match, assert);
     if (match) {
         subArray = @[need];
@@ -366,6 +370,23 @@
     [[DStackPlugin sharedInstance] invokeMethod:DStackMethodChannelSendLifeCircle
                                       arguments:params
                                          result:nil];
+}
+
+- (void)updateBoundaryNode:(NSDictionary *)nodeInfo
+{
+    if (!nodeInfo) {return;}
+    int index = (int)(self.nodeList.count - 1);
+    for (int i = index; index >= 0; i --) {
+        DNode *node = self.nodeList[index];
+        if ([node.target isEqualToString:nodeInfo[@"target"]] &&
+            [node.actionTypeString isEqualToString:nodeInfo[@"action"]] &&
+            (node.boundary == [nodeInfo[@"boundary"] boolValue]) &&
+            [node.pageString isEqualToString:nodeInfo[@"pageType"]]) {
+            node.identifier = nodeInfo[@"identifier"];
+            DStackLog(@"更新临界节点信息为%@, 更新后的节点列表 == %@", nodeInfo, self.nodeList);
+            break;
+        }
+    }
 }
 
     

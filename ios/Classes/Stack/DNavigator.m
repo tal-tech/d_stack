@@ -47,6 +47,11 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
     NSString *identifier = [NSString stringWithFormat:@"%@_%p",
                             NSStringFromClass(targetVC.class), targetVC];
     node.identifier = identifier;
+    if ([targetVC isKindOfClass:FlutterViewController.class]) {
+        node.boundary = YES;
+        node.fromFlutter = YES;
+        node.pageType = DNodePageTypeFlutter;
+    }
     [[DNodeManager sharedInstance] checkNode:node];
 }
 

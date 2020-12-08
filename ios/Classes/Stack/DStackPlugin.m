@@ -17,6 +17,7 @@ DStackMethodChannelName const DStackMethodChannelSendNodeList = @"sendNodeList";
 DStackMethodChannelName const DStackMethodChannelSendFlutterRootNode = @"sendFlutterRootNode";
 DStackMethodChannelName const DStackMethodChannelSendOperationNodeToFlutter = @"sendOperationNodeToFlutter";
 DStackMethodChannelName const DStackMethodChannelSendSendHomePageRoute = @"sendHomePageRoute";
+DStackMethodChannelName const DStackMethodChannelSendSendUpdateBoundaryNode = @"sendUpdateBoundaryNode";
 
 @interface DStackPlugin ()
 
@@ -57,6 +58,11 @@ DStackMethodChannelName const DStackMethodChannelSendSendHomePageRoute = @"sendH
       DStack *stack = [DStack sharedInstance];
       if ([stack respondsToSelector:@selector(sendHomePageRoute:)]) {
           [stack sendHomePageRoute:call];
+      }
+  } else if ([DStackMethodChannelSendSendUpdateBoundaryNode isEqualToString:call.method]) {
+      DStack *stack = [DStack sharedInstance];
+      if ([stack respondsToSelector:@selector(updateBoundaryNode:)]) {
+          [stack updateBoundaryNode:call];
       }
   } else {
       result(FlutterMethodNotImplemented);

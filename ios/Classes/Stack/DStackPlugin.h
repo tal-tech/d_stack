@@ -19,6 +19,7 @@ UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendNodeList; // �
 UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendFlutterRootNode; // 设置flutter根节点
 UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendOperationNodeToFlutter; // Operation节点
 UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendSendHomePageRoute; // 发送homePageRoute
+UIKIT_EXTERN DStackMethodChannelName const DStackMethodChannelSendSendUpdateBoundaryNode; // 更新临界节点信息
 
 @interface DStackPlugin : NSObject<FlutterPlugin>
 
