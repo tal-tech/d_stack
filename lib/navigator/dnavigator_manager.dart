@@ -322,23 +322,26 @@ class DNavigatorManager {
             return replace(router, pageType,
                 homePage: homePage, animated: false, params: node.params);
           } else {
+            PageRoute route;
             bool boundary = node.boundary;
             if (boundary != null && boundary) {
               /// 临界页面不开启动画
-              PageRoute route = DNavigatorManager.materialRoute(
+              route = DNavigatorManager.materialRoute(
                 routeName: router,
                 params: params,
                 fullscreenDialog: action == DStackConstant.present,
                 pushAnimated: false,
               );
-              return _navigator.push(route);
             } else {
-              MaterialPageRoute route = DNavigatorManager.materialRoute(
+              route = DNavigatorManager.materialRoute(
                   routeName: router,
                   params: params,
                   fullscreenDialog: action == DStackConstant.present);
-              return _navigator.push(route);
             }
+            node.identifier = identifierWithRoute(route);
+            Map json = node.toJson();
+            DStack.instance.channel.sendUpdateBoundaryNode(json);
+            return _navigator.push(route);
           }
         }
         break;

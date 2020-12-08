@@ -66,6 +66,7 @@
     self.pageType = node.pageType;
     self.target = node.target;
     self.params = node.params;
+    self.identifier = node.identifier;
 }
 
 + (DNodePageType)pageTypeWithString:(NSString *)string

@@ -70,4 +70,10 @@ class DChannel {
     return _methodChannel.invokeMethod(
         DStackConstant.sendHomePageRoute, {"homePageRoute": route});
   }
+
+  /// 发送更新临界节点的信息
+  Future sendUpdateBoundaryNode(Map params) {
+    return _methodChannel.invokeMethod(
+        DStackConstant.sendUpdateBoundaryNode, params);
+  }
 }
