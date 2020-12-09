@@ -216,6 +216,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// 当项目中tabBarController的viewControllers里面有DFlutterViewController
 /// 或者NavigationViewController的rootViewController是DFlutterViewController作为入口时
 /// 项目中必须实现tabBarController的delegate，并且调用该函数
+/// ！！！不建议在tabBarController里面设置DFlutterViewController
 - (void)tabBarController:(UITabBarController *)tabBarController
 willSelectViewController:(UIViewController *)viewController;
 

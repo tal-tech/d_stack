@@ -89,14 +89,14 @@
 {
     [self checkFlutterPageWithRoute:route params:params animated:animated block:^(DNode *currentNode) {
         if (!cls) { return;}
-        DFlutterViewController *controller = [[cls alloc] init];
-        if (![controller isKindOfClass:FlutterViewController.class]) { return;}
         UINavigationController *navi = [self.delegate dStack:self
                                  navigationControllerForNode:[DActionManager stackNodeFromNode:currentNode]];
         if (!navi) {
             DStackError(@"!!!!!!!!!!!!%@!!!!!!!!!!!!", @"当前的NavigationController为空，不能push打开Flutter页面");
             return;
         }
+        DFlutterViewController *controller = [[cls alloc] init];
+        if (![controller isKindOfClass:FlutterViewController.class]) { return;}
         [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush controller:controller];
         if (callBack) {
             callBack(controller);
@@ -130,14 +130,14 @@
         if (!storyboard || !identifier) { return;}
         UIStoryboard *story = [UIStoryboard storyboardWithName:storyboard bundle:nil];
         if (story) {
-            DFlutterViewController *controller = [story instantiateViewControllerWithIdentifier:identifier];
-            if (!controller || ![controller isKindOfClass:FlutterViewController.class]) { return;}
             UINavigationController *navi = [self.delegate dStack:self
                                      navigationControllerForNode:[DActionManager stackNodeFromNode:currentNode]];
             if (!navi) {
                 DStackError(@"!!!!!!!!!!!!%@!!!!!!!!!!!!", @"当前的NavigationController为空，不能push打开Flutter页面");
                 return;
             }
+            DFlutterViewController *controller = [story instantiateViewControllerWithIdentifier:identifier];
+            if (!controller || ![controller isKindOfClass:FlutterViewController.class]) { return;}
             [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush controller:controller];
             if (callBack) {
                 callBack(controller);

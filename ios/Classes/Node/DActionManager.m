@@ -318,12 +318,17 @@
 + (void)tabBarWillSelectViewController:(UIViewController *)viewController
                          homePageRoute:(NSString *)route
 {
+    DNode *node = [[DNode alloc] init];
+    node.action = DNodeActionTypeReplace;
     if ([self _checkIsFlutterControllerWithController:viewController]) {
-        DNode *node = [[DNode alloc] init];
         node.target = route;
-        node.action = DNodeActionTypeReplace;
+        node.pageType = DNodePageTypeFlutter;
         [self sendMessageToFlutterWithFlutterNodes:@[node] node:node];
+    } else {
+        node.target = @"/";
+        node.pageType = DNodePageTypeNative;
     }
+    [[DNodeManager sharedInstance] updateRootNode:node];
 }
 
 /// 前后台切换时，需要检查FlutterEngine里面的flutterViewController是否还存在

@@ -72,6 +72,10 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param nodeInfo nodeInfo
 - (void)updateBoundaryNode:(NSDictionary *)nodeInfo;
 
+/// 更新根节点信息
+/// @param node node
+- (void)updateRootNode:(DNode *)node;
+
 @end
 
 NS_ASSUME_NONNULL_END

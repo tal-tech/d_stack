@@ -80,25 +80,29 @@
         }
         case DNodeActionTypePopTo:
         {
-            // 从栈底开始遍历出需要移除的节点
-            if (!(!node.target || [node.target isEqual:NSNull.null])) {
-                NSMutableArray *removeArray = [[NSMutableArray alloc] init];
-                NSInteger count = self.nodeList.count;
-                for (NSInteger i = count - 1; i >= 0; i --) {
-                    DNode *obj = self.nodeList[i];
-                    if ([obj.identifier isEqualToString:node.identifier]) {
-                        break;
-                    } else {
-                        if (!obj.isRootPage) {
-                            [removeArray addObject:obj];
+            if (![[DNodeManager sharedInstance] nodeWithTarget:node.target]) {
+                // 目的页在栈里面不存在
+                DStackError(@"target %@ 不存在于栈中", node.target);
+            } else {
+                // 从栈底开始遍历出需要移除的节点
+                if (!(!node.target || [node.target isEqual:NSNull.null])) {
+                    NSMutableArray *removeArray = [[NSMutableArray alloc] init];
+                    NSInteger count = self.nodeList.count;
+                    for (NSInteger i = count - 1; i >= 0; i --) {
+                        DNode *obj = self.nodeList[i];
+                        /// flutter的popTo只能比较路由、native侧的popTo比较identifier
+                        NSString *identifierA = node.fromFlutter ? obj.target : obj.identifier;
+                        NSString *identifierB = node.fromFlutter ? node.target : node.identifier;
+                        if ([identifierA isEqualToString:identifierB]) {
+                            break;
+                        } else {
+                            if (!obj.isRootPage) {
+                                [removeArray addObject:obj];
+                            }
                         }
                     }
+                    subArray = [removeArray copy];
                 }
-                subArray = [removeArray copy];
-            }
-            // 目的页在栈里面不存在
-            if (![[DNodeManager sharedInstance] nodeWithTarget:node.target]) {
-                DStackError(@"target %@ 不存在于栈中", node.target);
             }
             break;
         }
@@ -388,6 +392,15 @@
             break;
         }
     }
+}
+
+- (void)updateRootNode:(DNode *)node
+{
+    DNode *root = self.nodeList.firstObject;
+    root.target = node.target;
+    root.pageType = node.pageType;
+    root.action = node.action;
+    DStackLog(@"更新根节点信息为%@, 更新后的节点列表 == %@", node, self.nodeList);
 }
 
     

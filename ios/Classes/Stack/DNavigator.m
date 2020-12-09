@@ -454,7 +454,7 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
     if ([self isCustomClass]) {
         if (![self.dStackFlutterNodeMessage boolValue]) {
             UIViewController *dismiss = _DStackCurrentController(self);
-            if (!dismiss.isGesturePoped) {
+            if (!dismiss.isGesturePoped && [dismiss isCustomClass]) {
                 // 不是手势触发的dismiss
                 [[DStackNavigator instance] willAppearViewController:dismiss.presentingViewController];
                 checkNode(dismiss, DNodeActionTypeDismiss);
