@@ -20,6 +20,9 @@ dev_dependencies:
   d_stack:
     path: ../
 
+  d_stack_spy:
+    path: ../../d_stack_spy/
+
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
