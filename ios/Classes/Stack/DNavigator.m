@@ -9,6 +9,8 @@
 #import "DNavigator.h"
 #import "DNodeManager.h"
 #import "DActionManager.h"
+#import "DStack.h"
+#import "DFlutterViewController.h"
 
 typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *viewController, BOOL animated);
 
@@ -232,6 +234,26 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
 
 - (void)presentationControllerWillDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
 {
+    UIViewController *presented = presentationController.presentedViewController;
+    if ([presented isKindOfClass:UINavigationController.class]) {
+        presented = [(UINavigationController *)presented topViewController];
+    }
+    UIViewController *willAppear = presented.presentingViewController;
+    if ([willAppear isKindOfClass:UITabBarController.class]) {
+        willAppear = [(UITabBarController *)willAppear selectedViewController];
+        if ([willAppear isKindOfClass:UINavigationController.class]) {
+            willAppear = [(UINavigationController *)willAppear topViewController];
+        }
+    } else if ([willAppear isKindOfClass:UINavigationController.class]) {
+        willAppear = [(UINavigationController *)willAppear topViewController];
+    }
+    if ([willAppear isKindOfClass:DFlutterViewController.class]) {
+        DStack *stack = [DStack sharedInstance];
+        if (!stack.engine.viewController) {
+            DFlutterViewController *flutterVC = (DFlutterViewController *)willAppear;
+            [flutterVC willUpdateView];
+        }
+    }
     [self checkSelectorToDelegate:@selector(presentationControllerWillDismiss:)
                        controller:presentationController
                           forward:^(id<UIAdaptivePresentationControllerDelegate> delegate) {
@@ -246,6 +268,16 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
     if ([presented isKindOfClass:UINavigationController.class]) {
         target = [[(UINavigationController *)presented viewControllers] firstObject];
         checkNode(target, DNodeActionTypePopTo);
+    }
+    
+    DNodeManager *manager = [DNodeManager sharedInstance];
+    DNode *didAppearNode = [manager preNode];
+    if (didAppearNode.pageType == DNodePageTypeFlutter) {
+        DStack *stack = [DStack sharedInstance];
+        if (stack.engine.viewController) {
+            DFlutterViewController *flutterVC = (DFlutterViewController *)stack.engine.viewController;
+            [flutterVC didUpdateView];
+        }
     }
     checkNode(target, DNodeActionTypeGesture);
     [self checkSelectorToDelegate:@selector(presentationControllerDidDismiss:)

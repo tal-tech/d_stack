@@ -10,6 +10,7 @@
 #import "SecondViewController.h"
 #import "FiveViewController.h"
 #import "DStackViewController.h"
+#import "DemoFlutterViewController.h"
 
 @implementation DStackTestCase
 {
@@ -42,14 +43,14 @@
         @{
             @"text": @"打开Flutter page4",
             @"clicked": ^(UIViewController *controller) {
-                [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DFlutterViewController.class
+                [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DemoFlutterViewController.class
                                                                    route:@"page4"];
             }
         },
         @{
             @"text": @"打开Flutter page1 有参数",
             @"clicked": ^(UIViewController *controller) {
-                [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DFlutterViewController.class
+                [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DemoFlutterViewController.class
                                                                    route:@"page1"
                                                                   params:@{@"fromNative": @"来自原生"}];
             }
@@ -66,7 +67,7 @@
         @{
             @"text": @"打开Flutter page5",
             @"clicked": ^(UIViewController *controller) {
-                [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DFlutterViewController.class
+                [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DemoFlutterViewController.class
                                                                    route:@"page5"];
             }
         },
@@ -92,7 +93,7 @@
         @{
             @"text": @"打开Flutter page6",
             @"clicked": ^(UIViewController *controller) {
-                [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DFlutterViewController.class
+                [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DemoFlutterViewController.class
                                                                    route:@"page6"];
             }
         },
@@ -137,13 +138,17 @@
         @{
             @"text": @"返回",
             @"clicked": ^(UIViewController *controller) {
-                [controller dismissViewControllerAnimated:YES completion:nil];
+                if (controller.navigationController.viewControllers.count > 1) {
+                    [controller.navigationController popViewControllerAnimated:YES];
+                } else {
+                    [controller dismissViewControllerAnimated:YES completion:nil];
+                }
             }
         },
         @{
             @"text": @"打开Flutter page6",
             @"clicked": ^(UIViewController *controller) {
-                [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DFlutterViewController.class
+                [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DemoFlutterViewController.class
                                                                    route:@"page6"];
             }
         },

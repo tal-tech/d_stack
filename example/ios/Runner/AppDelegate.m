@@ -84,7 +84,7 @@ shouldSelectViewController:(UIViewController *)viewController
     UINavigationController *navi = [self dStack:stack navigationControllerForNode:node];
     if ([node.route isEqualToString:@"NativePage2"]) {
         didPushController = [[FourViewController alloc] init];
-        [navi.topViewController presentViewController:didPushController animated:node.animated completion:nil];
+        [[self currentController] presentViewController:didPushController animated:node.animated completion:nil];
     }
 }
 //navi = 0x000000016d5720b0

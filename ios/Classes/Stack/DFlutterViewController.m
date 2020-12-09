@@ -14,7 +14,10 @@
 
 - (instancetype)init
 {
-    if(self = [super initWithEngine:[DStack sharedInstance].engine
+    if (self.dStackFlutterEngine.viewController) {
+        self.dStackFlutterEngine.viewController = nil;
+    }
+    if(self = [super initWithEngine:self.dStackFlutterEngine
                             nibName:nil
                              bundle:nil]) {
         [self config];
@@ -24,7 +27,10 @@
 
 - (instancetype)initWithCoder:(NSCoder *)coder
 {
-    if(self = [super initWithEngine:[DStack sharedInstance].engine
+    if (self.dStackFlutterEngine.viewController) {
+        self.dStackFlutterEngine.viewController = nil;
+    }
+    if(self = [super initWithEngine:self.dStackFlutterEngine
                             nibName:nil
                              bundle:nil]) {
         [self config];
@@ -42,8 +48,9 @@
 {
     // 必须在页面显示之前判断engine是否存在FlutterViewController
     // 否则会因为FlutterViewController不存在而崩溃
-    if ([DStack sharedInstance].engine.viewController != self) {
-        [DStack sharedInstance].engine.viewController = self;
+    if (self.dStackFlutterEngine.viewController != self) {
+        self.dStackFlutterEngine.viewController = nil;
+        self.dStackFlutterEngine.viewController = self;
     }
     [super viewWillAppear:animated];
 }
@@ -59,6 +66,26 @@
 {
     [self removeGesturePopNode];
     [super viewDidDisappear:animated];
+}
+
+/// dismiss手势不会触发页面的viewWillAppear
+/// viewDidDisappear里面，flutter会让Engine暂停，不会渲染flutter页面
+/// 在dismiss的某些情况下，主动调用viewWillAppear，使Engine进入inactive状态
+- (void)willUpdateView
+{
+    [self viewWillAppear:YES];
+}
+
+/// dismiss手势不会触发页面的viewDidAppear
+/// viewDidDisappear里面，flutter会让Engine暂停，不会渲染flutter页面
+/// 在dismiss的某些情况下，主动调用viewDidAppear，使Engine进入resumed状态
+- (void)didUpdateView
+{
+    [self viewDidAppear:YES];
+    /// 调用这个是为了重新计算页面的布局
+    /// 因为在非全屏present页面时，该页面是没有状态栏的
+    /// 所以在dismiss的时候，需要重新展示状态栏，就需要刷新flutter的页面
+    [super viewDidLayoutSubviews];
 }
 
 - (void)_surfaceUpdated:(BOOL)appeared
@@ -97,6 +124,11 @@
             [self.tabBarController.tabBar setHidden:hidden];
         }
     }
+}
+
+- (FlutterEngine *)dStackFlutterEngine
+{
+    return [DStack sharedInstance].engine;
 }
 
 - (void)dealloc
