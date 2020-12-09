@@ -35,7 +35,6 @@
         }
         case DNodeActionTypePopTo:
         case DNodeActionTypePopToRoot:
-        case DNodeActionTypePopToNativeRoot:
         case DNodeActionTypePopSkip:
         {
             [self closePageListWithNode:node willRemovedList:nodeList];
@@ -184,16 +183,14 @@
     
     if (flutterNodes.count) {
         // flutter的节点信息直接发消息到flutter
-        if (node.action == DNodeActionTypePopToRoot ||
-            node.action == DNodeActionTypePopToNativeRoot) {
+        if (node.action == DNodeActionTypePopToRoot) {
             node.animated = nativeNodes.count == 0;
         }
         [self sendMessageToFlutterWithFlutterNodes:flutterNodes node:node];
     }
     if (!node.fromFlutter) { return;}
     UINavigationController *navigation = [self currentNavigationControllerWithNode:node];
-    if (node.action == DNodeActionTypePopToRoot ||
-        node.action == DNodeActionTypePopToNativeRoot) {
+    if (node.action == DNodeActionTypePopToRoot) {
         [navigation setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
         [navigation popToRootViewControllerAnimated:YES];
         [navigation setValue:@(NO) forKey:@"dStackFlutterNodeMessage"];
@@ -226,8 +223,7 @@
     if (!node.fromFlutter) {return;}
     DNode *preNode = nil;
     DNode *target = nodeList.lastObject;
-    if (node.action == DNodeActionTypePopToRoot ||
-        node.action == DNodeActionTypePopToNativeRoot) {
+    if (node.action == DNodeActionTypePopToRoot) {
         target = nodeList.firstObject;
     }
     NSInteger index = [[DNodeManager sharedInstance].currentNodeList indexOfObject:target];

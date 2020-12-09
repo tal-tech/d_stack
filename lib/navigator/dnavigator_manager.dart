@@ -230,10 +230,6 @@ class DNavigatorManager {
         animated: animated);
   }
 
-  static void popToNativeRoot() {
-    DNavigatorManager.nodeHandle(null, null, 'popToNativeRoot');
-  }
-
   static void popSkip(String skipName, {Map result, bool animated = true}) {
     DNavigatorManager.nodeHandle(skipName, null, DStackConstant.popSkip,
         result: result, animated: animated);
@@ -352,8 +348,6 @@ class DNavigatorManager {
         }
         break;
       case DStackConstant.popTo:
-        continue PopSkip;
-      case 'popToNativeRoot':
         continue PopSkip;
       case DStackConstant.popToRoot:
         continue PopSkip;

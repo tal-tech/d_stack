@@ -49,7 +49,6 @@
         case DNodeActionTypePop:{action = @"pop";break;}
         case DNodeActionTypePopTo:{action = @"popTo";break;}
         case DNodeActionTypePopToRoot:{action = @"popToRoot";break;}
-        case DNodeActionTypePopToNativeRoot:{action = @"popToNativeRoot";break;}
         case DNodeActionTypePopSkip:{action = @"popSkip";break;}
         case DNodeActionTypeGesture:{action = @"gesture";break;}
         case DNodeActionTypeDismiss:{action = @"dismiss";break;}
@@ -101,8 +100,6 @@
         actionType = DNodeActionTypePopTo;
     } else if ([_actionType isEqualToString:@"popSkip"]) {
         actionType = DNodeActionTypePopSkip;
-    } else if ([_actionType isEqualToString:@"popToNativeRoot"]) {
-        actionType = DNodeActionTypePopToNativeRoot;
     } else if ([_actionType isEqualToString:@"popToRoot"]) {
         actionType = DNodeActionTypePopToRoot;
     } else if ([_actionType isEqualToString:@"dismiss"]) {

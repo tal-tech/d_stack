@@ -107,7 +107,6 @@
             break;
         }
         case DNodeActionTypePopToRoot:
-        case DNodeActionTypePopToNativeRoot:
         {
             subArray = [self.nodeList subarrayWithRange:NSMakeRange(1, self.nodeList.count - 1)];
             break;
@@ -195,7 +194,6 @@
             case DNodeActionTypePop:
             case DNodeActionTypePopTo:
             case DNodeActionTypePopToRoot:
-            case DNodeActionTypePopToNativeRoot:
             case DNodeActionTypePopSkip:
             case DNodeActionTypeGesture:
             case DNodeActionTypeDismiss:
@@ -219,7 +217,6 @@
             case DNodeActionTypePopTo:
             case DNodeActionTypePopSkip:
             case DNodeActionTypePopToRoot:
-            case DNodeActionTypePopToNativeRoot:
             case DNodeActionTypeGesture:
             {
                 [self outStackWithNode:node nodeArray:subArray];

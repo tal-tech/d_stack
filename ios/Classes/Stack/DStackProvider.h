@@ -36,14 +36,13 @@ typedef NS_ENUM(NSInteger, DNodeActionType) {
     DNodeActionTypePush,        // push跳转
     DNodeActionTypePresent,     // present跳转
     DNodeActionTypePop,         // pop返回
-    DNodeActionTypePopTo,       // popTo 返回
-    DNodeActionTypePopToRoot,   // PopToRoot
-    DNodeActionTypePopToNativeRoot,   // PopToRoot
-    DNodeActionTypePopSkip,     // PopSkip
+    DNodeActionTypePopTo,       // popTo返回
+    DNodeActionTypePopToRoot,   // popToRoot
+    DNodeActionTypePopSkip,     // dopSkip
     DNodeActionTypeGesture,     // 手势
-    DNodeActionTypeDismiss,     // Dismiss返回
+    DNodeActionTypeDismiss,     // dismiss返回
     DNodeActionTypeReplace,     // replace返回
-    DNodeActionTypeDidPop,      // didpop 确认
+    DNodeActionTypeDidPop,      // didPop确认
 };
 
 // 应用的生命周期
