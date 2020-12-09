@@ -150,3 +150,21 @@ class Page6 extends StatelessWidget {
     );
   }
 }
+
+class Page7 extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('flutter page6'),
+        leading: RaisedButton(
+          child: Text('返回'),
+          onPressed: () {
+            DStack.pop();
+          },
+        ),
+      ),
+      body: _caseWidget(TestCase.page7Cases),
+    );
+  }
+}

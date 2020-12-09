@@ -11,6 +11,7 @@
 #import "FiveViewController.h"
 #import "DStackViewController.h"
 #import "DemoFlutterViewController.h"
+#import "ThirdViewController.h"
 
 @implementation DStackTestCase
 {
@@ -197,6 +198,26 @@
             @"text": @"popToRoot 无动画",
             @"clicked": ^(UIViewController *controller) {
                 [controller.navigationController popToRootViewControllerAnimated:NO];
+            }
+        },
+        @{
+            @"text": @"popTo ThirdViewController",
+            @"clicked": ^(UIViewController *controller) {
+                UIViewController *target = nil;
+                for (UIViewController *x in controller.navigationController.viewControllers) {
+                    if ([x isKindOfClass:ThirdViewController.class]) {
+                        target = x;
+                        break;
+                    }
+                }
+                [controller.navigationController popToViewController:target animated:YES];
+            }
+        },
+        @{
+            @"text": @"push flutter page7",
+            @"clicked": ^(UIViewController *controller) {
+                [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DemoFlutterViewController.class
+                                                                   route:@"page7"];
             }
         },
     ];

@@ -207,7 +207,7 @@
             return;
         }
         [navigation setValue:@(YES) forKey:@"dStackFlutterNodeMessage"];
-        [navigation popToViewController:target animated:NO];
+        [navigation popToViewController:target animated:node.animated];
         [navigation setValue:@(NO) forKey:@"dStackFlutterNodeMessage"];
         [self _checkTabBarWithNode:node popNodeList:nodeList];
     } else {

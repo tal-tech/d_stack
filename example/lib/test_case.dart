@@ -299,4 +299,26 @@ class TestCase {
       }
     },
   ];
+
+  /// page7页面用例
+  static List<Map> page7Cases = [
+    {
+      "text": "popToRoot",
+      "clicked": () {
+        DStack.popToRoot();
+      }
+    },
+    {
+      "text": "popTo ThirdViewController",
+      "clicked": () {
+        DStack.popTo("ThirdViewController", PageType.native);
+      }
+    },
+    {
+      "text": "popTo page2",
+      "clicked": () {
+        DStack.popTo("page2", PageType.flutter);
+      }
+    },
+  ];
 }

@@ -63,6 +63,7 @@ class RouterBuilder {
       'page4': page4Builder,
       'page5': page5Builder,
       'page6': page6Builder,
+      'page7': page7Builder,
     };
     return builders;
   }
@@ -100,6 +101,12 @@ class RouterBuilder {
   static DStackWidgetBuilder page6Builder = (Map params) {
     return (BuildContext context) {
       return Page6();
+    };
+  };
+
+  static DStackWidgetBuilder page7Builder = (Map params) {
+    return (BuildContext context) {
+      return Page7();
     };
   };
 }
