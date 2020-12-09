@@ -248,7 +248,7 @@
         return @{
             @"target": one.target,
             @"action": one.actionTypeString,
-            @"params": one.params ? node.params : @{},
+            @"params": one.params ? one.params : @{},
             @"pageType": one.pageString,
             @"homePage": @(one.isFlutterHomePage),
             @"animated": @(one.animated),

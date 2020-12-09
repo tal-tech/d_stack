@@ -6,6 +6,7 @@
 #import "DStackViewController.h"
 #import "HomeViewController.h"
 #import "DemoFlutterViewController.h"
+#import "SixViewController.h"
 
 @DStackInject(AppDelegate);
 
@@ -87,15 +88,17 @@ shouldSelectViewController:(UIViewController *)viewController
         [[self currentController] presentViewController:didPushController animated:node.animated completion:nil];
     }
 }
-//navi = 0x000000016d5720b0
+
 - (void)dStack:(nonnull DStack *)stack pushWithNode:(nonnull DStackNode *)node
 {
-    UIViewController *didPresentController = nil;
+    UIViewController *didPushController = nil;
     UINavigationController *navi = [self dStack:stack navigationControllerForNode:node];
     if ([node.route isEqualToString:@"NativePage"]) {
-        didPresentController = [[ThirdViewController alloc] init];
-        [navi pushViewController:didPresentController animated:node.animated];
+        didPushController = [[ThirdViewController alloc] init];
+    } else if ([node.route isEqualToString:@"SixViewController"]) {
+        didPushController = [[SixViewController alloc] init];
     }
+    [navi pushViewController:didPushController animated:node.animated];
 }
 
 - (nonnull UIViewController *)visibleControllerForCurrentWindow

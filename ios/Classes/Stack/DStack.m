@@ -280,8 +280,9 @@
     DNode *node = [[DNode alloc] init];
     node.target = route;
     node.params = params;
-    node.action = DNodeActionTypePopTo;
     node.fromFlutter = YES;
+    node.animated = animated;
+    node.action = DNodeActionTypePopTo;
     [[DNodeManager sharedInstance] checkNode:node];
 }
 

@@ -128,6 +128,7 @@ class Page5 extends StatelessWidget {
           },
         ),
       ),
+      body: _caseWidget(TestCase.page5Cases),
     );
   }
 }
@@ -145,6 +146,7 @@ class Page6 extends StatelessWidget {
           },
         ),
       ),
+      body: _caseWidget(TestCase.page6Cases),
     );
   }
 }

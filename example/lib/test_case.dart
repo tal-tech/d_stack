@@ -260,4 +260,43 @@ class TestCase {
       }
     },
   ];
+
+  /// page5页面用例
+  static List<Map> page5Cases = [
+    {
+      "text": "popTo HomeViewController",
+      "clicked": () {
+        DStack.popTo("HomeViewController", PageType.native);
+      }
+    },
+    {
+      "text": "popToRoot",
+      "clicked": () {
+        DStack.popToRoot();
+      }
+    },
+  ];
+
+  /// page6页面用例
+  static List<Map> page6Cases = [
+    {
+      "text": "popToRoot",
+      "clicked": () {
+        DStack.popToRoot();
+      }
+    },
+    {
+      "text": "popTo Page3",
+      "clicked": () {
+        DStack.popTo("page3", PageType.flutter);
+      }
+    },
+    {
+      "text": "push SixViewController",
+      "clicked": () {
+        DStack.push("SixViewController", PageType.native,
+            params: {"data": "flutter 传递给native的参数"});
+      }
+    },
+  ];
 }

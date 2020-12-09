@@ -19,6 +19,7 @@
     NSArray *_thirdVCSource;
     NSArray *_fourVCSource;
     NSArray *_fiveVCSource;
+    NSArray *_sixVCSource;
 }
 
 - (instancetype)init
@@ -160,6 +161,46 @@
             }
         },
     ];
+    
+    _sixVCSource = @[
+        @{
+            @"text": @"返回",
+            @"clicked": ^(UIViewController *controller) {
+                [controller.navigationController popViewControllerAnimated:YES];
+            }
+        },
+        @{
+            @"text": @"popTo flutter page2 有动画",
+            @"clicked": ^(UIViewController *controller) {
+                [[DStack sharedInstance] popToPageWithFlutterRoute:@"page2" animated:YES];
+            }
+        },
+        @{
+            @"text": @"popTo flutter page3 无动画",
+            @"clicked": ^(UIViewController *controller) {
+                [[DStack sharedInstance] popToPageWithFlutterRoute:@"page3" animated:NO];
+            }
+        },
+        @{
+            @"text": @"popTo flutter page4 有动画",
+            @"clicked": ^(UIViewController *controller) {
+                [[DStack sharedInstance] popToPageWithFlutterRoute:@"page4" animated:YES];
+            }
+        },
+        @{
+            @"text": @"popToRoot 有动画",
+            @"clicked": ^(UIViewController *controller) {
+                [controller.navigationController popToRootViewControllerAnimated:YES];
+            }
+        },
+        @{
+            @"text": @"popToRoot 无动画",
+            @"clicked": ^(UIViewController *controller) {
+                [controller.navigationController popToRootViewControllerAnimated:NO];
+            }
+        },
+    ];
+    
 }
 
 
@@ -187,6 +228,11 @@
 - (NSArray<NSDictionary *> *)fiveVCTestCases
 {
     return _fiveVCSource;
+}
+
+- (NSArray<NSDictionary *> *)sixVCTestCases
+{
+    return _sixVCSource;
 }
 
 @end

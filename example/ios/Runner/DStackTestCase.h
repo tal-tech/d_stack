@@ -17,6 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) NSArray <NSDictionary *>*thirdVCTestCases;
 @property (nonatomic, readonly) NSArray <NSDictionary *>*fourVCTestCases;
 @property (nonatomic, readonly) NSArray <NSDictionary *>*fiveVCTestCases;
+@property (nonatomic, readonly) NSArray <NSDictionary *>*sixVCTestCases;
 
 @end
 

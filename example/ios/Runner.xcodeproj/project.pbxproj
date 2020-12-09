@@ -14,6 +14,7 @@
 		3E854E3D257A3616006EAB28 /* DemoFlutterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E854E3C257A3616006EAB28 /* DemoFlutterViewController.m */; };
 		3E854E47257A3C42006EAB28 /* DStackTestCase.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E854E46257A3C42006EAB28 /* DStackTestCase.m */; };
 		3EA9207E257F580300F3EB75 /* FiveViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3EA9207D257F580300F3EB75 /* FiveViewController.m */; };
+		3EA921702580EEDE00F3EB75 /* SixViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3EA9216F2580EEDE00F3EB75 /* SixViewController.m */; };
 		3F043F4423F3944100FC83D9 /* DStackViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F043F4323F3944100FC83D9 /* DStackViewController.m */; };
 		3FA943CE23F27D2D00DAC679 /* HomeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FA943CD23F27D2D00DAC679 /* HomeViewController.m */; };
 		3FA943D423F27D6A00DAC679 /* SecondViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3FA943D323F27D6A00DAC679 /* SecondViewController.m */; };
@@ -53,6 +54,8 @@
 		3E854E46257A3C42006EAB28 /* DStackTestCase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DStackTestCase.m; sourceTree = "<group>"; };
 		3EA9207C257F580300F3EB75 /* FiveViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FiveViewController.h; sourceTree = "<group>"; };
 		3EA9207D257F580300F3EB75 /* FiveViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FiveViewController.m; sourceTree = "<group>"; };
+		3EA9216E2580EEDE00F3EB75 /* SixViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SixViewController.h; sourceTree = "<group>"; };
+		3EA9216F2580EEDE00F3EB75 /* SixViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SixViewController.m; sourceTree = "<group>"; };
 		3F043F4223F3944100FC83D9 /* DStackViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DStackViewController.h; sourceTree = "<group>"; };
 		3F043F4323F3944100FC83D9 /* DStackViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DStackViewController.m; sourceTree = "<group>"; };
 		3FA943CC23F27D2D00DAC679 /* HomeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
@@ -156,6 +159,8 @@
 				3E2B2AC124F7C6F700BC7183 /* FourViewController.m */,
 				3EA9207C257F580300F3EB75 /* FiveViewController.h */,
 				3EA9207D257F580300F3EB75 /* FiveViewController.m */,
+				3EA9216E2580EEDE00F3EB75 /* SixViewController.h */,
+				3EA9216F2580EEDE00F3EB75 /* SixViewController.m */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
 				97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */,
@@ -324,6 +329,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3F043F4423F3944100FC83D9 /* DStackViewController.m in Sources */,
+				3EA921702580EEDE00F3EB75 /* SixViewController.m in Sources */,
 				3FA943D423F27D6A00DAC679 /* SecondViewController.m in Sources */,
 				3E2B2AC224F7C6F700BC7183 /* FourViewController.m in Sources */,
 				3E854E47257A3C42006EAB28 /* DStackTestCase.m in Sources */,
