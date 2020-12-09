@@ -148,6 +148,8 @@ public class DNodeManager {
                     currentNode.setTarget(node.getTarget());
                     currentNode.setPageType(DNodePageType.DNodePageTypeFlutter);
                     currentNode.setParams(node.getParams());
+                    currentNode.setIdentifier(node.getIdentifier());
+
                 }
                 updateNodes();
                 PageLifecycleManager.pageAppearWithReplace(preNode, currentNode);

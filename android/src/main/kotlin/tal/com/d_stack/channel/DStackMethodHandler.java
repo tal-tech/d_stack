@@ -41,6 +41,9 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
             case "sendNodeList":
                 handleSendNodeList(result);
                 break;
+            case "sendUpdateBoundaryNode":
+                handleSendUpdateBoundaryNode(args);
+                break;
             default:
                 break;
         }
@@ -85,6 +88,19 @@ public class DStackMethodHandler implements MethodChannel.MethodCallHandler {
             resultList.add(tempMap);
         }
         result.success(resultList);
+    }
+
+    /**
+     * flutter侧发来的更新边界节点位移id
+     */
+    private static void handleSendUpdateBoundaryNode(Map<String, Object> args) {
+        DNode node = createNodeFromFlutter(args);
+        if (node != null) {
+            DNode targetNode = DNodeManager.getInstance().findNodeByRouter(node.getTarget());
+            if (targetNode != null) {
+                targetNode.setIdentifier(node.getIdentifier());
+            }
+        }
     }
 
     /**
