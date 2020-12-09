@@ -219,6 +219,7 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
 {
     NSString *name = presentationController.oldDismissDelegateName;
     UIViewController *presented = presentationController.presentedViewController;
+    presented.isGesturePoped = YES;
     if ([presented isKindOfClass:UINavigationController.class]) {
         presented = [(UINavigationController *)presented topViewController];
     }
@@ -238,22 +239,7 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
     if ([presented isKindOfClass:UINavigationController.class]) {
         presented = [(UINavigationController *)presented topViewController];
     }
-    UIViewController *willAppear = presented.presentingViewController;
-    if ([willAppear isKindOfClass:UITabBarController.class]) {
-        willAppear = [(UITabBarController *)willAppear selectedViewController];
-        if ([willAppear isKindOfClass:UINavigationController.class]) {
-            willAppear = [(UINavigationController *)willAppear topViewController];
-        }
-    } else if ([willAppear isKindOfClass:UINavigationController.class]) {
-        willAppear = [(UINavigationController *)willAppear topViewController];
-    }
-    if ([willAppear isKindOfClass:DFlutterViewController.class]) {
-        DStack *stack = [DStack sharedInstance];
-        if (!stack.engine.viewController) {
-            DFlutterViewController *flutterVC = (DFlutterViewController *)willAppear;
-            [flutterVC willUpdateView];
-        }
-    }
+    [self willAppearViewController:presented.presentingViewController];
     [self checkSelectorToDelegate:@selector(presentationControllerWillDismiss:)
                        controller:presentationController
                           forward:^(id<UIAdaptivePresentationControllerDelegate> delegate) {
@@ -269,16 +255,7 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
         target = [[(UINavigationController *)presented viewControllers] firstObject];
         checkNode(target, DNodeActionTypePopTo);
     }
-    
-    DNodeManager *manager = [DNodeManager sharedInstance];
-    DNode *didAppearNode = [manager preNode];
-    if (didAppearNode.pageType == DNodePageTypeFlutter) {
-        DStack *stack = [DStack sharedInstance];
-        if (stack.engine.viewController) {
-            DFlutterViewController *flutterVC = (DFlutterViewController *)stack.engine.viewController;
-            [flutterVC didUpdateView];
-        }
-    }
+    [self didAppearViewControllerWithGestureDismiss:YES];
     checkNode(target, DNodeActionTypeGesture);
     [self checkSelectorToDelegate:@selector(presentationControllerDidDismiss:)
                        controller:presentationController
@@ -335,6 +312,38 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
         topViewController.isGesturePoped = YES;
     }
     return shouldBegin;
+}
+
+- (void)willAppearViewController:(UIViewController *)willAppear
+{
+    if ([willAppear isKindOfClass:UITabBarController.class]) {
+        willAppear = [(UITabBarController *)willAppear selectedViewController];
+        if ([willAppear isKindOfClass:UINavigationController.class]) {
+            willAppear = [(UINavigationController *)willAppear topViewController];
+        }
+    } else if ([willAppear isKindOfClass:UINavigationController.class]) {
+        willAppear = [(UINavigationController *)willAppear topViewController];
+    }
+    if ([willAppear isKindOfClass:DFlutterViewController.class]) {
+        DStack *stack = [DStack sharedInstance];
+        if (!stack.engine.viewController) {
+            DFlutterViewController *flutterVC = (DFlutterViewController *)willAppear;
+            [flutterVC willUpdateView];
+        }
+    }
+}
+
+- (void)didAppearViewControllerWithGestureDismiss:(BOOL)gesture
+{
+    DNodeManager *manager = [DNodeManager sharedInstance];
+    DNode *didAppearNode = gesture ? [manager preNode] : [manager currentNode];
+    if (didAppearNode.pageType == DNodePageTypeFlutter) {
+        DStack *stack = [DStack sharedInstance];
+        if (stack.engine.viewController) {
+            DFlutterViewController *flutterVC = (DFlutterViewController *)stack.engine.viewController;
+            [flutterVC didUpdateView];
+        }
+    }
 }
 
 - (NSMutableDictionary<NSString *,id> *)dismissDelegateClass
@@ -447,6 +456,7 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
             UIViewController *dismiss = _DStackCurrentController(self);
             if (!dismiss.isGesturePoped) {
                 // 不是手势触发的dismiss
+                [[DStackNavigator instance] willAppearViewController:dismiss.presentingViewController];
                 checkNode(dismiss, DNodeActionTypeDismiss);
             }
         }
@@ -472,6 +482,9 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
     [self d_stackViewDidDisappear:animated];
     if (![self isFlutterViewController]) {
         [self removeGesturePopNode];
+    }
+    if (self.beingDismissed && !self.isGesturePoped) {
+        [[DStackNavigator instance] didAppearViewControllerWithGestureDismiss:NO];
     }
 }
 
