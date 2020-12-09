@@ -67,6 +67,7 @@
                                                      disappearNode:lastNode
                                                         actionType:node.actionTypeString];
                     [lastNode copyWithNode:node];
+                    [self operationNode:lastNode];
                     self.pageCount = self.nodeList.count;
                     [self dStackDelegateSafeWithSEL:@selector(dStack:inStack:) exe:^(DStack *stack) {
                         DStackNode *stackNode = [DActionManager stackNodeFromNode:node];
