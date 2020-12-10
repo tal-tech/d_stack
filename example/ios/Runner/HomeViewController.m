@@ -102,5 +102,10 @@
     }
     return _testCase;
 }
+
+- (void)dealloc
+{
+    NSLog(@"dealloc ==> %@", NSStringFromClass(self.class));
+}
     
 @end

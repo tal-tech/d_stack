@@ -82,7 +82,7 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
 @interface DStackNavigator : NSObject <UIAdaptivePresentationControllerDelegate>
 
 /// dismiss手势代理类列表
-@property (nonatomic, strong) NSMutableDictionary <NSString *, id>*dismissDelegateClass;
+@property (nonatomic, strong) NSMapTable <NSString *, id>*dismissDelegateClass;
 
 + (instancetype)instance;
 
@@ -169,8 +169,8 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
 - (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller
 {
     NSString *name = controller.oldDismissDelegateName;
-    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
-        id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    if (name) {
+        id <UIAdaptivePresentationControllerDelegate> oldDelegate = [self.dismissDelegateClass objectForKey:name];
         if (oldDelegate && [oldDelegate respondsToSelector:@selector(adaptivePresentationStyleForPresentationController:)]) {
             return [oldDelegate adaptivePresentationStyleForPresentationController:controller];
         }
@@ -181,8 +181,8 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
 - (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller traitCollection:(UITraitCollection *)traitCollection API_AVAILABLE(ios(8.3))
 {
     NSString *name = controller.oldDismissDelegateName;
-    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
-        id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    if (name) {
+        id <UIAdaptivePresentationControllerDelegate> oldDelegate = [self.dismissDelegateClass objectForKey:name];
         if (oldDelegate && [oldDelegate respondsToSelector:@selector(adaptivePresentationStyleForPresentationController:traitCollection:)]) {
             return [oldDelegate adaptivePresentationStyleForPresentationController:controller
                                                                    traitCollection:traitCollection];
@@ -194,8 +194,8 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
 - (nullable UIViewController *)presentationController:(UIPresentationController *)controller viewControllerForAdaptivePresentationStyle:(UIModalPresentationStyle)style
 {
     NSString *name = controller.oldDismissDelegateName;
-    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
-        id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    if (name) {
+        id <UIAdaptivePresentationControllerDelegate> oldDelegate = [self.dismissDelegateClass objectForKey:name];
         if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationController:viewControllerForAdaptivePresentationStyle:)]) {
             return [oldDelegate presentationController:controller
             viewControllerForAdaptivePresentationStyle:style];
@@ -224,8 +224,8 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
         presented = [(UINavigationController *)presented topViewController];
     }
     presented.isGesturePoped = YES;
-    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
-        id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    if (name) {
+        id <UIAdaptivePresentationControllerDelegate> oldDelegate = [self.dismissDelegateClass objectForKey:name];
         if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationControllerShouldDismiss:)]) {
             return [oldDelegate presentationControllerShouldDismiss:presentationController];
         }
@@ -262,11 +262,6 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
                           forward:^(id<UIAdaptivePresentationControllerDelegate> delegate) {
         [delegate presentationControllerDidDismiss:presentationController];
     }];
-    
-    NSString *name = presentationController.oldDismissDelegateName;
-    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
-        [self.dismissDelegateClass removeObjectForKey:name];
-    }
 }
 
 - (void)presentationControllerDidAttemptToDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
@@ -283,8 +278,8 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
                         forward:(void(^)(id <UIAdaptivePresentationControllerDelegate> delegate))forward
 {
     NSString *name = controller.oldDismissDelegateName;
-    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
-        id <UIAdaptivePresentationControllerDelegate> delegate = self.dismissDelegateClass[name];
+    if (name) {
+        id <UIAdaptivePresentationControllerDelegate> delegate = [self.dismissDelegateClass objectForKey:name];
         if (delegate && [delegate respondsToSelector:selector]) {
             if (forward) {
                 forward(delegate);
@@ -346,10 +341,12 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
     }
 }
 
-- (NSMutableDictionary<NSString *,id> *)dismissDelegateClass
+- (NSMapTable<NSString *,id> *)dismissDelegateClass
 {
     if (!_dismissDelegateClass) {
-        _dismissDelegateClass = [[NSMutableDictionary alloc] init];
+        _dismissDelegateClass = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsStrongMemory
+                                                          valueOptions:NSPointerFunctionsWeakMemory
+                                                              capacity:0];
     }
     return _dismissDelegateClass;
 }
@@ -438,7 +435,7 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
                     } else {
                         NSString *name = NSStringFromClass([delegate class]);
                         presentationController.oldDismissDelegateName = name;
-                        [[DStackNavigator instance].dismissDelegateClass setValue:delegate forKey:name];
+                        [[DStackNavigator instance].dismissDelegateClass setObject:delegate forKey:name];
                         presentationController.delegate = [DStackNavigator instance];
                     }
                 }

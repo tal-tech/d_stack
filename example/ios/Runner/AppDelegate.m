@@ -10,7 +10,7 @@
 
 @DStackInject(AppDelegate);
 
-@interface AppDelegate () <DStackDelegate, UITabBarControllerDelegate>
+@interface AppDelegate () <DStackDelegate, UITabBarControllerDelegate, UIAdaptivePresentationControllerDelegate>
 
 @end
 
