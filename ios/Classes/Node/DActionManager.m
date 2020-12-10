@@ -222,10 +222,7 @@
 {
     if (!node.fromFlutter) {return;}
     DNode *preNode = nil;
-    DNode *target = nodeList.lastObject;
-    if (node.action == DNodeActionTypePopToRoot) {
-        target = nodeList.firstObject;
-    }
+    DNode *target = nodeList.firstObject;
     NSInteger index = [[DNodeManager sharedInstance].currentNodeList indexOfObject:target];
     if (index >= 1) {
         preNode = [[DNodeManager sharedInstance].currentNodeList objectAtIndex:index - 1];
@@ -317,14 +314,16 @@
     DNode *node = [[DNode alloc] init];
     node.action = DNodeActionTypeReplace;
     if ([self _checkIsFlutterControllerWithController:viewController]) {
-        node.target = route;
+        node.target = route ? route : @"/";
         node.pageType = DNodePageTypeFlutter;
-        [self sendMessageToFlutterWithFlutterNodes:@[node] node:node];
     } else {
         node.target = @"/";
         node.pageType = DNodePageTypeNative;
     }
-    [[DNodeManager sharedInstance] updateRootNode:node];
+    BOOL updated = [[DNodeManager sharedInstance] updateRootNode:node];
+    if (node.pageType == DNodePageTypeFlutter && updated) {
+        [self sendMessageToFlutterWithFlutterNodes:@[node] node:node];
+    }
 }
 
 /// 前后台切换时，需要检查FlutterEngine里面的flutterViewController是否还存在

@@ -40,8 +40,8 @@ static BOOL isFlutterProject = NO;
         DStackViewController *navi1 = [[DStackViewController alloc] initWithRootViewController:flutter];
         navi1.tabBarItem.title = @"flutter";
         
+//        [tab setViewControllers:@[navi1, navi0]];
         [tab setViewControllers:@[navi0, navi1]];
-        
         tab.delegate = self;
         
         rootVC = tab;
@@ -82,7 +82,7 @@ shouldSelectViewController:(UIViewController *)viewController
 - (void)dStack:(nonnull DStack *)stack presentWithNode:(nonnull DStackNode *)node
 {
     UIViewController *didPushController = nil;
-    UINavigationController *navi = [self dStack:stack navigationControllerForNode:node];
+//    UINavigationController *navi = [self dStack:stack navigationControllerForNode:node];
     if ([node.route isEqualToString:@"NativePage2"]) {
         didPushController = [[FourViewController alloc] init];
         [[self currentController] presentViewController:didPushController animated:node.animated completion:nil];
@@ -95,6 +95,7 @@ shouldSelectViewController:(UIViewController *)viewController
     UINavigationController *navi = [self dStack:stack navigationControllerForNode:node];
     if ([node.route isEqualToString:@"NativePage"]) {
         didPushController = [[ThirdViewController alloc] init];
+        didPushController.hidesBottomBarWhenPushed = YES;
     } else if ([node.route isEqualToString:@"SixViewController"]) {
         didPushController = [[SixViewController alloc] init];
     }

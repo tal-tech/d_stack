@@ -74,7 +74,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 /// 更新根节点信息
 /// @param node node
-- (void)updateRootNode:(DNode *)node;
+- (BOOL)updateRootNode:(DNode *)node;
 
 @end
 

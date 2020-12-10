@@ -18,6 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// 当前Flutter的Engine
 @property (nonatomic, strong, readonly) FlutterEngine *engine;
 @property (nonatomic, readonly, nonnull) id<DStackDelegate>delegate;
+@property (nonatomic, copy, readonly) NSString *flutterHomePageRoute;
 
 + (instancetype)sharedInstance;
 

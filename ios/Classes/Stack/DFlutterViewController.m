@@ -6,6 +6,7 @@
 //
 
 #import "DFlutterViewController.h"
+#import "DActionManager.h"
 #import <objc/runtime.h>
 #import "DNavigator.h"
 #import "DStack.h"
@@ -52,6 +53,7 @@
         self.dStackFlutterEngine.viewController = nil;
         self.dStackFlutterEngine.viewController = self;
     }
+    [self checkSelfIsInTabBarController];
     [super viewWillAppear:animated];
 }
 
@@ -86,6 +88,28 @@
     /// 因为在非全屏present页面时，该页面是没有状态栏的
     /// 所以在dismiss的时候，需要重新展示状态栏，就需要刷新flutter的页面
     [super viewDidLayoutSubviews];
+}
+
+- (void)checkSelfIsInTabBarController
+{
+    UITabBarController *tabBarController = self.tabBarController;
+    if (tabBarController) {
+        UIViewController *selectedViewController = tabBarController.selectedViewController;
+        if (selectedViewController) {
+            UIViewController *visibleVC = [self visibleSelectedViewController:selectedViewController];
+            if (visibleVC != self) {return;}
+            [DActionManager tabBarWillSelectViewController:selectedViewController
+                                             homePageRoute:[DStack sharedInstance].flutterHomePageRoute];
+        }
+    }
+}
+
+- (UIViewController *)visibleSelectedViewController:(UIViewController *)selectedViewController
+{
+    if ([selectedViewController isKindOfClass:UINavigationController.class]) {
+        return [[(UINavigationController *)selectedViewController viewControllers] firstObject];
+    }
+    return selectedViewController;
 }
 
 - (void)_surfaceUpdated:(BOOL)appeared

@@ -166,6 +166,15 @@ class TestCase {
         }, replace: true);
       }
     },
+    {"text": "", "clicked": () {}},
+    {
+      "text": "【push】NativePage 有动画",
+      "clicked": () {
+        DStack.push("NativePage", PageType.native,
+            params: {"name": "flutter 传递的", "id": 1000000});
+      }
+    },
+    {"text": "", "clicked": () {}},
   ];
 
   /// 关闭flutter页面用例

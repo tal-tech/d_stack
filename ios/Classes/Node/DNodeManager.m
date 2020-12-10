@@ -97,7 +97,7 @@
                             break;
                         } else {
                             if (!obj.isRootPage) {
-                                [removeArray addObject:obj];
+                                [removeArray insertObject:obj atIndex:0];
                             }
                         }
                     }
@@ -391,13 +391,18 @@
     }
 }
 
-- (void)updateRootNode:(DNode *)node
+- (BOOL)updateRootNode:(DNode *)node
 {
     DNode *root = self.nodeList.firstObject;
+    if ([root.target isEqualToString:node.target] &&
+        root.pageType == node.pageType) {
+        return NO;
+    }
     root.target = node.target;
     root.pageType = node.pageType;
     root.action = node.action;
     DStackLog(@"更新根节点信息为%@, 更新后的节点列表 == %@", node, self.nodeList);
+    return YES;
 }
 
     

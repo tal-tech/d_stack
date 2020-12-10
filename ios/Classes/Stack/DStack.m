@@ -17,8 +17,8 @@
 @interface DStack ()
 
 @property (nonatomic, assign) BOOL logEnable;
-@property (nonatomic, copy) NSString *homePageRoute;
 @property (nonatomic, copy) NSString *engineRealizeClass;
+@property (nonatomic, copy) NSString *homePageRoute;
 @property (nonatomic, strong, readwrite) FlutterEngine *engine;
 
 @end
@@ -341,7 +341,11 @@
 - (void)tabBarController:(UITabBarController *)tabBarController
  willSelectViewController:(UIViewController *)viewController
 {
-    [DActionManager tabBarWillSelectViewController:viewController homePageRoute:self.homePageRoute];
+    NSInteger oldSelectedIndex = tabBarController.selectedIndex;
+    NSInteger willSelectIndex = [tabBarController.viewControllers indexOfObject:viewController];
+    if (oldSelectedIndex != willSelectIndex) {
+        [DActionManager tabBarWillSelectViewController:viewController homePageRoute:self.homePageRoute];
+    }
 }
 
 
@@ -425,6 +429,11 @@
         _engine = [self engineFromProtocol];
     }
     return _engine;
+}
+
+- (NSString *)flutterHomePageRoute
+{
+    return self.homePageRoute;
 }
 
 - (FlutterEngine *)engineFromProtocol
