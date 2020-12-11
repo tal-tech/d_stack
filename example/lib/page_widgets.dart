@@ -156,7 +156,7 @@ class Page7 extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('flutter page6'),
+        title: Text('flutter page7'),
         leading: RaisedButton(
           child: Text('返回'),
           onPressed: () {

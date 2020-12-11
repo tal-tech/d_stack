@@ -6,6 +6,7 @@
 //
 
 #import "DFlutterViewController.h"
+#import "DNodeManager.h"
 #import "DActionManager.h"
 #import <objc/runtime.h>
 #import "DNavigator.h"
@@ -101,6 +102,15 @@
             [DActionManager tabBarWillSelectViewController:selectedViewController
                                              homePageRoute:[DStack sharedInstance].flutterHomePageRoute];
         }
+    } else {
+        // 检查是不是flutter工程
+        if ([DActionManager rootControllerIsFlutterController]) {
+            DNode *node = [[DNode alloc] init];
+            node.pageType = DNodePageTypeFlutter;
+            node.action = DNodeActionTypeReplace;
+            node.target = [DStack sharedInstance].flutterHomePageRoute;
+            [[DNodeManager sharedInstance] updateRootNode:node];
+        }
     }
 }
 
@@ -137,6 +147,7 @@
 
 - (void)changeBottomBarVisible:(NSNotification *)notification
 {
+    if (!self.tabBarController) {return;}
     NSDictionary *userInfo = notification.userInfo;
     if (!userInfo) {
         if (self.tabBarController.tabBar.hidden == NO) {

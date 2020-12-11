@@ -8,7 +8,7 @@
 
 #import "FourViewController.h"
 
-@interface FourViewController ()<UIAdaptivePresentationControllerDelegate>
+@interface FourViewController ()
 
 @end
 
@@ -16,7 +16,6 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-//    self.presentationController.delegate = self;
 }
 
 - (NSArray *)dataSource

@@ -10,11 +10,11 @@
 
 @DStackInject(AppDelegate);
 
-@interface AppDelegate () <DStackDelegate, UITabBarControllerDelegate, UIAdaptivePresentationControllerDelegate>
+@interface AppDelegate () <DStackDelegate, UITabBarControllerDelegate>
 
 @end
 
-static BOOL isFlutterProject = NO;
+static BOOL isFlutterProject = YES;
 
 @implementation AppDelegate
 
@@ -95,9 +95,9 @@ shouldSelectViewController:(UIViewController *)viewController
     UINavigationController *navi = [self dStack:stack navigationControllerForNode:node];
     if ([node.route isEqualToString:@"NativePage"]) {
         didPushController = [[ThirdViewController alloc] init];
-        didPushController.hidesBottomBarWhenPushed = YES;
     } else if ([node.route isEqualToString:@"SixViewController"]) {
         didPushController = [[SixViewController alloc] init];
+        didPushController.hidesBottomBarWhenPushed = YES;
     }
     [navi pushViewController:didPushController animated:node.animated];
 }

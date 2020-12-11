@@ -16,7 +16,6 @@ import 'package:d_stack/navigator/node_entity.dart';
 import 'package:d_stack/widget/page_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 /// 主要两个部分：
@@ -397,37 +396,6 @@ class DNavigatorManager {
         break;
     }
     return null;
-  }
-
-  /// 从下往上弹出动画
-  static PageRouteBuilder slideRoute(
-      {String routeName,
-      Map params,
-      int milliseconds,
-      bool fullscreenDialog = false}) {
-    return animationRoute(
-        routeName: routeName,
-        params: params,
-        animatedBuilder: (BuildContext context, Animation<double> animation,
-            Animation<double> secondaryAnimation, WidgetBuilder widgetBuilder) {
-          double startOffsetX = fullscreenDialog ? 0 : 1.0;
-          double startOffsetY = fullscreenDialog ? 1.0 : 0;
-          Offset startOffset = Offset(startOffsetX, startOffsetY);
-          Offset endOffset = const Offset(0, 0);
-
-          return SlideTransition(
-            transformHitTests: true,
-            position: new Tween<Offset>(
-              begin: startOffset,
-              end: endOffset,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeInOutCubic,
-            )),
-            child: widgetBuilder(context),
-          );
-        },
-        transitionDuration: Duration(milliseconds: milliseconds));
   }
 
   /// 用户自定义flutter页面转场动画

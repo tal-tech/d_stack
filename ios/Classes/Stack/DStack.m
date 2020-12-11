@@ -433,7 +433,10 @@
 
 - (NSString *)flutterHomePageRoute
 {
-    return self.homePageRoute;
+    if (self.homePageRoute) {
+        return self.homePageRoute;
+    }
+    return @"/";
 }
 
 - (FlutterEngine *)engineFromProtocol

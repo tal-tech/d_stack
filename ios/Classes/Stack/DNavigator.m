@@ -38,7 +38,7 @@ BOOL hasFDClass()
     return _FDDelegate != NULL;
 }
 
-void checkNode(UIViewController *targetVC, DNodeActionType action)
+void _checkNodeParams(UIViewController *targetVC, DNodeActionType action, BOOL isFlutter)
 {
     if (!targetVC) {return;}
     NSString *scheme = NSStringFromClass(targetVC.class);
@@ -49,12 +49,17 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
     NSString *identifier = [NSString stringWithFormat:@"%@_%p",
                             NSStringFromClass(targetVC.class), targetVC];
     node.identifier = identifier;
-    if ([targetVC isKindOfClass:FlutterViewController.class]) {
+    if (isFlutter) {
         node.boundary = YES;
         node.fromFlutter = YES;
         node.pageType = DNodePageTypeFlutter;
     }
     [[DNodeManager sharedInstance] checkNode:node];
+}
+
+void checkNode(UIViewController *targetVC, DNodeActionType action)
+{
+    _checkNodeParams(targetVC, action, NO);
 }
 
 UIViewController *_DStackCurrentController(UIViewController *controller)
@@ -555,7 +560,7 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
 - (void)removeGesturePopNode
 {
     if (self.isGesturePoped && self.isBeginPoped) {
-        checkNode(self, DNodeActionTypeGesture);
+        _checkNodeParams(self, DNodeActionTypeGesture, [self isKindOfClass:DFlutterViewController.class]);
     }
 }
 
@@ -708,7 +713,11 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
             checkNode(viewController, DNodeActionTypePopTo);
         }
     }
-    return [self d_stackPopToViewController:viewController animated:animated];
+    if (viewController) {
+        return [self d_stackPopToViewController:viewController animated:animated];
+    }
+    DStackError(@"PopTo的controller为空");
+    return @[];
 }
 
 - (NSArray<UIViewController *> *)d_stackPopToRootViewControllerAnimated:(BOOL)animated

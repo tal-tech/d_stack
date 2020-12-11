@@ -161,6 +161,33 @@
                 [controller.navigationController pushViewController:five animated:YES];
             }
         },
+        @{
+            @"text": @"弹窗",
+            @"clicked": ^(UIViewController *controller) {
+                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"弹窗"
+                                                                               message:@"弹出来了" preferredStyle:UIAlertControllerStyleAlert];
+                UIAlertAction *action = [UIAlertAction actionWithTitle:@"ok" style:UIAlertActionStyleCancel handler:nil];
+                [alert addAction:action];
+                [controller presentViewController:alert animated:YES completion:nil];
+            }
+        },
+        @{
+            @"text": @"调取相册",
+            @"clicked": ^(UIViewController *controller) {
+                UIImagePickerController *picker = [[UIImagePickerController alloc] init];
+                picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+                
+                [controller presentViewController:picker animated:YES completion:nil];
+            }
+        },
+        @{
+            @"text": @"present 有navigation的FiveVC",
+            @"clicked": ^(UIViewController *controller) {
+                FiveViewController *five = [[FiveViewController alloc] init];
+                DStackViewController *navi = [[DStackViewController alloc] initWithRootViewController:five];
+                [controller presentViewController:navi animated:YES completion:nil];
+            }
+        },
     ];
     
     _sixVCSource = @[

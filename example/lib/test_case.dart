@@ -168,9 +168,9 @@ class TestCase {
     },
     {"text": "", "clicked": () {}},
     {
-      "text": "【push】NativePage 有动画",
+      "text": "【push】SixViewController 有动画",
       "clicked": () {
-        DStack.push("NativePage", PageType.native,
+        DStack.push("SixViewController", PageType.native,
             params: {"name": "flutter 传递的", "id": 1000000});
       }
     },
