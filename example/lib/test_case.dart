@@ -373,5 +373,48 @@ class TestCase {
         DStack.popTo("page2", PageType.flutter);
       }
     },
+    {
+      "text": "打开dialog",
+      "clicked": (context) {
+        showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (BuildContext cxt) {
+              return Container(
+                alignment: Alignment.center,
+                child: GestureDetector(
+                  child: Container(
+                    width: 300,
+                    height: 240,
+                    color: Colors.white,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("dialog",
+                            style: TextStyle(decoration: TextDecoration.none)),
+                        RaisedButton(
+                          onPressed: () {
+                            DStack.push('page3', PageType.flutter);
+                          },
+                          child: Text("进入下一页面",
+                              style:
+                                  TextStyle(decoration: TextDecoration.none)),
+                        ),
+                        RaisedButton(
+                          onPressed: () {
+                            Navigator.pop(cxt);
+                          },
+                          child: Text("关闭弹窗",
+                              style:
+                                  TextStyle(decoration: TextDecoration.none)),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            });
+      }
+    },
   ];
 }

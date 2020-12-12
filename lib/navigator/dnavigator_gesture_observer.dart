@@ -51,7 +51,7 @@ class DStackNavigatorObserver extends NavigatorObserver {
     if (route is PopupRoute) {
       /// dialog进栈
       DNavigatorManager.nodeHandle(
-          route.runtimeType.toString(), PageType.flutter, DStackConstant.push,
+          DStackConstant.flutterDialog, PageType.flutter, DStackConstant.push,
           route: route);
     }
   }
@@ -65,7 +65,7 @@ class DStackNavigatorObserver extends NavigatorObserver {
     routerCount -= 1;
     if (route is PopupRoute) {
       /// dialog出栈
-      DNavigatorManager.removeFlutterNode(route.runtimeType.toString(),
+      DNavigatorManager.removeFlutterNode(DStackConstant.flutterDialog,
           identifier: DNavigatorManager.identifierWithRoute(route));
     } else {
       debugPrint(

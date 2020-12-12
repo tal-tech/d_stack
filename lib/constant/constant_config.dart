@@ -31,4 +31,5 @@ class DStackConstant {
 
   /// 其他标识
   static const String nativeDidPopGesture = "nativeDidPopGesture";
+  static const String flutterDialog = "flutterDialog";
 }
