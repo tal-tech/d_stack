@@ -63,13 +63,13 @@ class DStackNavigatorObserver extends NavigatorObserver {
   void didPop(Route route, Route previousRoute) {
     super.didPop(route, previousRoute);
     routerCount -= 1;
+    debugPrint(
+        ' 【didPop】${route.settings.name} 【didPop】');
     if (route is PopupRoute) {
       /// dialog出栈
       DNavigatorManager.removeFlutterNode(DStackConstant.flutterDialog,
           identifier: DNavigatorManager.identifierWithRoute(route));
     } else {
-      debugPrint(
-          ' 【didPop】${route.settings.name} 【didPop】');
       if (gesturingRouteName != null &&
           gesturingRouteName == route.settings.name) {
         // 由手势导致的pop事件
