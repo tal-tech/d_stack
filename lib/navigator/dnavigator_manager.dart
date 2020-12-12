@@ -269,10 +269,14 @@ class DNavigatorManager {
     String identifier = "";
     if (route != null) {
       if (route.settings != null) {
-        if (route.settings.name.isNotEmpty) {
-          identifier = "${route.settings.name}_${route.hashCode}";
+        if (route is PopupRoute) {
+          identifier = "${route.runtimeType.toString()}_${route.hashCode}";
         } else {
-          identifier = "${route.toString()}_${route.hashCode}";
+          if (route.settings.name != null) {
+            identifier = "${route.settings.name}_${route.hashCode}";
+          } else {
+            identifier = "${route.toString()}_${route.hashCode}";
+          }
         }
       }
     }

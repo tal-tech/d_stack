@@ -91,8 +91,12 @@
                     for (NSInteger i = count - 1; i >= 0; i --) {
                         DNode *obj = self.nodeList[i];
                         /// flutter的popTo只能比较路由、native侧的popTo比较identifier
-                        NSString *identifierA = node.fromFlutter ? obj.target : obj.identifier;
-                        NSString *identifierB = node.fromFlutter ? node.target : node.identifier;
+                        NSString *identifierA = obj.target;
+                        NSString *identifierB = node.target;
+                        if (node.pageType == DNodePageTypeNative && !node.fromFlutter) {
+                            identifierA = obj.identifier;
+                            identifierB = node.identifier;
+                        }
                         if ([identifierA isEqualToString:identifierB]) {
                             break;
                         } else {

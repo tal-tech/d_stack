@@ -50,8 +50,17 @@ static BOOL isFlutterProject = YES;
     self.window.backgroundColor = [UIColor whiteColor];
     self.window.rootViewController = rootVC;
     [self.window makeKeyAndVisible];
+    [self testChannel];
     return YES;
 }
+
+
+- (void)testChannel
+{
+    FlutterMethodChannel *channel = [DStack sharedInstance].engine.navigationChannel;
+    
+}
+
 
 /// 当项目中tabBarController的viewControllers里面有DFlutterViewController
 /// 或者NavigationViewController的rootViewController是DFlutterViewController作为入口时

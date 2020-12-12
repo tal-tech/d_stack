@@ -17,7 +17,7 @@ class Student {
   String address;
 }
 
-Widget _caseWidget(List<Map> items) {
+Widget _caseWidget(List<Map> items, {BuildContext context}) {
   return Center(
     child: ListView.builder(
       itemExtent: 60,
@@ -33,7 +33,9 @@ Widget _caseWidget(List<Map> items) {
                     Border(bottom: BorderSide(color: Colors.grey, width: 0.5))),
             child: Text(caseMap["text"]),
           ),
-          onTap: caseMap["clicked"],
+          onTap: () {
+            caseMap["clicked"](context);
+          },
         );
       },
     ),
@@ -75,7 +77,7 @@ class Page2 extends StatelessWidget {
               DStack.pop();
             },
           )),
-      body: _caseWidget(TestCase.closeFlutterPage),
+      body: _caseWidget(TestCase.closeFlutterPage, context: context),
     );
   }
 }
