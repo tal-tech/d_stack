@@ -1,43 +1,5 @@
-import 'dart:async';
-import 'dart:io';
+import 'package:d_stack/d_stack.dart';
 import 'package:flutter/material.dart';
-
-import '../d_stack.dart';
-
-class StackWidgetStreamItem {
-  final String route;
-  final Map params;
-
-  StackWidgetStreamItem({this.params, this.route});
-}
-
-class DStackWidgetStream {
-  factory DStackWidgetStream() => _getInstance();
-
-  static DStackWidgetStream get instance => _getInstance();
-  static DStackWidgetStream _instance;
-
-  DStackWidgetStream._internal();
-
-  bool hasSetFlutterHomePage = false;
-  StreamController<StackWidgetStreamItem> pageStreamController;
-
-  Stream<StackWidgetStreamItem> get pageStream => pageStreamController.stream;
-
-  static DStackWidgetStream _getInstance() {
-    if (_instance == null) {
-      _instance = DStackWidgetStream._internal();
-      _instance.pageStreamController = StreamController();
-    }
-    return _instance;
-  }
-
-  void dispose() {
-    if (pageStreamController != null) {
-      pageStreamController.close();
-    }
-  }
-}
 
 /*
 * DStack里面的homePage实现
@@ -45,37 +7,19 @@ class DStackWidgetStream {
 * 当工程是flutter为主工程时，设置home需要把工程中实际的homePage设置进去，比如DStackWidget(homePage: MyHomePage());
 * 当工程是native为主工程时，设置home时直接设置成DStackWidget()，不要填写homePage
 * */
+/// DStack入口Widget
 class DStackWidget extends StatelessWidget {
   /// 默认的homePage
   final Widget homePage;
 
-  DStackWidget({Key key, this.homePage}) : super(key: key);
+  /// homepage的route
+  final String homePageRoute;
+
+  DStackWidget({Key key, this.homePage, this.homePageRoute}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    if (Platform.isIOS) {
-      return StreamBuilder(
-        stream: DStackWidgetStream.instance.pageStream,
-        builder:
-            (BuildContext cxt, AsyncSnapshot<StackWidgetStreamItem> snapshot) {
-          DStackWidgetStream.instance.hasSetFlutterHomePage = homePage != null;
-          Widget widget = homePage ?? Container();
-          if (snapshot.data != null && homePage == null) {
-            if (snapshot.data.route == "homePage") {
-              widget = Container();
-            } else {
-              DStackWidgetBuilder builder =
-              DStack.instance.pageBuilder(snapshot.data.route);
-              if (builder != null) {
-                widget = builder(snapshot.data.params)(cxt);
-              }
-            }
-          }
-          return widget;
-        },
-      );
-    } else {
-      return homePage ?? Container(color: Colors.white);
-    }
+    DStack.instance.homePageRoute = homePageRoute;
+    return homePage ?? Container(color: Colors.white);
   }
 }

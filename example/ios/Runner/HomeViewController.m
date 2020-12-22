@@ -7,13 +7,11 @@
 //
 
 #import "HomeViewController.h"
-#import "SecondViewController.h"
-#import <DStack.h>
 
 @interface HomeViewController ()<UITableViewDelegate, UITableViewDataSource>
 
-@property (nonatomic, strong) NSArray *testCases;
-@property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property (nonatomic, strong) UITableView *tableView;
+@property (nonatomic, strong) UILabel *titleView;
 
 @end
 
@@ -22,33 +20,20 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
-    self.closeButton.hidden = !self.showCloseButton;
     [self.navigationController setNavigationBarHidden:YES];
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    
-    self.testCases = @[
-        @"打开新的NATIVE页面",
-        @"打开新的Flutter页面",
-    ];
+    [self.view addSubview:self.titleView];
+    [self.view addSubview:self.tableView];
+    [self setNavigationTitle];
 }
-
-- (IBAction)close:(UIButton *)sender
-{
-    if (self.navigationController.viewControllers.count <= 1) {
-        [self dismissViewControllerAnimated:YES completion:nil];
-    } else {
-        [self.navigationController popViewControllerAnimated:YES];
-    }
-}
-
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return self.testCases.count;
+    return [[self dataSource] count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -57,49 +42,70 @@
     if (!cell) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"cell"];
     }
-    
-    cell.textLabel.text = self.testCases[indexPath.row];
-    
+    cell.textLabel.textColor = [UIColor blackColor];
+    cell.textLabel.textAlignment = NSTextAlignmentCenter;
+    cell.backgroundColor = [UIColor whiteColor];
+    NSDictionary *data = self.dataSource[indexPath.row];
+    cell.textLabel.text = data[@"text"];
     return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    switch (indexPath.row) {
-        case 1:
-        {
-            [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DFlutterViewController.class
-                                                               route:@"page1"];
-            
-//            [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DFlutterViewController.class
-//                                                               route:@"page1"
-//                                                              params:@{@"fromNative": @"来自原生"}];
-            
-//            [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DFlutterViewController.class
-//                                                               route:@"page1"
-//                                                              params:@{@"fromNative": @"来自原生"}
-//                                                            animated:NO];
-            
-//            [[DStack sharedInstance] pushFlutterPageWithFlutterClass:DFlutterViewController.class
-//                                                               route:@"page1"
-//                                                              params:@{@"fromNative": @"来自原生"}
-//                                                  controllerCallBack:^(DFlutterViewController *flutterViewController) {
-//                NSLog(@"flutterViewController === %@", flutterViewController);
-//            }
-//                                                            animated:YES];
-//
-            break;
-        }
-        case 0:
-        {
-            SecondViewController *secondVC = [[SecondViewController alloc] init];
-            [self.navigationController pushViewController:secondVC animated:YES];
-            break;
-        }
-        default:
-            break;
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    NSDictionary *data = self.dataSource[indexPath.row];
+    void (^block)(UIViewController *) = data[@"clicked"];
+    if (block) {
+        block(self);
     }
 }
 
+- (void)setNavigationTitle
+{
+    self.titleView.text = NSStringFromClass(self.class);
+}
+
+- (NSArray *)dataSource
+{
+    return self.testCase.homeTestCases;
+}
+
+
+- (UITableView *)tableView
+{
+    if (!_tableView) {
+        CGFloat bottom = self.titleView.frame.size.height;
+        _tableView = [[UITableView alloc] initWithFrame:CGRectMake(0, bottom, self.view.frame.size.width, self.view.frame.size.height - bottom)];
+        _tableView.delegate = self;
+        _tableView.dataSource = self;
+        _tableView.rowHeight = 60;
+        _tableView.backgroundColor = [UIColor whiteColor];
+    }
+    return _tableView;
+}
+
+- (UILabel *)titleView
+{
+    if (!_titleView) {
+        CGFloat height = [UIApplication sharedApplication].statusBarFrame.size.height + 44;
+        _titleView = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.view.frame.size.width, height)];
+        _titleView.textAlignment = NSTextAlignmentCenter;
+        _titleView.backgroundColor = [UIColor orangeColor];
+    }
+    return _titleView;
+}
+
+- (DStackTestCase *)testCase
+{
+    if (!_testCase) {
+        _testCase = [[DStackTestCase alloc] init];
+    }
+    return _testCase;
+}
+
+- (void)dealloc
+{
+    NSLog(@"dealloc ==> %@", NSStringFromClass(self.class));
+}
     
 @end

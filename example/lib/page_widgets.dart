@@ -7,16 +7,39 @@
  * tartget: page_widgets
  */
 
-//import 'package:battery/battery.dart';
-import 'dart:io';
-
 import 'package:d_stack/d_stack.dart';
+import 'package:d_stack_example/test_case.dart';
 import 'package:flutter/material.dart';
 
 class Student {
   String name;
   int age;
   String address;
+}
+
+Widget _caseWidget(List<Map> items, {BuildContext context}) {
+  return Center(
+    child: ListView.builder(
+      itemExtent: 60,
+      itemCount: items.length,
+      itemBuilder: (BuildContext context, index) {
+        Map caseMap = items[index];
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          child: Container(
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+                border:
+                    Border(bottom: BorderSide(color: Colors.grey, width: 0.5))),
+            child: Text(caseMap["text"]),
+          ),
+          onTap: () {
+            caseMap["clicked"](context);
+          },
+        );
+      },
+    ),
+  );
 }
 
 class Page1 extends StatefulWidget {
@@ -29,55 +52,13 @@ class Page1 extends StatefulWidget {
 class _Page1 extends State<Page1> {
   @override
   Widget build(BuildContext context) {
+    final Map args = ModalRoute.of(context).settings.arguments;
+    debugPrint('page1收到前一个页面传来的参数 ==> $args');
     return Scaffold(
-      appBar: AppBar(
-          title: Text('flutter page1'),
-          leading: RaisedButton(
-            child: Text('返回'),
-            onPressed: () {
-              DStack.pop();
-            },
-          )),
+      appBar: AppBar(title: Text('flutter page1'), leading: Container()),
       backgroundColor: Colors.white,
-      body: Center(
-        child: RaisedButton(
-          child: Text('push flutter page 2'),
-          onPressed: () {
-            Student student = Student();
-            student.name = '😁🍎111';
-            student.age = 12;
-
-            // // 自定义动画
-            // DStack.animationPage('page2', PageType.flutter,
-            //     (BuildContext context,
-            //         Animation<double> animation,
-            //         Animation<double> secondaryAnimation,
-            //         WidgetBuilder widgetBuilder) {
-            //   Offset startOffset = const Offset(1.0, 0.0);
-            //   Offset endOffset = const Offset(0.0, 0.0);
-            //   return SlideTransition(
-            //     position: new Tween<Offset>(
-            //       begin: startOffset,
-            //       end: endOffset,
-            //     ).animate(animation),
-            //     child: widgetBuilder(context),
-            //   );
-            // }, params: {'key1': 12}, transitionDuration: Duration(milliseconds: 250));
-
-            DStack.push('page2', PageType.flutter,
-                    params: {'key1': 12}, animated: true)
-                .then((data) {
-              return print('pop to Page1 result $data');
-            });
-          },
-        ),
-      ),
+      body: _caseWidget(TestCase.openFlutterPageCase),
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }
 
@@ -85,7 +66,7 @@ class Page2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map args = ModalRoute.of(context).settings.arguments;
-    print(' ==page2收到前一个页面传来的参数=====  $args');
+    debugPrint('page2收到前一个页面传来的参数 ==> $args');
 
     return Scaffold(
       appBar: AppBar(
@@ -93,20 +74,10 @@ class Page2 extends StatelessWidget {
           leading: RaisedButton(
             child: Text('返回'),
             onPressed: () {
-              Student student = Student();
-              student.name = '😁🍎33333';
-              student.age = 12;
-              DStack.pop(result: {'params': 'value222'});
+              DStack.pop();
             },
           )),
-      body: Center(
-        child: RaisedButton(
-          child: Text('present flutter page 3'),
-          onPressed: () {
-            DStack.present('page3', PageType.flutter, animated: false);
-          },
-        ),
-      ),
+      body: _caseWidget(TestCase.closeFlutterPage, context: context),
     );
   }
 }
@@ -114,19 +85,6 @@ class Page2 extends StatelessWidget {
 class Page3 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    Widget present() {
-      if (Platform.isIOS) {
-        return RaisedButton(
-          child: Text('Present打开NativePage2'),
-          onPressed: () {
-            DStack.present("NativePage2", PageType.native,
-                params: {"name": "flutter 传递的", "id": 1000000});
-          },
-        );
-      }
-      return Container();
-    }
-
     return Scaffold(
       appBar: AppBar(
           title: Text('flutter page3'),
@@ -136,19 +94,7 @@ class Page3 extends StatelessWidget {
               DStack.pop();
             },
           )),
-      body: Center(
-          child: Column(
-        children: <Widget>[
-          RaisedButton(
-            child: Text('打开NativePage'),
-            onPressed: () {
-              DStack.push("NativePage", PageType.native,
-                  params: {"name": "flutter 传递的", "id": 1000000});
-            },
-          ),
-          present(),
-        ],
-      )),
+      body: _caseWidget(TestCase.popToPage),
     );
   }
 }
@@ -162,28 +108,65 @@ class Page4 extends StatelessWidget {
         leading: RaisedButton(
           child: Text('返回'),
           onPressed: () {
-            DStack.pop(result: {'key3': 23});
+            DStack.pop();
           },
         ),
       ),
-      body: Center(
-        child: Column(
-          children: <Widget>[
-            RaisedButton(
-              child: Text('popTo Flutter Page 2'),
-              onPressed: () {
-                DStack.popTo("page2", PageType.flutter);
-              },
-            ),
-            RaisedButton(
-              child: Text('popTo Root'),
-              onPressed: () {
-                DStack.popToNativeRoot();
-              },
-            ),
-          ],
+      body: _caseWidget(TestCase.openFlutterPageCase),
+    );
+  }
+}
+
+class Page5 extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('flutter page5'),
+        leading: RaisedButton(
+          child: Text('返回'),
+          onPressed: () {
+            DStack.pop();
+          },
         ),
       ),
+      body: _caseWidget(TestCase.page5Cases),
+    );
+  }
+}
+
+class Page6 extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('flutter page6'),
+        leading: RaisedButton(
+          child: Text('返回'),
+          onPressed: () {
+            DStack.pop();
+          },
+        ),
+      ),
+      body: _caseWidget(TestCase.page6Cases),
+    );
+  }
+}
+
+class Page7 extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('flutter page7'),
+        leading: RaisedButton(
+          child: Text('返回'),
+          onPressed: () {
+            DStack.pop();
+          },
+        ),
+      ),
+      body: _caseWidget(TestCase.page7Cases),
     );
   }
 }

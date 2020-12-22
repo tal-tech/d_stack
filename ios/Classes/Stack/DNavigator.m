@@ -9,6 +9,10 @@
 #import "DNavigator.h"
 #import "DNodeManager.h"
 #import "DActionManager.h"
+#import "DStack.h"
+#import "DFlutterViewController.h"
+
+typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *viewController, BOOL animated);
 
 void dStackSelectorSwizzling(Class aClass, SEL originalSelector, SEL newSelector)
 {
@@ -34,23 +38,111 @@ BOOL hasFDClass()
     return _FDDelegate != NULL;
 }
 
-void checkNode(UIViewController *targetVC, DNodeActionType action)
+void _checkNodeParams(UIViewController *targetVC, DNodeActionType action, BOOL isFlutter)
 {
+    if (!targetVC) {return;}
     NSString *scheme = NSStringFromClass(targetVC.class);
     DNode *node = [[DNodeManager sharedInstance] nextPageScheme:scheme
                                                        pageType:DNodePageTypeNative
                                                          action:action
                                                          params:nil];
+    NSString *identifier = [NSString stringWithFormat:@"%@_%p",
+                            NSStringFromClass(targetVC.class), targetVC];
+    node.identifier = identifier;
+    if (isFlutter) {
+        node.boundary = YES;
+        node.fromFlutter = YES;
+        node.pageType = DNodePageTypeFlutter;
+    }
     [[DNodeManager sharedInstance] checkNode:node];
 }
 
+void checkNode(UIViewController *targetVC, DNodeActionType action)
+{
+    _checkNodeParams(targetVC, action, NO);
+}
 
+UIViewController *_DStackCurrentController(UIViewController *controller)
+{
+    if (!controller) { return nil;}
+    UIViewController *presented = controller.presentedViewController;
+    if (presented) { return _DStackCurrentController(presented);}
+    if ([controller isKindOfClass:[UINavigationController class]]) {
+        UINavigationController *navi = (UINavigationController *)controller;
+        if (!navi.viewControllers.count) { return navi;}
+        return _DStackCurrentController(navi.topViewController);
+    } else if ([controller isKindOfClass:[UITabBarController class]]) {
+        UITabBarController *tab = (UITabBarController *)controller;
+        if (!tab.viewControllers.count) { return tab;}
+        return _DStackCurrentController(tab.selectedViewController);
+    } else {
+        return controller;
+    }
+}
+
+
+#pragma mark ########### 声明 ###########
+#pragma mark ########### DStackNavigator ###########
+
+@interface DStackNavigator : NSObject <UIAdaptivePresentationControllerDelegate>
+
+/// dismiss手势代理类列表
+@property (nonatomic, strong) NSMapTable <NSString *, id>*dismissDelegateClass;
+
++ (instancetype)instance;
+
+@end
+
+
+#pragma mark ########### (DStackDismissGestureCategory) ###########
 
 @interface NSObject (DStackDismissGestureCategory)
 
 @property (nonatomic, copy) NSString *oldDismissDelegateName;
 
 @end
+
+
+#pragma mark ########### DStackUIViewControllerCategory ###########
+
+@interface UIViewController (DStackUIViewControllerCategory)
+
+/// 开始pop
+@property (nonatomic, assign) BOOL isBeginPoped;
+/// 是否为手势出发的返回
+@property (nonatomic, assign) BOOL isGesturePoped;
+@property (nonatomic, strong) NSNumber *dStackFlutterNodeMessage;
+@property (nonatomic, copy) _DStackViewControllerWillAppearInjectBlock dStack_willAppearInjectBlock;
+
+/// 是否为FlutterViewController
+- (BOOL)isFlutterViewController;
+
+@end
+
+
+
+#pragma mark ########### DStackNavigationControllerCategory ###########
+
+@interface UINavigationController (DStackNavigationControllerCategory)
+
+@property (nonatomic, strong) UIViewController *dStackRootViewController;
+@property (nonatomic, strong, readonly) UIPanGestureRecognizer *dStack_fullscreenPopGestureRecognizer;
+@property (nonatomic, assign) BOOL dStack_viewControllerBasedNavigationBarAppearanceEnabled;
+
+@end
+
+
+#pragma mark ########### _DStackFullscreenPopGestureRecognizerDelegate ###########
+
+@interface _DStackFullscreenPopGestureRecognizerDelegate : NSObject <UIGestureRecognizerDelegate>
+
+@property (nonatomic, weak) UINavigationController *navigationController;
+
+@end
+
+
+
+#pragma mark ########### 实现 ###########
 
 @implementation NSObject (DStackDismissGestureCategory)
 
@@ -67,15 +159,6 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 @end
 
 
-@interface DStackNavigator : NSObject <UIAdaptivePresentationControllerDelegate>
-
-/// dismiss手势代理类列表
-@property (nonatomic, strong) NSMutableDictionary <NSString *, id>*dismissDelegateClass;
-
-+ (instancetype)instance;
-
-@end
-
 @implementation DStackNavigator
 
 + (instancetype)instance
@@ -91,8 +174,8 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 - (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller
 {
     NSString *name = controller.oldDismissDelegateName;
-    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
-        id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    if (name) {
+        id <UIAdaptivePresentationControllerDelegate> oldDelegate = [self.dismissDelegateClass objectForKey:name];
         if (oldDelegate && [oldDelegate respondsToSelector:@selector(adaptivePresentationStyleForPresentationController:)]) {
             return [oldDelegate adaptivePresentationStyleForPresentationController:controller];
         }
@@ -103,8 +186,8 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 - (UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller traitCollection:(UITraitCollection *)traitCollection API_AVAILABLE(ios(8.3))
 {
     NSString *name = controller.oldDismissDelegateName;
-    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
-        id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    if (name) {
+        id <UIAdaptivePresentationControllerDelegate> oldDelegate = [self.dismissDelegateClass objectForKey:name];
         if (oldDelegate && [oldDelegate respondsToSelector:@selector(adaptivePresentationStyleForPresentationController:traitCollection:)]) {
             return [oldDelegate adaptivePresentationStyleForPresentationController:controller
                                                                    traitCollection:traitCollection];
@@ -116,8 +199,8 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 - (nullable UIViewController *)presentationController:(UIPresentationController *)controller viewControllerForAdaptivePresentationStyle:(UIModalPresentationStyle)style
 {
     NSString *name = controller.oldDismissDelegateName;
-    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
-        id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    if (name) {
+        id <UIAdaptivePresentationControllerDelegate> oldDelegate = [self.dismissDelegateClass objectForKey:name];
         if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationController:viewControllerForAdaptivePresentationStyle:)]) {
             return [oldDelegate presentationController:controller
             viewControllerForAdaptivePresentationStyle:style];
@@ -140,8 +223,14 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 - (BOOL)presentationControllerShouldDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
 {
     NSString *name = presentationController.oldDismissDelegateName;
-    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
-        id <UIAdaptivePresentationControllerDelegate> oldDelegate = self.dismissDelegateClass[name];
+    UIViewController *presented = presentationController.presentedViewController;
+    presented.isGesturePoped = YES;
+    if ([presented isKindOfClass:UINavigationController.class]) {
+        presented = [(UINavigationController *)presented topViewController];
+    }
+    presented.isGesturePoped = YES;
+    if (name) {
+        id <UIAdaptivePresentationControllerDelegate> oldDelegate = [self.dismissDelegateClass objectForKey:name];
         if (oldDelegate && [oldDelegate respondsToSelector:@selector(presentationControllerShouldDismiss:)]) {
             return [oldDelegate presentationControllerShouldDismiss:presentationController];
         }
@@ -151,6 +240,11 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 
 - (void)presentationControllerWillDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
 {
+    UIViewController *presented = presentationController.presentedViewController;
+    if ([presented isKindOfClass:UINavigationController.class]) {
+        presented = [(UINavigationController *)presented topViewController];
+    }
+    [self willAppearViewController:presented.presentingViewController];
     [self checkSelectorToDelegate:@selector(presentationControllerWillDismiss:)
                        controller:presentationController
                           forward:^(id<UIAdaptivePresentationControllerDelegate> delegate) {
@@ -166,21 +260,13 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
         target = [[(UINavigationController *)presented viewControllers] firstObject];
         checkNode(target, DNodeActionTypePopTo);
     }
+    [self didAppearViewControllerWithGestureDismiss:YES];
     checkNode(target, DNodeActionTypeGesture);
-    if ([target isKindOfClass:NSClassFromString(@"FlutterViewController")]) {
-        [[DNodeManager sharedInstance] resetHomePage];
-    }
-    
     [self checkSelectorToDelegate:@selector(presentationControllerDidDismiss:)
                        controller:presentationController
                           forward:^(id<UIAdaptivePresentationControllerDelegate> delegate) {
         [delegate presentationControllerDidDismiss:presentationController];
     }];
-    
-    NSString *name = presentationController.oldDismissDelegateName;
-    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
-        [self.dismissDelegateClass removeObjectForKey:name];
-    }
 }
 
 - (void)presentationControllerDidAttemptToDismiss:(UIPresentationController *)presentationController API_AVAILABLE(ios(13.0))
@@ -197,8 +283,8 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
                         forward:(void(^)(id <UIAdaptivePresentationControllerDelegate> delegate))forward
 {
     NSString *name = controller.oldDismissDelegateName;
-    if (name && [self.dismissDelegateClass.allKeys containsObject:name]) {
-        id <UIAdaptivePresentationControllerDelegate> delegate = self.dismissDelegateClass[name];
+    if (name) {
+        id <UIAdaptivePresentationControllerDelegate> delegate = [self.dismissDelegateClass objectForKey:name];
         if (delegate && [delegate respondsToSelector:selector]) {
             if (forward) {
                 forward(delegate);
@@ -207,10 +293,65 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
     }
 }
 
-- (NSMutableDictionary<NSString *,id> *)dismissDelegateClass
+- (BOOL)gestureRecognizerShouldBeginWithNavigationController:(UINavigationController *)navigationContoller
+{
+    UIViewController *topViewController = navigationContoller.viewControllers.lastObject;
+    if (navigationContoller == [DActionManager rootController]) {
+        UIViewController *rootViewController = navigationContoller.viewControllers.firstObject;
+        if (topViewController == rootViewController) {
+            if (topViewController.isFlutterViewController) {
+                return NO;
+            }
+        }
+    }
+    BOOL shouldBegin = YES;
+    if (topViewController.isFlutterViewController) {
+        shouldBegin = [[DNodeManager sharedInstance] nativePopGestureCanReponse];
+    }
+    if (shouldBegin) {
+        topViewController.isGesturePoped = YES;
+    }
+    return shouldBegin;
+}
+
+- (void)willAppearViewController:(UIViewController *)willAppear
+{
+    if ([willAppear isKindOfClass:UITabBarController.class]) {
+        willAppear = [(UITabBarController *)willAppear selectedViewController];
+        if ([willAppear isKindOfClass:UINavigationController.class]) {
+            willAppear = [(UINavigationController *)willAppear topViewController];
+        }
+    } else if ([willAppear isKindOfClass:UINavigationController.class]) {
+        willAppear = [(UINavigationController *)willAppear topViewController];
+    }
+    if ([willAppear isKindOfClass:DFlutterViewController.class]) {
+        DStack *stack = [DStack sharedInstance];
+        if (!stack.engine.viewController) {
+            DFlutterViewController *flutterVC = (DFlutterViewController *)willAppear;
+            [flutterVC willUpdateView];
+        }
+    }
+}
+
+- (void)didAppearViewControllerWithGestureDismiss:(BOOL)gesture
+{
+    DNodeManager *manager = [DNodeManager sharedInstance];
+    DNode *didAppearNode = gesture ? [manager preNode] : [manager currentNode];
+    if (didAppearNode.pageType == DNodePageTypeFlutter) {
+        DStack *stack = [DStack sharedInstance];
+        if (stack.engine.viewController) {
+            DFlutterViewController *flutterVC = (DFlutterViewController *)stack.engine.viewController;
+            [flutterVC didUpdateView];
+        }
+    }
+}
+
+- (NSMapTable<NSString *,id> *)dismissDelegateClass
 {
     if (!_dismissDelegateClass) {
-        _dismissDelegateClass = [[NSMutableDictionary alloc] init];
+        _dismissDelegateClass = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsStrongMemory
+                                                          valueOptions:NSPointerFunctionsWeakMemory
+                                                              capacity:0];
     }
     return _dismissDelegateClass;
 }
@@ -218,34 +359,7 @@ void checkNode(UIViewController *targetVC, DNodeActionType action)
 @end
 
 
-#pragma mark ########### DStackNavigationControllerCategory ###########
-
-@interface UINavigationController (DStackNavigationControllerCategory)
-
-@property (nonatomic, strong) UIViewController *dStackRootViewController;
-@property (nonatomic, strong, readonly) UIPanGestureRecognizer *dStack_fullscreenPopGestureRecognizer;
-@property (nonatomic, assign) BOOL dStack_viewControllerBasedNavigationBarAppearanceEnabled;
-
-@end
-
-
 #pragma mark ########### DStackUIViewControllerCategory ###########
-
-typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *viewController, BOOL animated);
-
-@interface UIViewController (DStackUIViewControllerCategory)
-
-/// 开始pop
-@property (nonatomic, assign) BOOL isBeginPoped;
-/// 是否为手势出发的返回
-@property (nonatomic, assign) BOOL isGesturePoped;
-@property (nonatomic, strong) NSNumber *dStackFlutterNodeMessage;
-@property (nonatomic, copy) _DStackViewControllerWillAppearInjectBlock dStack_willAppearInjectBlock;
-
-/// 是否为FlutterViewController
-- (BOOL)isFlutterViewController;
-
-@end
 
 @implementation UIViewController (DStackUIViewControllerCategory)
 
@@ -308,12 +422,7 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
                 canCheckNode = checkBlock([(UITabBarController *)controller selectedViewController]);
             }
             if (canCheckNode) {
-                NSString *scheme = NSStringFromClass(targetController.class);
-                DNode *node = [[DNodeManager sharedInstance] nextPageScheme:scheme
-                                                                   pageType:DNodePageTypeNative
-                                                                     action:DNodeActionTypePresent
-                                                                     params:nil];
-                [[DNodeManager sharedInstance] checkNode:node];
+                checkNode(targetController, DNodeActionTypePresent);
             }
         }
     }
@@ -331,7 +440,7 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
                     } else {
                         NSString *name = NSStringFromClass([delegate class]);
                         presentationController.oldDismissDelegateName = name;
-                        [[DStackNavigator instance].dismissDelegateClass setValue:delegate forKey:name];
+                        [[DStackNavigator instance].dismissDelegateClass setObject:delegate forKey:name];
                         presentationController.delegate = [DStackNavigator instance];
                     }
                 }
@@ -346,10 +455,14 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
     // 出栈管理
     if ([self isCustomClass]) {
         if (![self.dStackFlutterNodeMessage boolValue]) {
-            checkNode(self, DNodeActionTypeDismiss);
+            UIViewController *dismiss = _DStackCurrentController(self);
+            if (!dismiss.isGesturePoped && [dismiss isCustomClass]) {
+                // 不是手势触发的dismiss
+                [[DStackNavigator instance] willAppearViewController:dismiss.presentingViewController];
+                checkNode(dismiss, DNodeActionTypeDismiss);
+            }
         }
     }
-    self.dStackFlutterNodeMessage = @(NO);
     [self d_stackDismissViewControllerAnimated:flag completion:completion];
 }
 
@@ -371,6 +484,9 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
     [self d_stackViewDidDisappear:animated];
     if (![self isFlutterViewController]) {
         [self removeGesturePopNode];
+    }
+    if (self.beingDismissed && !self.isGesturePoped) {
+        [[DStackNavigator instance] didAppearViewControllerWithGestureDismiss:NO];
     }
 }
 
@@ -444,23 +560,12 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
 - (void)removeGesturePopNode
 {
     if (self.isGesturePoped && self.isBeginPoped) {
-        DNode *node = [[DNode alloc] init];
-        node.action = DNodeActionTypeGesture;
-        node.target = NSStringFromClass(self.class);
-        [[DNodeManager sharedInstance] checkNode:node];
+        _checkNodeParams(self, DNodeActionTypeGesture, [self isKindOfClass:DFlutterViewController.class]);
     }
 }
 
 @end
 
-
-#pragma mark ########### _DStackFullscreenPopGestureRecognizerDelegate ###########
-
-@interface _DStackFullscreenPopGestureRecognizerDelegate : NSObject <UIGestureRecognizerDelegate>
-
-@property (nonatomic, weak) UINavigationController *navigationController;
-
-@end
 
 @implementation _DStackFullscreenPopGestureRecognizerDelegate
 
@@ -490,24 +595,7 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
     if (translation.x <= 0) {
         return NO;
     }
-    
-    if (navigationContoller == [DActionManager rootController]) {
-        UIViewController *rootViewController = navigationContoller.viewControllers.firstObject;
-        if (topViewController == rootViewController) {
-            if (topViewController.isFlutterViewController) {
-                return NO;
-            }
-        }
-    }
-    BOOL shouldBegin = YES;
-    if (topViewController.isFlutterViewController) {
-        // 如果节点列表是空，说明已经在第一页了并且是Flutter的页面，则直接绕过
-        shouldBegin = [[DNodeManager sharedInstance] nativePopGestureCanReponse];
-    }
-    if (shouldBegin) {
-        topViewController.isGesturePoped = YES;
-    }
-    return shouldBegin;
+    return [[DStackNavigator instance] gestureRecognizerShouldBeginWithNavigationController:navigationContoller];
 }
 
 @end
@@ -585,7 +673,9 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
         }
         
         if ([controller isFlutterViewController]) {
-            controller.hidesBottomBarWhenPushed = YES;
+            if (self.dStackRootViewController != controller && self.viewControllers.count == 1) {
+                controller.hidesBottomBarWhenPushed = YES;
+            }
         }
         
         if (!controller.isFlutterViewController && self.dStackRootViewController != controller) {
@@ -607,15 +697,11 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
             // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
             if (!controller.isGesturePoped) {
                 // 手势返回的需要特殊处理，手势返回的在 viewDidDisappear 里面处理了
-                DNode *node = [[DNode alloc] init];
-                node.action = DNodeActionTypePop;
-                node.target = NSStringFromClass(controller.class);
-                [[DNodeManager sharedInstance] checkNode:node];
+                checkNode(controller, DNodeActionTypePop);
             }
         }
     }
     controller.isBeginPoped = YES;
-    self.dStackFlutterNodeMessage = @(NO);
     return controller;
 }
 
@@ -624,22 +710,22 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
     // 出栈管理，要注意移除掉当前controller到viewController之间的controller
     if ([viewController isCustomClass]) {
         if (![self.dStackFlutterNodeMessage boolValue]) {
-            // 如果是FlutterViewController，会在消息通道里面checkNode
             checkNode(viewController, DNodeActionTypePopTo);
         }
     }
-    self.dStackFlutterNodeMessage = @(NO);
-    return [self d_stackPopToViewController:viewController animated:animated];
+    if (viewController) {
+        return [self d_stackPopToViewController:viewController animated:animated];
+    }
+    DStackError(@"PopTo的controller为空");
+    return @[];
 }
 
 - (NSArray<UIViewController *> *)d_stackPopToRootViewControllerAnimated:(BOOL)animated
 {
     // 出栈管理，要注意移除掉当前controller到RootViewController之间的controller
     if (![self.dStackFlutterNodeMessage boolValue]) {
-        // 如果是FlutterViewController，会在消息通道里面checkNode
         checkNode(self.viewControllers.firstObject, DNodeActionTypePopToRoot);
     }
-    self.dStackFlutterNodeMessage = @(NO);
     return [self d_stackPopToRootViewControllerAnimated:animated];
 }
 
@@ -649,20 +735,7 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
     UIViewController *topViewController = navigationContoller.viewControllers.lastObject;
     BOOL shouldBegin = [self d_stackGestureRecognizerShouldBegin:gestureRecognizer];
     if (shouldBegin) {
-        if (navigationContoller == [DActionManager rootController]) {
-            UIViewController *rootViewController = navigationContoller.viewControllers.firstObject;
-            if (topViewController == rootViewController) {
-                if (topViewController.isFlutterViewController) {
-                    shouldBegin = NO;
-                }
-            }
-        }
-        if (topViewController.isFlutterViewController) {
-            // 如果节点列表是空，说明已经在第一页了并且是Flutter的页面，则直接绕过
-            if ([DNodeManager sharedInstance].currentNodeList.count) {
-                shouldBegin = [[DNodeManager sharedInstance] nativePopGestureCanReponse];
-            }
-        }
+        shouldBegin = [[DStackNavigator instance] gestureRecognizerShouldBeginWithNavigationController:navigationContoller];
     }
     if (shouldBegin) {
         topViewController.isGesturePoped = YES;
@@ -672,9 +745,7 @@ typedef void (^_DStackViewControllerWillAppearInjectBlock)(UIViewController *vie
 
 - (void)dStack_setupViewControllerBasedNavigationBarAppearanceIfNeeded:(UIViewController *)appearingViewController
 {
-    if (!self.dStack_viewControllerBasedNavigationBarAppearanceEnabled) {
-        return;
-    }
+    if (!self.dStack_viewControllerBasedNavigationBarAppearanceEnabled) {return;}
     __weak typeof(self) weakSelf = self;
     _DStackViewControllerWillAppearInjectBlock block = ^(UIViewController *viewController, BOOL animated) {
         __strong typeof(weakSelf) strongSelf = weakSelf;

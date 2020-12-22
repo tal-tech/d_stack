@@ -13,6 +13,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// 当需要打开一个Flutter页面时，必须是DFlutterViewController或者是它的子类
 @interface DFlutterViewController : FlutterViewController
 
+- (void)willUpdateView;
+- (void)didUpdateView;
+
 @end
 
 NS_ASSUME_NONNULL_END

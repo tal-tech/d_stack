@@ -14,8 +14,10 @@ DStackMethodChannelName const DStackMethodChannelSendActionToFlutter = @"sendAct
 DStackMethodChannelName const DStackMethodChannelSendRemoveFlutterPageNode = @"sendRemoveFlutterPageNode";
 DStackMethodChannelName const DStackMethodChannelSendLifeCircle = @"sendLifeCycle";
 DStackMethodChannelName const DStackMethodChannelSendNodeList = @"sendNodeList";
-DStackMethodChannelName const DStackMethodChannelSendResetHomePage = @"sendResetHomePage";
-
+DStackMethodChannelName const DStackMethodChannelSendFlutterRootNode = @"sendFlutterRootNode";
+DStackMethodChannelName const DStackMethodChannelSendOperationNodeToFlutter = @"sendOperationNodeToFlutter";
+DStackMethodChannelName const DStackMethodChannelSendSendHomePageRoute = @"sendHomePageRoute";
+DStackMethodChannelName const DStackMethodChannelSendSendUpdateBoundaryNode = @"sendUpdateBoundaryNode";
 
 @interface DStackPlugin ()
 
@@ -51,6 +53,16 @@ DStackMethodChannelName const DStackMethodChannelSendResetHomePage = @"sendReset
       DStack *stack = [DStack sharedInstance];
       if ([stack respondsToSelector:@selector(sendNodeListToFlutter:)]) {
           [stack sendNodeListToFlutter:result];
+      }
+  } else if ([DStackMethodChannelSendSendHomePageRoute isEqualToString:call.method]) {
+      DStack *stack = [DStack sharedInstance];
+      if ([stack respondsToSelector:@selector(sendHomePageRoute:)]) {
+          [stack sendHomePageRoute:call];
+      }
+  } else if ([DStackMethodChannelSendSendUpdateBoundaryNode isEqualToString:call.method]) {
+      DStack *stack = [DStack sharedInstance];
+      if ([stack respondsToSelector:@selector(updateBoundaryNode:)]) {
+          [stack updateBoundaryNode:call];
       }
   } else {
       result(FlutterMethodNotImplemented);

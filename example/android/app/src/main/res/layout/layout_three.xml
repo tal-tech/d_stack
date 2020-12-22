@@ -16,4 +16,16 @@
         android:layout_height="50dp"
         android:text="打开新的flutter页面page4"></Button>
 
+    <Button
+        android:id="@+id/btn_popToRoot"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="popToRoot"></Button>
+
+    <Button
+        android:id="@+id/btn_popFlutter"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="popTo flutter页面"></Button>
+
 </LinearLayout>

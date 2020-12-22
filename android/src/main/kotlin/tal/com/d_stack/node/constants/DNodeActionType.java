@@ -16,7 +16,7 @@ public class DNodeActionType {
     public static final String DNodeActionTypePopTo = "popTo";
 
     // PopToRoot
-    public static final String DNodeActionTypePopToRoot = "popToNativeRoot";
+    public static final String DNodeActionTypePopToRoot = "popToRoot";
 
     // PopSkip
     public static final String DNodeActionTypePopSkip = "popSkip";

@@ -44,62 +44,17 @@
 {
     NSString *action = @"";
     switch (_action) {
-        case DNodeActionTypePush:
-        {
-            action = @"push";
-            break;
-        }
-        case DNodeActionTypePresent:
-        {
-            action = @"present";
-            break;
-        }
-        case DNodeActionTypePop:
-        {
-            action = @"pop";
-            break;
-        }
-        case DNodeActionTypePopTo:
-        {
-            action = @"popTo";
-            break;
-        }
-        case DNodeActionTypePopToRoot:
-        {
-            if (_fromFlutter) {
-                action = @"popToNativeRoot";
-            } else {
-                action = @"popToRoot";
-            }
-            break;
-        }
-        case DNodeActionTypePopSkip:
-        {
-            action = @"popSkip";
-            break;
-        }
-        case DNodeActionTypeGesture:
-        {
-            action = @"gesture";
-            break;
-        }
-        case DNodeActionTypeDismiss:
-        {
-            action = @"dismiss";
-            break;
-        }
-        case DNodeActionTypeReplace:
-        {
-            action = @"replace";
-            break;
-        }
-        case DNodeActionTypeDidPop:
-        {
-            action = @"didPop";
-            break;
-        }
-        default:
-            break;
+        case DNodeActionTypePush:{action = @"push";break;}
+        case DNodeActionTypePresent:{action = @"present";break;}
+        case DNodeActionTypePop:{action = @"pop";break;}
+        case DNodeActionTypePopTo:{action = @"popTo";break;}
+        case DNodeActionTypePopToRoot:{action = @"popToRoot";break;}
+        case DNodeActionTypePopSkip:{action = @"popSkip";break;}
+        case DNodeActionTypeGesture:{action = @"gesture";break;}
+        case DNodeActionTypeDismiss:{action = @"dismiss";break;}
+        case DNodeActionTypeReplace:{action = @"replace";break;}
+        case DNodeActionTypeDidPop:{action = @"didPop";break;}
+        default:break;
     }
     return action;
 }
@@ -110,10 +65,7 @@
     self.pageType = node.pageType;
     self.target = node.target;
     self.params = node.params;
-    self.fromFlutter = node.fromFlutter;
-    self.canRemoveNode = node.canRemoveNode;
-    self.isFlutterHomePage = node.isFlutterHomePage; 
-    self.animated = node.animated;
+    self.identifier = node.identifier;
 }
 
 + (DNodePageType)pageTypeWithString:(NSString *)string
@@ -148,7 +100,7 @@
         actionType = DNodeActionTypePopTo;
     } else if ([_actionType isEqualToString:@"popSkip"]) {
         actionType = DNodeActionTypePopSkip;
-    } else if ([_actionType isEqualToString:@"popToNativeRoot"]) {
+    } else if ([_actionType isEqualToString:@"popToRoot"]) {
         actionType = DNodeActionTypePopToRoot;
     } else if ([_actionType isEqualToString:@"dismiss"]) {
         actionType = DNodeActionTypeDismiss;
@@ -162,15 +114,24 @@
     return actionType;
 }
 
+- (NSString *)target
+{
+    if (_target && [_target isKindOfClass:NSString.class]) {
+        return _target;
+    }
+    return @"";
+}
+
 - (NSString *)description
 {
-    return [NSString stringWithFormat:@"[class:%@ %p] [action:%@] [pageType:%@] [target:%@] [params:%@]",
+    return [NSString stringWithFormat:@"[class:%@ %p][action:%@][pageType:%@][target:%@][params:%@][identifier:%@]",
             NSStringFromClass(self.class),
             self,
             self.actionTypeString,
             self.pageTypeString,
             _target,
-            _params];
+            _params,
+            _identifier];
 }
 
 @end

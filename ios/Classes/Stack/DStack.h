@@ -5,6 +5,7 @@
 //  Created by TAL on 2020/1/19.
 //
 
+#import <UIKit/UIKit.h>
 #import "DStackProvider.h"
 
 @protocol DStackDelegate;
@@ -17,6 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// 当前Flutter的Engine
 @property (nonatomic, strong, readonly) FlutterEngine *engine;
 @property (nonatomic, readonly, nonnull) id<DStackDelegate>delegate;
+@property (nonatomic, copy, readonly) NSString *flutterHomePageRoute;
 
 + (instancetype)sharedInstance;
 
@@ -209,6 +211,16 @@ NS_ASSUME_NONNULL_BEGIN
                            params:(nullable NSDictionary *)params
                          animated:(BOOL)animated;
 
+/// tabBarController点击事件
+/// @param tabBarController tabBarController
+/// @param viewController viewController description
+/// 当项目中tabBarController的viewControllers里面有DFlutterViewController
+/// 或者NavigationViewController的rootViewController是DFlutterViewController作为入口时
+/// 项目中必须实现tabBarController的delegate，并且调用该函数
+/// ！！！不建议在tabBarController里面设置DFlutterViewController
+- (void)tabBarController:(UITabBarController *)tabBarController
+willSelectViewController:(UIViewController *)viewController;
+
 @end
 
 
@@ -222,6 +234,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy, nullable) NSString *route;
 /// 携带参数
 @property (nonatomic, strong, nullable) NSDictionary *params;
+/// 转场动画
+@property (nonatomic, assign) BOOL animated;
 
 @end
 
@@ -232,6 +246,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 /// 用户需要创建FlutterEngine返回
 + (FlutterEngine *)dStackForFlutterEngine;
+
+/// 当前正在显示的controller
+/// DStack 1.3.0版本以上必须实现
+- (UIViewController *)visibleControllerForCurrentWindow;
 
 /// 用户实现返回目标route的navigationController
 /// @param stack stack
@@ -261,6 +279,10 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param nodes 出栈节点列表
 - (void)dStack:(DStack *)stack outStack:(NSArray <DStackNode *>*)nodes;
 
+/// 用户操作的所有行为都将会从这个api传出，可以基于此做行为回放
+/// 将要进行操作的节点
+- (void)operationNode:(DStackNode *)node;
+
 /// 节点显示与消失
 /// @param stack stack
 /// @param appear 正在显示的node
@@ -278,6 +300,12 @@ applicationState:(DStackApplicationState)state
    visibleNode:(nullable DStackNode *)visibleNode;
 
 @end
+
+
+#pragma mark -DStackNotificationName
+
+typedef NSString *DStackNotificationName;
+UIKIT_EXTERN DStackNotificationName const DStackNotificationNameChangeBottomBarVisible; // tabBar显示状态
 
 NS_ASSUME_NONNULL_END
 

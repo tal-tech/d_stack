@@ -18,6 +18,7 @@
 
 @property (nonatomic, assign) BOOL logEnable;
 @property (nonatomic, copy) NSString *engineRealizeClass;
+@property (nonatomic, copy) NSString *homePageRoute;
 @property (nonatomic, strong, readwrite) FlutterEngine *engine;
 
 @end
@@ -88,11 +89,15 @@
 {
     [self checkFlutterPageWithRoute:route params:params animated:animated block:^(DNode *currentNode) {
         if (!cls) { return;}
-        DFlutterViewController *controller = [[cls alloc] init];
-        if (![controller isKindOfClass:FlutterViewController.class]) { return;}
-        [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush];
         UINavigationController *navi = [self.delegate dStack:self
                                  navigationControllerForNode:[DActionManager stackNodeFromNode:currentNode]];
+        if (!navi) {
+            DStackError(@"!!!!!!!!!!!!%@!!!!!!!!!!!!", @"当前的NavigationController为空，不能push打开Flutter页面");
+            return;
+        }
+        DFlutterViewController *controller = [[cls alloc] init];
+        if (![controller isKindOfClass:FlutterViewController.class]) { return;}
+        [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush controller:controller];
         if (callBack) {
             callBack(controller);
         }
@@ -125,11 +130,15 @@
         if (!storyboard || !identifier) { return;}
         UIStoryboard *story = [UIStoryboard storyboardWithName:storyboard bundle:nil];
         if (story) {
-            DFlutterViewController *controller = [story instantiateViewControllerWithIdentifier:identifier];
-            if (!controller || ![controller isKindOfClass:FlutterViewController.class]) { return;}
-            [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush];
             UINavigationController *navi = [self.delegate dStack:self
                                      navigationControllerForNode:[DActionManager stackNodeFromNode:currentNode]];
+            if (!navi) {
+                DStackError(@"!!!!!!!!!!!!%@!!!!!!!!!!!!", @"当前的NavigationController为空，不能push打开Flutter页面");
+                return;
+            }
+            DFlutterViewController *controller = [story instantiateViewControllerWithIdentifier:identifier];
+            if (!controller || ![controller isKindOfClass:FlutterViewController.class]) { return;}
+            [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush controller:controller];
             if (callBack) {
                 callBack(controller);
             }
@@ -201,7 +210,7 @@
                 rootVC = x;
             }
         }
-        [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush];
+        [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush controller:controller];
         if (callBack) {
             callBack(controller);
         }
@@ -252,7 +261,7 @@
                     rootVC = x;
                 }
             }
-            [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush];
+            [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush controller:controller];
             if (callBack) {
                 callBack(controller);
             }
@@ -271,27 +280,38 @@
     DNode *node = [[DNode alloc] init];
     node.target = route;
     node.params = params;
-    node.action = DNodeActionTypePopTo;
     node.fromFlutter = YES;
+    node.animated = animated;
+    node.action = DNodeActionTypePopTo;
     [[DNodeManager sharedInstance] checkNode:node];
 }
 
 - (void)openFlutterPageWithRoute:(NSString *)route
                           params:(NSDictionary *)params
                           action:(DNodeActionType)action
+                      controller:(DFlutterViewController *)controller
 {
-    [self openFlutterPageWithRoute:route params:params action:action animated:NO];
+    [self openFlutterPageWithRoute:route
+                            params:params
+                            action:action
+                          animated:NO
+                        controller:controller];
 }
 
 - (void)openFlutterPageWithRoute:(NSString *)route
                           params:(NSDictionary *)params
                           action:(DNodeActionType)action
                         animated:(BOOL)animated
+                      controller:(DFlutterViewController *)controller
 {
     DNode *node = [[DNodeManager sharedInstance] nextPageScheme:route
                                                        pageType:DNodePageTypeFlutter
                                                          action:action
                                                          params:params];
+    NSString *identifier = [NSString stringWithFormat:@"%@_%p",
+                            NSStringFromClass(controller.class), controller];
+    node.identifier = identifier;
+    node.boundary = YES;
     node.animated = animated;
     [[DNodeManager sharedInstance] checkNode:node];
 }
@@ -307,10 +327,24 @@
         if (callBack) {
             callBack((DFlutterViewController *)controller);
         }
-        [self openFlutterPageWithRoute:route params:params action:DNodeActionTypePush animated:animated];
+        [self openFlutterPageWithRoute:route
+                                params:params
+                                action:DNodeActionTypePush
+                              animated:animated
+                            controller:(DFlutterViewController *)controller];
     } else if ([controller isKindOfClass:UIViewController.class]) {
         DNode *currentNode = [[DNodeManager sharedInstance] currentNode];
         block(currentNode);
+    }
+}
+
+- (void)tabBarController:(UITabBarController *)tabBarController
+ willSelectViewController:(UIViewController *)viewController
+{
+    NSInteger oldSelectedIndex = tabBarController.selectedIndex;
+    NSInteger willSelectIndex = [tabBarController.viewControllers indexOfObject:viewController];
+    if (oldSelectedIndex != willSelectIndex) {
+        [DActionManager tabBarWillSelectViewController:viewController homePageRoute:self.homePageRoute];
     }
 }
 
@@ -329,11 +363,20 @@
                                                          action:actionType
                                                          params:call.arguments[@"params"]];
     node.fromFlutter = YES;
+    id homePage = call.arguments[@"homePage"];
+    if (homePage && [homePage isKindOfClass:NSNumber.class]) {
+        node.isFlutterHomePage = [homePage boolValue];
+    }
+    id animated = call.arguments[@"animated"];
+    if (animated && [animated isKindOfClass:NSNumber.class]) {
+        node.animated = [call.arguments[@"animated"] boolValue];
+    }
+    node.identifier = call.arguments[@"identifier"];
     [[DNodeManager sharedInstance] checkNode:node];
     result(@"节点操作完成");
 }
 
-/// 处理flutter发送的节点移除
+/// 处理flutter发送的节点移除 didPop消息
 /// @param call call
 /// @param result result
 - (void)handleRemoveFlutterPageNode:(FlutterMethodCall *)call result:(FlutterResult)result
@@ -346,6 +389,7 @@
     node.pageType = pageType;
     node.action = actionType;
     node.canRemoveNode = YES;
+    node.identifier = call.arguments[@"identifier"];
     [[DNodeManager sharedInstance] checkNode:node];
     result(@"节点移除完成");
 }
@@ -369,12 +413,30 @@
     }
 }
 
+- (void)sendHomePageRoute:(FlutterMethodCall *)call
+{
+    self.homePageRoute = call.arguments[@"homePageRoute"];
+}
+
+- (void)updateBoundaryNode:(FlutterMethodCall *)call
+{
+    [[DNodeManager sharedInstance] updateBoundaryNode:call.arguments];
+}
+
 - (FlutterEngine *)engine
 {
     if (!_engine) {
         _engine = [self engineFromProtocol];
     }
     return _engine;
+}
+
+- (NSString *)flutterHomePageRoute
+{
+    if (self.homePageRoute) {
+        return self.homePageRoute;
+    }
+    return @"/";
 }
 
 - (FlutterEngine *)engineFromProtocol
@@ -519,3 +581,9 @@ static void _dstack_engine_dyld_callback(const struct mach_header * mhp, intptr_
 __attribute__((constructor)) void _dstack_registerDyldCallback() {
     _dyld_register_func_for_add_image(_dstack_engine_dyld_callback);
 }
+
+
+
+#pragma mark -DStackNotificationName
+
+DStackNotificationName const DStackNotificationNameChangeBottomBarVisible = @"__DStackNotificationNameChangeBottomBarVisible";

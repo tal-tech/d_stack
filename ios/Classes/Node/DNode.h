@@ -32,6 +32,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) BOOL fromFlutter;
 
 /// 是否可以移除节点
+/// 收到didPop消息时才是YES，只有flutter页面会有didDop消息
 @property (nonatomic, assign) BOOL canRemoveNode;
 
 /// 是否是flutter的第一个页面
@@ -39,6 +40,17 @@ NS_ASSUME_NONNULL_BEGIN
 
 /// 是否开启进场动画
 @property (nonatomic, assign) BOOL animated;
+
+/// 是否是临界节点
+@property (nonatomic, assign) BOOL boundary;
+
+/// 唯一id
+/// 生成规则 controller类名+contorller的内存地址
+/// DFlutterViewController_0x28268d1d0
+@property (nonatomic, copy) NSString *identifier;
+
+/// 是否是根页面F
+@property (nonatomic, assign) BOOL isRootPage;
 
 - (NSString *)actionTypeString;
 - (NSString *)pageTypeString;

@@ -45,7 +45,5 @@
 ## 1.1.0
 * 添加生命周期监听功能，android修改集成方式，现在更加简单了
 ## 1.0.0
-
 ## 0.0.1
-
 * TODO: Describe initial release.

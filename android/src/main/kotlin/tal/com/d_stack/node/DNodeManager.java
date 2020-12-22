@@ -4,12 +4,13 @@ import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-import tal.com.d_stack.DStack;
 import tal.com.d_stack.action.DActionManager;
+import tal.com.d_stack.action.DOperationManager;
 import tal.com.d_stack.lifecycle.PageLifecycleManager;
 import tal.com.d_stack.node.constants.DNodeActionType;
 import tal.com.d_stack.node.constants.DNodePageType;
@@ -47,33 +48,6 @@ public class DNodeManager {
         }
     }
 
-    /**
-     * /创建节点
-     *
-     * @param target      路由信息
-     * @param uniqueId    唯一id
-     * @param pageType    页面类型
-     * @param actionType  页面动作类型
-     * @param params      参数
-     * @param fromFlutter 是否来自flutter消息通道
-     * @return
-     */
-    public DNode createNode(String target,
-                            String uniqueId,
-                            String pageType,
-                            String actionType,
-                            Map<String, Object> params,
-                            boolean fromFlutter) {
-        DNode node = new DNode();
-        node.setTarget(target);
-        node.setUniqueId(uniqueId);
-        node.setAction(actionType);
-        node.setPageType(pageType);
-        node.setParams(params);
-        node.setFromFlutter(fromFlutter);
-        return node;
-    }
-
     //获取当前节点
     public DNode getCurrentNode() {
         return currentNode;
@@ -94,7 +68,6 @@ public class DNodeManager {
                 DLog.logD("----------push方法开始----------");
                 handlePush(node);
                 updateNodes();
-                setCurrentNodeContainer();
                 DActionManager.push(node);
                 PageLifecycleManager.pageAppear(node);
                 DLog.logD("----------push方法结束----------");
@@ -107,17 +80,19 @@ public class DNodeManager {
                 DLog.logD("----------pop方法开始----------");
                 DLog.logD("node出栈，target：" + node.getTarget());
                 if (node.isFromFlutter()) {
-                    if (currentNode != null) {
-                        //此处是flutter侧点击左上角返回键的逻辑
-                        //flutter页面触发的pop有可能不带target信息，需要手动添加
-                        //所有flutter侧页面关闭删除节点的逻辑都在handleNeedRemoveNode实现
-                        node.setTarget(currentNode.getTarget());
-                        node.setPageType(currentNode.getPageType());
-                    }
+                    //此处是flutter侧点击左上角返回键的逻辑
+                    //flutter页面触发的pop有可能不带target信息，需要手动添加
+                    //所有flutter侧页面关闭删除节点的逻辑都在handleNeedRemoveNode实现
+                    node.setTarget(currentNode.getTarget());
+                    node.setPageType(currentNode.getPageType());
+                    node.setHomePage(currentNode.isHomePage());
+                    node.setRootPage(currentNode.isRootPage());
+                    node.setIdentifier(currentNode.getIdentifier());
                     DActionManager.pop(node);
+                    updateNodes();
                 } else {
-                    //此处是关闭native页面清除节点逻辑
-                    handleNeedRemoveNativeNode(node);
+                    //此处处理activity onDestroy逻辑
+                    removeNodeWithOnDestroyed(node);
                 }
                 DLog.logD("----------pop方法结束----------");
                 break;
@@ -139,17 +114,11 @@ public class DNodeManager {
                 DLog.logD("----------popToRoot方法开始----------");
                 needRemoveNodes.clear();
                 needRemoveNodesIndex.clear();
-                if (DStack.getInstance().isFlutterApp()) {
-                    //flutter工程，节点全部元素都要移除
-                    needRemoveNodes.addAll(nodeList);
-                    nodeList.clear();
-                } else {
-                    needRemoveNodes = popToRootNeedRemoveNodes();
-                }
+                needRemoveNodes = popToRootNeedRemoveNodes();
                 DNode popToRootNode = getCurrentNode();
                 deleteNodes();
                 updateNodes();
-                DActionManager.popTo(node, needRemoveNodes);
+                DActionManager.popToRoot(node, needRemoveNodes);
                 PageLifecycleManager.pageDisappear(popToRootNode);
                 DLog.logD("----------popToRoot方法结束----------");
                 break;
@@ -166,34 +135,29 @@ public class DNodeManager {
                 DLog.logD("----------popSkip方法结束----------");
                 break;
             case DNodeActionType.DNodeActionTypeGesture:
-                DLog.logD("android理论收不见flutter传来的Gesture消息");
+                DLog.logD("----------gesture方法开始----------");
+                nodeList.remove(nodeList.size() - 1);
+                DLog.logD("----------gesture方法结束----------");
+                updateNodes();
+                DActionManager.gesture(node);
                 break;
             case DNodeActionType.DNodeActionTypeReplace:
                 DLog.logD("----------replace方法开始----------");
                 DNode preNode = currentNode;
                 if (node.isFromFlutter()) {
                     currentNode.setTarget(node.getTarget());
-                    node.setPageType(DNodePageType.DNodePageTypeFlutter);
+                    currentNode.setPageType(DNodePageType.DNodePageTypeFlutter);
+                    currentNode.setParams(node.getParams());
+                    currentNode.setIdentifier(node.getIdentifier());
+
                 }
                 updateNodes();
-                DActionManager.replace(node);
                 PageLifecycleManager.pageAppearWithReplace(preNode, currentNode);
+                DActionManager.replace(node);
                 DLog.logD("----------replace方法结束----------");
                 break;
             default:
                 break;
-        }
-    }
-
-    /**
-     * 设置打开flutter页面时，节点对应的容器activity
-     */
-    private void setCurrentNodeContainer() {
-        if (currentNode == null) {
-            return;
-        }
-        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-            currentNode.setActivity(DStackActivityManager.getInstance().getTopActivity());
         }
     }
 
@@ -223,15 +187,24 @@ public class DNodeManager {
     private List<DNode> needRemoveNodes(DNode node) {
         List<DNode> removeNodeList = new ArrayList<>();
         boolean startAddRemoveList = true;
+        boolean existNode = false;
         int size = nodeList.size();
-        for (int i = size - 1; i >= 0; i--) {
-            DNode currentNode = nodeList.get(i);
-            if (currentNode.getTarget().equals(node.getTarget())) {
-                startAddRemoveList = false;
+        for (DNode tempNode : nodeList) {
+            if (tempNode.getTarget().equals(node.getTarget())) {
+                existNode = true;
+                break;
             }
-            if (startAddRemoveList) {
-                removeNodeList.add(currentNode);
-                needRemoveNodesIndex.add(i);
+        }
+        if (existNode) {
+            for (int i = size - 1; i >= 0; i--) {
+                DNode currentNode = nodeList.get(i);
+                if (currentNode.getTarget().equals(node.getTarget())) {
+                    startAddRemoveList = false;
+                }
+                if (startAddRemoveList) {
+                    removeNodeList.add(currentNode);
+                    needRemoveNodesIndex.add(i);
+                }
             }
         }
         Collections.reverse(removeNodeList);
@@ -316,25 +289,23 @@ public class DNodeManager {
      * 每次操作后，更新节点信息
      */
     public void updateNodes() {
-        DLog.logD("-----更新节点开始-----");
+        DLog.logE("-----更新节点开始-----");
         int size = nodeList.size();
         if (size == 0) {
             currentNode = null;
-            DLog.logD("当前栈的currentNode为null");
+            DLog.logE("当前栈的currentNode为null");
             return;
         }
         currentNode = nodeList.get(size - 1);
-        DLog.logD("当前栈的currentNode：" + currentNode.getTarget());
-        DLog.logD("-----当前栈的结构开始-----");
+        DLog.logE("当前栈的currentNode：" + currentNode.getTarget());
         for (DNode node : nodeList) {
-            DLog.logD(node.getPageType() + "--" + node.getTarget());
+            DLog.logE(node.getPageType() + "--" + node.getTarget());
         }
-        DLog.logD("-----当前栈的结构结束-----");
-        DLog.logD("-----更新节点结束-----");
+        DLog.logE("-----更新节点结束-----");
     }
 
     /**
-     * 由flutter侧的didPop触发，只有flutter页面真正关闭才会收到消息
+     * 由flutter侧的didPop触发，或者flutter根节点清除时触发，只有flutter页面真正关闭才会收到消息
      * 当前节点的target和flutter传入的节点target一致，则删除
      */
     public void handleNeedRemoveFlutterNode(DNode node) {
@@ -342,28 +313,37 @@ public class DNodeManager {
         if (nodeList.size() == 0 || currentNode == null) {
             return;
         }
-        //如果当前节点的target和已经关闭的flutter页面的节点target相同，则把当前节点数据清除
-        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-            if (currentNode.getTarget().equals(node.getTarget())) {
-                nodeList.remove(currentNode);
-                PageLifecycleManager.pageDisappear(node);
+        //判断是否临界状态
+        boolean isCritical = isCritical(node);
+        if (isCritical) {
+            //临界状态，当前清除节点flutter，上一个节点native
+            if (DStackActivityManager.getInstance().isExecuteStack()) {
+                //正在进行popTo等关闭多个页面操作，直接返回
+                return;
+            }
+            //关闭栈顶flutter控制器
+            DStackActivityManager.getInstance().closeTopFlutterActivity();
+        } else {
+            //如果当前节点的target和已经关闭的flutter页面的节点target相同，则把当前节点数据清除
+            if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
+                if (currentNode.getTarget().equals(node.getTarget())) {
+                    nodeList.remove(currentNode);
+                    updateNodes();
+                    PageLifecycleManager.pageDisappear(node);
+                    DOperationManager.operation(node);
+                }
             }
         }
-        updateNodes();
-        DActionManager.checkNodeCritical(currentNode);
         DLog.logD("----------handleNeedRemoveFlutterNode方法结束----------");
     }
 
     /**
-     * 当native页面关闭后，也就是activity执行了onDestroyed()之后
+     * 当activity执行了onDestroyed()之后
      * 把当前的native节点删除
      */
-    public void handleNeedRemoveNativeNode(DNode node) {
-        DLog.logD("----------handleNeedRemoveNativeNode方法开始----------");
-        if (nodeList.size() == 0 || currentNode == null) {
-            return;
-        }
-        if (node.isPopTo()) {
+    public void removeNodeWithOnDestroyed(DNode node) {
+        DLog.logD("----------removeNodeWithOnDestroyed方法开始----------");
+        if (node.isPopTo() || nodeList == null) {
             return;
         }
         //从节点集合反向遍历第一个匹配的节点信息并移除
@@ -371,15 +351,74 @@ public class DNodeManager {
         if (needRemoveNode != null) {
             nodeList.remove(needRemoveNode);
             PageLifecycleManager.pageDisappear(node);
+            node.setBoundary(needRemoveNode.isBoundary());
+            DOperationManager.operation(node);
         }
         updateNodes();
-        DLog.logD("----------handleNeedRemoveNativeNode方法开始----------");
+        DLog.logD("----------removeNodeWithOnDestroyed方法结束----------");
     }
 
     /**
-     * 获取倒数第二个节点
+     * 获取节点集合
      */
     public List<DNode> getNodeList() {
         return nodeList;
     }
+
+    /**
+     * 移除最后一个节点
+     */
+    public void deleteLastNode() {
+        if (nodeList != null && nodeList.size() > 0) {
+            nodeList.remove(nodeList.size() - 1);
+            updateNodes();
+        }
+    }
+
+    /**
+     * 添加最后一个节点
+     */
+    public void addLastNode(DNode node) {
+        if (nodeList != null) {
+            nodeList.add(node);
+            updateNodes();
+        }
+    }
+
+    /**
+     * 节点是否处在临界状态
+     */
+    public boolean isCritical(DNode node) {
+        if (nodeList != null) {
+            if (nodeList.size() == 1) {
+                return true;
+            }
+            if (node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)
+                    && currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)
+                    && node.getTarget().equals(currentNode.getTarget())) {
+                if (nodeList.size() >= 2) {
+                    DNode lastSecondNode = nodeList.get(nodeList.size() - 2);
+                    if (lastSecondNode.getPageType().equals(DNodePageType.DNodePageTypeNative)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+
+    public DNodeResponse createNodeResponse(DNode node) {
+        DNodeResponse nodeResponse = new DNodeResponse();
+        nodeResponse.target = node.getTarget();
+        nodeResponse.pageType = node.getPageType();
+        nodeResponse.action = node.getAction();
+        nodeResponse.params = node.getParams();
+        nodeResponse.homePage = node.isHomePage();
+        nodeResponse.animated = node.isAnimated();
+        nodeResponse.boundary = node.isBoundary();
+        nodeResponse.identifier = node.getIdentifier();
+        return nodeResponse;
+    }
+
 }

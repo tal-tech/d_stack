@@ -36,13 +36,13 @@ typedef NS_ENUM(NSInteger, DNodeActionType) {
     DNodeActionTypePush,        // push跳转
     DNodeActionTypePresent,     // present跳转
     DNodeActionTypePop,         // pop返回
-    DNodeActionTypePopTo,       // popTo 返回
-    DNodeActionTypePopToRoot,   // PopToRoot
-    DNodeActionTypePopSkip,     // PopSkip
+    DNodeActionTypePopTo,       // popTo返回
+    DNodeActionTypePopToRoot,   // popToRoot
+    DNodeActionTypePopSkip,     // dopSkip
     DNodeActionTypeGesture,     // 手势
-    DNodeActionTypeDismiss,     // Dismiss返回
+    DNodeActionTypeDismiss,     // dismiss返回
     DNodeActionTypeReplace,     // replace返回
-    DNodeActionTypeDidPop,      // didpop 确认
+    DNodeActionTypeDidPop,      // didPop确认
 };
 
 // 应用的生命周期
@@ -71,6 +71,14 @@ typedef NS_ENUM(NSInteger, DStackApplicationState) {
 /// 发送节点列表到flutter
 /// @param result result
 - (void)sendNodeListToFlutter:(FlutterResult)result;
+
+/// 发送homePageRoute
+/// @param call call
+- (void)sendHomePageRoute:(FlutterMethodCall *)call;
+
+/// 更新临界节点信息
+/// @param call call
+- (void)updateBoundaryNode:(FlutterMethodCall *)call;
 
 @end
 

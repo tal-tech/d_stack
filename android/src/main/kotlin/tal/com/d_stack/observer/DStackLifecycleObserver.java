@@ -7,6 +7,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.lang.ref.WeakReference;
+
 import io.flutter.embedding.android.FlutterView;
 import tal.com.d_stack.lifecycle.PageLifecycleManager;
 import tal.com.d_stack.node.DNode;
@@ -22,51 +24,71 @@ import tal.com.d_stack.utils.DStackUtils;
 public class DStackLifecycleObserver implements Application.ActivityLifecycleCallbacks {
 
     private int appCount = 0;
+    //app是否在前台
     private boolean isFrontApp = true;
+    //当前活动activity
     private Activity activeActivity;
-    private boolean appCreate = false;
+    //是否app启动
+    boolean appStart;
 
     @Override
     public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
-        boolean canAdd = FilterActivityManager.getInstance().canAdd(activity);
-        if (!canAdd) {
+        if (!FilterActivityManager.getInstance().canAdd(activity)) {
             return;
         }
-        activeActivity = activity;
-        Activity bottomActivity = DStackActivityManager.getInstance().getBottomActivity();
-        appCreate = bottomActivity == null;
         DStackActivityManager.getInstance().addActivity(activity);
-        String uniqueId = DStackActivityManager.getInstance().generateUniqueId();
-        if (DStackActivityManager.getInstance().isFlutterActivity(activity)) {
-            //如果是flutterActivity，那么不记录节点
-            //把当前节点的activity赋值
-            DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-            if (currentNode != null &&
-                    currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
-                currentNode.setActivity(activity);
+        activeActivity = activity;
+        appStart = DStackActivityManager.getInstance().getActivitiesSize() == 1;
+        if (appStart) {
+            DNode node;
+            //应用刚刚启动时
+            if (DStackActivityManager.getInstance().isFlutterActivity(activity)) {
+                //是flutter工程，添加根节点
+                node = new DNode.Builder()
+                        .target("/")
+                        .pageType(DNodePageType.DNodePageTypeFlutter)
+                        .action(DNodeActionType.DNodeActionTypePush)
+                        .identifier(DStackUtils.generateUniqueId())
+                        .isHomePage(true)
+                        .isRootPage(true)
+                        .build();
+            } else {
+                //是native工程，添加根节点
+                node = new DNode.Builder()
+                        .target("/")
+                        .pageType(DNodePageType.DNodePageTypeNative)
+                        .action(DNodeActionType.DNodeActionTypePush)
+                        .identifier(DStackUtils.generateUniqueId())
+                        .isHomePage(true)
+                        .isRootPage(true)
+                        .build();
             }
-        } else {
-            //当前activity是nativeActivity，记录节点，并且赋值节点的activity
-            DNode node = DNodeManager.getInstance().createNode(
-                    activity.getClass().getName(),
-                    uniqueId,
-                    DNodePageType.DNodePageTypeNative,
-                    DNodeActionType.DNodeActionTypePush,
-                    null,
-                    false);
             DNodeManager.getInstance().checkNode(node);
-            DNode currentNode = DNodeManager.getInstance().getCurrentNode();
-            if (currentNode != null) {
-                currentNode.setActivity(activity);
+        } else {
+            //应用已经启动，打开新的activity
+            if (!DStackActivityManager.getInstance().isFlutterActivity(activity)) {
+                //是native工程，添加普通节点
+                DNode node = new DNode.Builder()
+                        .target(activity.getClass().getName())
+                        .pageType(DNodePageType.DNodePageTypeNative)
+                        .action(DNodeActionType.DNodeActionTypePush)
+                        .identifier(DStackUtils.generateUniqueId())
+                        .build();
+                DNodeManager.getInstance().checkNode(node);
             }
         }
-        if (appCreate) {
+        DNodeManager.getInstance().getCurrentNode().setActivity(new WeakReference(activity));
+        if (appStart) {
+            //app启动通知
             PageLifecycleManager.appCreate();
         }
     }
 
     @Override
     public void onActivityStarted(@NonNull Activity activity) {
+        if (!FilterActivityManager.getInstance().canAdd(activity)) {
+            return;
+        }
         appCount++;
         if (!isFrontApp) {
             isFrontApp = true;
@@ -76,17 +98,12 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityResumed(@NonNull Activity activity) {
-        boolean canAdd = FilterActivityManager.getInstance().canAdd(activity);
-        if (!canAdd) {
+        if (!FilterActivityManager.getInstance().canAdd(activity)) {
             return;
         }
-        if (activeActivity == activity) {
-            //正在执行创建activity的逻辑，打开新页面操作，onCreate，onResumed方法是同一个activity
-            DStackActivityManager.getInstance().setTopActivity(activity);
-        } else {
-            activeActivity = activity;
-            DStackActivityManager.getInstance().setTopActivity(activity);
+        if (activeActivity != activity) {
             //正在执行恢复activity的逻辑，页面返回操作，onCreate，onResumed不是同一个activity
+            activeActivity = activity;
             if (DStackActivityManager.getInstance().isNeedReAttachEngine()) {
                 //判断是否需要重新attach flutter引擎，1.17以上bug，解决软键盘不能弹出问题
                 DLog.logE("需要needReAttachEngine");
@@ -100,11 +117,16 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityPaused(@NonNull Activity activity) {
-
+        if (!FilterActivityManager.getInstance().canAdd(activity)) {
+            return;
+        }
     }
 
     @Override
     public void onActivityStopped(@NonNull Activity activity) {
+        if (!FilterActivityManager.getInstance().canAdd(activity)) {
+            return;
+        }
         appCount--;
         if (!isFrontApp()) {
             isFrontApp = false;
@@ -113,29 +135,22 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
     }
 
     @Override
-    public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
-
-    }
-
-    @Override
     public void onActivityDestroyed(@NonNull Activity activity) {
-        boolean canAdd = FilterActivityManager.getInstance().canAdd(activity);
-        if (!canAdd) {
+        if (!FilterActivityManager.getInstance().canAdd(activity)) {
             return;
         }
-        boolean isPopTo = DStackActivityManager.getInstance().isPopTo();
+        boolean isPopTo = DStackActivityManager.getInstance().isExecuteStack();
         DStackActivityManager.getInstance().removeActivity(activity);
-        if (DStackActivityManager.getInstance().isFlutterActivity(activity)) {
-            return;
-        }
-        DNode node = DNodeManager.getInstance().createNode(
-                activity.getClass().getName(),
-                DStackActivityManager.getInstance().generateUniqueId(),
-                DNodePageType.DNodePageTypeNative,
-                DNodeActionType.DNodeActionTypePop,
-                null,
-                false);
-        node.setPopTo(isPopTo);
+        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
+        DNode node = new DNode.Builder()
+                .target(currentNode.getTarget())
+                .pageType(currentNode.getPageType())
+                .action(DNodeActionType.DNodeActionTypePop)
+                .isHomePage(currentNode.isHomePage())
+                .isRootPage(currentNode.isRootPage())
+                .identifier(currentNode.getIdentifier())
+                .isPopTo(isPopTo)
+                .build();
         DNodeManager.getInstance().checkNode(node);
     }
 
@@ -146,4 +161,8 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
         return appCount > 0;
     }
 
+    @Override
+    public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
+
+    }
 }

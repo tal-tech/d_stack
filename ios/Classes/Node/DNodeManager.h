@@ -68,7 +68,13 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param state 应用的生命周期
 - (void)sendAppliccationLifeCicleToFlutter:(DStackApplicationState)state;
 
-- (void)resetHomePage;
+/// 更新临界节点
+/// @param nodeInfo nodeInfo
+- (void)updateBoundaryNode:(NSDictionary *)nodeInfo;
+
+/// 更新根节点信息
+/// @param node node
+- (BOOL)updateRootNode:(DNode *)node;
 
 @end
 

@@ -65,7 +65,7 @@ public class DStackActivityManager {
             return;
         }
         activities.add(activity);
-        setBottomActivity(activity);
+        setBottomAndTopActivity();
     }
 
     /**
@@ -78,16 +78,20 @@ public class DStackActivityManager {
         activities.remove(activity);
         handleReAttachEngine(activity);
         handleNeedRemoveActivities(activity);
+        setBottomAndTopActivity();
     }
 
     /**
-     * 设置栈顶Activity
+     * 设置栈顶和栈底Activity
      */
-    public void setTopActivity(Activity activity) {
-        if (activity == null) {
-            return;
+    public void setBottomAndTopActivity() {
+        if (activities == null || activities.size() == 0) {
+            topActivity = null;
+            bottomActivity = null;
+        } else {
+            topActivity = activities.get(activities.size() - 1);
+            bottomActivity = activities.get(0);
         }
-        topActivity = activity;
     }
 
     /**
@@ -97,21 +101,22 @@ public class DStackActivityManager {
         return topActivity;
     }
 
-    /**
-     * 设置栈底Activity
-     */
-    public void setBottomActivity(Activity activity) {
-        if (activity == null || bottomActivity != null) {
-            return;
-        }
-        bottomActivity = activity;
-    }
 
     /**
      * 获取栈底Activity
      */
     public Activity getBottomActivity() {
         return bottomActivity;
+    }
+
+    /**
+     * 获取栈内Activity数量
+     */
+    public int getActivitiesSize() {
+        if (activities == null) {
+            return 0;
+        }
+        return activities.size();
     }
 
     /**
@@ -160,7 +165,7 @@ public class DStackActivityManager {
         }
         boolean find = false;
         needRemoveActivities.clear();
-        Activity activity = node.getActivity();
+        Activity activity = node.getActivity().get();
         for (int i = activities.size() - 1; i >= 0; i--) {
             Activity tempActivity = activities.get(i);
             if (tempActivity != activity) {
@@ -236,14 +241,6 @@ public class DStackActivityManager {
     }
 
     /**
-     * 判断是否在执行popTo，popToRoot，popToSkip方法
-     * 主要给节点处理用
-     */
-    public boolean isPopTo() {
-        return needRemoveActivities.size() > 0;
-    }
-
-    /**
      * 判断当前工程是否是一个纯Flutter工程
      */
     public boolean isFlutterApp() {
@@ -292,5 +289,17 @@ public class DStackActivityManager {
      */
     public boolean isNeedReAttachEngine() {
         return needReAttachEngine;
+    }
+
+    /**
+     * 栈里是否有flutter控制器
+     */
+    public boolean haveFlutterContainer() {
+        for (Activity activity : activities) {
+            if (isFlutterActivity(activity)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

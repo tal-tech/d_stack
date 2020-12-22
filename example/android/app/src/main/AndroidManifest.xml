@@ -8,6 +8,8 @@
     <application
         android:name=".DStackApplication"
         android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:label="d_stack_example">
 
         <meta-data
@@ -21,6 +23,7 @@
             android:theme="@style/LaunchTheme"
             android:windowSoftInputMode="adjustResize">
 
+
             <meta-data
                 android:name="io.flutter.embedding.android.SplashScreenDrawable"
                 android:resource="@color/transparent" />
@@ -31,10 +34,12 @@
             android:name=".NativeOneActivity"
             android:theme="@style/Theme.AppCompat">
 
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
         <activity
             android:name=".NativeTwoActivity"

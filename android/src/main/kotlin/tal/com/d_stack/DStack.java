@@ -22,6 +22,7 @@ import tal.com.d_stack.observer.DStackActivityManager;
 import tal.com.d_stack.observer.DStackLifecycleObserver;
 import tal.com.d_stack.observer.FilterActivityManager;
 import tal.com.d_stack.router.INativeRouter;
+import tal.com.d_stack.router.INodeOperation;
 import tal.com.d_stack.utils.DLog;
 
 /**
@@ -55,6 +56,10 @@ public class DStack {
     private Context context;
 
     private INativeRouter nativeRouter;
+
+    private INodeOperation nodeOperation;
+
+    private boolean openNodeOperation;
 
     /**
      * 初始化DStack
@@ -136,13 +141,21 @@ public class DStack {
      */
     public void pushFlutterPage(String pageRouter, Map<String, Object> params, Class<?> containerCls) {
         DLog.logD("要打开的flutter页面路由是：" + pageRouter);
-        DNode node = DNodeManager.getInstance().createNode(
-                pageRouter,
-                DStackActivityManager.getInstance().generateUniqueId(),
-                DNodePageType.DNodePageTypeFlutter,
-                DNodeActionType.DNodeActionTypePush,
-                params,
-                false);
+        DNode node = new DNode.Builder()
+                .target(pageRouter)
+                .params(params)
+                .pageType(DNodePageType.DNodePageTypeFlutter)
+                .action(DNodeActionType.DNodeActionTypePush)
+                .boundary(true)
+                .build();
+
+        if (!DStack.getInstance().isFlutterApp()) {
+            //原生工程
+            if (!DStackActivityManager.getInstance().haveFlutterContainer()) {
+                //第一次打开flutter页面，设置flutter页面的homepage为true
+                node.setHomePage(true);
+            }
+        }
 
         // 如果连续打开同一个Flutter控制器，则做个判断，只打开一次activity
         boolean isSameActivity = DStackActivityManager.getInstance().isSameActivity(containerCls);
@@ -157,18 +170,32 @@ public class DStack {
     }
 
     /**
-     * native侧关闭flutter页面
+     * native侧关闭当前页面，暂时只处理关闭flutter页面
      */
-    public void popFlutterPage(String pageRouter, Map<String, Object> params) {
-        DLog.logE("要关闭的flutter页面路由是：" + pageRouter);
-        DNode node = DNodeManager.getInstance().createNode(
-                pageRouter,
-                "",
-                DNodePageType.DNodePageTypeFlutter,
-                DNodeActionType.DNodeActionTypePop,
-                params,
-                false);
-        DNodeManager.getInstance().checkNode(node);
+    public void pop() {
+        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
+        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
+            DNode node = new DNode.Builder().target(currentNode.getTarget())
+                    .pageType(DNodePageType.DNodePageTypeFlutter)
+                    .action(DNodeActionType.DNodeActionTypePop)
+                    .isHomePage(currentNode.isHomePage()).build();
+            DNodeManager.getInstance().checkNode(node);
+        }
+    }
+
+    /**
+     * native侧关闭当前页面，暂时只处理关闭flutter页面，带参数
+     */
+    public void pop(Map<String, Object> params) {
+        DNode currentNode = DNodeManager.getInstance().getCurrentNode();
+        if (currentNode.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
+            DNode node = new DNode.Builder().target(currentNode.getTarget())
+                    .pageType(DNodePageType.DNodePageTypeFlutter)
+                    .action(DNodeActionType.DNodeActionTypePop)
+                    .params(params)
+                    .isHomePage(currentNode.isHomePage()).build();
+            DNodeManager.getInstance().checkNode(node);
+        }
     }
 
     /**
@@ -188,20 +215,23 @@ public class DStack {
      * 返回根页面
      */
     public void popToRoot() {
-        DNode rootNode = DNodeManager.getInstance().createNode(""
-                , "", "", DNodeActionType.DNodeActionTypePopToRoot
-                , null, false);
-        DNodeManager.getInstance().checkNode(rootNode);
+        DNode node = new DNode.Builder()
+                .target("/")
+                .action(DNodeActionType.DNodeActionTypePopToRoot)
+                .build();
+        DNodeManager.getInstance().checkNode(node);
     }
 
     /**
      * 返回根页面，带参数
      */
     public void popToRoot(Map<String, Object> params) {
-        DNode rootNode = DNodeManager.getInstance().createNode(""
-                , "", "", DNodeActionType.DNodeActionTypePopToRoot
-                , params, false);
-        DNodeManager.getInstance().checkNode(rootNode);
+        DNode node = new DNode.Builder()
+                .target("/")
+                .action(DNodeActionType.DNodeActionTypePopToRoot)
+                .params(params)
+                .build();
+        DNodeManager.getInstance().checkNode(node);
     }
 
     /**
@@ -214,8 +244,6 @@ public class DStack {
     /**
      * 添加过滤器
      * 某些功能性Activity，不需要做节点管理的，添加至过滤
-     *
-     * @param filterString 过滤字符串
      */
     public void addFilter(String filterString) {
         if (TextUtils.isEmpty(filterString)) {
@@ -226,13 +254,47 @@ public class DStack {
 
     /**
      * 移除已添加的过滤器
-     *
-     * @param filterString
      */
     public void removeFilter(String filterString) {
         if (TextUtils.isEmpty(filterString)) {
             return;
         }
         FilterActivityManager.getInstance().removeFilter(filterString);
+    }
+
+    /**
+     * 在FlutterActivity的onBackPressed()方法内调用
+     * 监听flutter控制器的返回键，处理多个flutter控制器，根节点无法返回的问题
+     */
+    public void listenBackPressed() {
+
+    }
+
+    /**
+     * 设置节点操作监听
+     */
+    public void setNodeOperation(INodeOperation nodeOperation) {
+        this.nodeOperation = nodeOperation;
+    }
+
+    /**
+     * 获取节点操作监听
+     */
+    public INodeOperation getNodeOperation() {
+        return nodeOperation;
+    }
+
+    /**
+     * 节点操作是否开启
+     */
+    public boolean isOpenNodeOperation() {
+        return openNodeOperation;
+    }
+
+    /**
+     * 设置是否开启节点操作
+     */
+    public void setOpenNodeOperation(boolean openNodeOperation) {
+        this.openNodeOperation = openNodeOperation;
     }
 }
