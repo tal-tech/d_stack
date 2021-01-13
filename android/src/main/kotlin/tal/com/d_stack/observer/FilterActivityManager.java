@@ -31,6 +31,8 @@ public class FilterActivityManager {
         filterActivities.add("rom.oppo");
         filterActivities.add("com.tencent");
         filterActivities.add("com.sina");
+        filterActivities.add("com.tal.d_stack_spy");
+        filterActivities.add("com.yorhp");
     }
 
     private List<String> filterActivities = new ArrayList<>();
