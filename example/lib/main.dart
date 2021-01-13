@@ -4,7 +4,6 @@ import 'package:d_stack/widget/home_widget.dart';
 import 'package:flutter/material.dart';
 
 import 'page_widgets.dart';
-import 'package:d_stack_spy/d_stack_spy.dart';
 
 final bool isFlutterProject = true;
 
@@ -12,7 +11,7 @@ void main() {
   // 注册路由builder , 生命周期监听
   WidgetsFlutterBinding.ensureInitialized();
   DStack.instance.register(
-      builders: RouterBuilder.builders(), observer: MyLifeCycleObserver(),nodeObserver: DSpyNodeObserver());
+      builders: RouterBuilder.builders(), observer: MyLifeCycleObserver());
   runApp(MyApp());
 }
 
