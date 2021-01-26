@@ -390,7 +390,7 @@ public class DNodeManager {
      */
     public boolean isCritical(DNode node) {
         if (nodeList != null) {
-            if (nodeList.size() == 1) {
+            if (nodeList.size() == 0) {
                 return true;
             }
             if (node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)
