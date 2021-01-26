@@ -156,6 +156,18 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
     return objc_getAssociatedObject(self, @selector(oldDismissDelegateName));
 }
 
+- (BOOL)isCustomClass
+{
+    NSString *systemLibrary = @"System/Library";
+    NSString *developerLibrary = @"Developer/Library";
+    NSBundle *bundle = [NSBundle bundleForClass:self.class];
+    if ([[bundle bundlePath] containsString:systemLibrary] ||
+        [[bundle bundlePath] containsString:developerLibrary]) {
+        return NO;
+    }
+    return YES;
+}
+
 @end
 
 
@@ -385,64 +397,49 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
     });
 }
 
-- (BOOL)isCustomClass
-{
-    NSString *systemLibrary = @"System/Library";
-    NSString *developerLibrary = @"Developer/Library";
-    NSBundle *bundle = [NSBundle bundleForClass:self.class];
-    if ([[bundle bundlePath] containsString:systemLibrary] ||
-        [[bundle bundlePath] containsString:developerLibrary]) {
-        return NO;
-    }
-    return YES;
-}
-
 - (void)d_stackPresentViewController:(UIViewController *)controller animated:(BOOL)flag completion:(void (^)(void))completion
 {
-    // 入栈管理，present时记录一下VC
-    if ([controller isCustomClass]) {
-        if (!controller.isFlutterViewController) {
-            __block UIViewController *targetController = controller;
-            // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
-            BOOL (^checkBlock)(UIViewController *target) = ^BOOL(UIViewController *target) {
-                if ([target isKindOfClass:UINavigationController.class]) {
-                    UINavigationController *navi = (UINavigationController *)target;
-                    targetController = navi.topViewController;
-                    if (navi.dStackRootViewController.isFlutterViewController) {
-                        return NO;
-                    }
-                }
-                return YES;
-            };
-            
-            BOOL canCheckNode = YES;
-            if ([controller isKindOfClass:UINavigationController.class]) {
-                canCheckNode = checkBlock(controller);
-            } else if ([controller isKindOfClass:UITabBarController.class]) {
-                canCheckNode = checkBlock([(UITabBarController *)controller selectedViewController]);
-            }
-            if (canCheckNode) {
-                checkNode(targetController, DNodeActionTypePresent);
-            }
-        }
-    }
     void (^block)(void) = ^(void) {
-        if (completion) {
-            completion();
-        }
+        if (completion) { completion(); }
         if ([controller isCustomClass]) {
-            if (@available(iOS 13.0, *)) {
-                UIPresentationController *presentationController = controller.presentationController;
-                if (presentationController) {
-                    id <UIAdaptivePresentationControllerDelegate> delegate = presentationController.delegate;
-                    if (!delegate) {
-                        presentationController.delegate = [DStackNavigator instance];
-                    } else {
+            BOOL canPushInStack = YES; // 是否能入栈
+            UIPresentationController *presentationController = controller.presentationController;
+            if (presentationController) {
+                id <UIAdaptivePresentationControllerDelegate> delegate = presentationController.delegate;
+                if (!delegate) {
+                    presentationController.delegate = [DStackNavigator instance];
+                } else {
+                    canPushInStack = [(NSObject *)delegate isCustomClass];
+                    if (canPushInStack) {
                         NSString *name = NSStringFromClass([delegate class]);
                         presentationController.oldDismissDelegateName = name;
                         [[DStackNavigator instance].dismissDelegateClass setObject:delegate forKey:name];
                         presentationController.delegate = [DStackNavigator instance];
                     }
+                }
+            }
+            if (!controller.isFlutterViewController && canPushInStack) {
+                __block UIViewController *targetController = controller;
+                // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
+                BOOL (^checkBlock)(UIViewController *target) = ^BOOL(UIViewController *target) {
+                    if ([target isKindOfClass:UINavigationController.class]) {
+                        UINavigationController *navi = (UINavigationController *)target;
+                        targetController = navi.topViewController;
+                        if (navi.dStackRootViewController.isFlutterViewController) {
+                            return NO;
+                        }
+                    }
+                    return YES;
+                };
+                
+                BOOL canCheckNode = YES;
+                if ([controller isKindOfClass:UINavigationController.class]) {
+                    canCheckNode = checkBlock(controller);
+                } else if ([controller isKindOfClass:UITabBarController.class]) {
+                    canCheckNode = checkBlock([(UITabBarController *)controller selectedViewController]);
+                }
+                if (canCheckNode) {
+                    checkNode(targetController, DNodeActionTypePresent);
                 }
             }
         }

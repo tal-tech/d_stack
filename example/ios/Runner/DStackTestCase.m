@@ -12,6 +12,7 @@
 #import "DStackViewController.h"
 #import "DemoFlutterViewController.h"
 #import "ThirdViewController.h"
+#import "CustomViewController.h"
 
 @implementation DStackTestCase
 {
@@ -76,7 +77,7 @@
         @{
             @"text": @"弹窗",
             @"clicked": ^(UIViewController *controller) {
-                UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"弹窗"
+                CustomViewController *alert = [CustomViewController alertControllerWithTitle:@"弹窗"
                                                                                message:@"弹出来了" preferredStyle:UIAlertControllerStyleAlert];
                 UIAlertAction *action = [UIAlertAction actionWithTitle:@"ok" style:UIAlertActionStyleCancel handler:nil];
                 [alert addAction:action];

@@ -13,6 +13,7 @@
 		3E2B2AC224F7C6F700BC7183 /* FourViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E2B2AC124F7C6F700BC7183 /* FourViewController.m */; };
 		3E854E3D257A3616006EAB28 /* DemoFlutterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E854E3C257A3616006EAB28 /* DemoFlutterViewController.m */; };
 		3E854E47257A3C42006EAB28 /* DStackTestCase.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E854E46257A3C42006EAB28 /* DStackTestCase.m */; };
+		3E8F855025BAC995002FEBE4 /* CustomViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3E8F854F25BAC995002FEBE4 /* CustomViewController.m */; };
 		3EA9207E257F580300F3EB75 /* FiveViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3EA9207D257F580300F3EB75 /* FiveViewController.m */; };
 		3EA921702580EEDE00F3EB75 /* SixViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3EA9216F2580EEDE00F3EB75 /* SixViewController.m */; };
 		3F043F4423F3944100FC83D9 /* DStackViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3F043F4323F3944100FC83D9 /* DStackViewController.m */; };
@@ -52,6 +53,8 @@
 		3E854E3C257A3616006EAB28 /* DemoFlutterViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DemoFlutterViewController.m; sourceTree = "<group>"; };
 		3E854E45257A3C42006EAB28 /* DStackTestCase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DStackTestCase.h; sourceTree = "<group>"; };
 		3E854E46257A3C42006EAB28 /* DStackTestCase.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DStackTestCase.m; sourceTree = "<group>"; };
+		3E8F854E25BAC995002FEBE4 /* CustomViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CustomViewController.h; sourceTree = "<group>"; };
+		3E8F854F25BAC995002FEBE4 /* CustomViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CustomViewController.m; sourceTree = "<group>"; };
 		3EA9207C257F580300F3EB75 /* FiveViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FiveViewController.h; sourceTree = "<group>"; };
 		3EA9207D257F580300F3EB75 /* FiveViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FiveViewController.m; sourceTree = "<group>"; };
 		3EA9216E2580EEDE00F3EB75 /* SixViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SixViewController.h; sourceTree = "<group>"; };
@@ -145,6 +148,8 @@
 				7AFFD8EE1D35381100E5BB4D /* AppDelegate.m */,
 				3E854E45257A3C42006EAB28 /* DStackTestCase.h */,
 				3E854E46257A3C42006EAB28 /* DStackTestCase.m */,
+				3E8F854E25BAC995002FEBE4 /* CustomViewController.h */,
+				3E8F854F25BAC995002FEBE4 /* CustomViewController.m */,
 				3E854E3B257A3616006EAB28 /* DemoFlutterViewController.h */,
 				3E854E3C257A3616006EAB28 /* DemoFlutterViewController.m */,
 				3F043F4223F3944100FC83D9 /* DStackViewController.h */,
@@ -335,6 +340,7 @@
 				3E854E47257A3C42006EAB28 /* DStackTestCase.m in Sources */,
 				3E854E3D257A3616006EAB28 /* DemoFlutterViewController.m in Sources */,
 				978B8F6F1D3862AE00F588F7 /* AppDelegate.m in Sources */,
+				3E8F855025BAC995002FEBE4 /* CustomViewController.m in Sources */,
 				97C146F31CF9000F007C117D /* main.m in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				3EA9207E257F580300F3EB75 /* FiveViewController.m in Sources */,
