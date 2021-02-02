@@ -7,6 +7,10 @@
 
 #import "DNode.h"
 
+@interface DNode () <NSCopying, NSMutableCopying>
+
+@end
+
 @implementation DNode
 
 - (instancetype)init
@@ -132,6 +136,33 @@
             _target,
             _params,
             _identifier];
+}
+
+- (id)copyWithZone:(NSZone *)zone
+{
+    return [self nodeWithZone:zone];
+}
+
+- (id)mutableCopyWithZone:(NSZone *)zone
+{
+    return [self nodeWithZone:zone];
+}
+
+- (id)nodeWithZone:(NSZone *)zone
+{
+    DNode *node = [[DNode allocWithZone:zone] init];
+    node.fromFlutter = _fromFlutter;
+    node.canRemoveNode = _canRemoveNode;
+    node.isFlutterHomePage = _isFlutterHomePage;
+    node.animated = _animated;
+    node.boundary = _boundary;
+    node.isRootPage = _isRootPage;
+    node.action = _action;
+    node.pageType = _pageType;
+    node.params = _params;
+    node.target = _target;
+    node.identifier = _identifier;
+    return node;
 }
 
 @end
