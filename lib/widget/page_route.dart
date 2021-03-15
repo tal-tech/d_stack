@@ -118,6 +118,7 @@ class DStackPageRouteBuilder<T> extends PageRoute<T> {
       if (!pop.animated) {
         controller.reverseDuration = Duration.zero;
       }
+      return super.didPop(pop.result);
     }
     return super.didPop(result);
   }

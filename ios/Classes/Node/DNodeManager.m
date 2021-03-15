@@ -179,6 +179,7 @@
         DNode *lastNode = self.nodeList.lastObject;
         if (lastNode) {
             if (node.fromFlutter) {
+                lastNode.params = node.params;
                 subArray = @[lastNode];
             } else {
                 subArray = [self checkRemovedNode:node needRemove:lastNode];
