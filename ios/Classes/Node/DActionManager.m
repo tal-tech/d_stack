@@ -221,11 +221,14 @@
 + (void)_checkTabBarWithNode:(DNode *)node popNodeList:(NSArray <DNode *>*)nodeList
 {
     if (!node.fromFlutter) {return;}
+    if (!nodeList || nodeList.count < 1) {return;}
+    NSArray *currentNodeList = [DNodeManager sharedInstance].currentNodeList;
+    if (!currentNodeList || currentNodeList.count < 1) {return;}
     DNode *preNode = nil;
     DNode *target = nodeList.firstObject;
-    NSInteger index = [[DNodeManager sharedInstance].currentNodeList indexOfObject:target];
-    if (index >= 1) {
-        preNode = [[DNodeManager sharedInstance].currentNodeList objectAtIndex:index - 1];
+    NSInteger index = [currentNodeList indexOfObject:target];
+    if (index >= 1 && index != NSNotFound) {
+        preNode = [currentNodeList objectAtIndex:index - 1];
     }
     if (preNode && preNode.isRootPage) {
         [[NSNotificationCenter defaultCenter] postNotificationName:DStackNotificationNameChangeBottomBarVisible

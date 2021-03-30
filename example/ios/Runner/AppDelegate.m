@@ -14,7 +14,7 @@
 
 @end
 
-static BOOL isFlutterProject = NO;
+static BOOL isFlutterProject = YES;
 
 @implementation AppDelegate
 
