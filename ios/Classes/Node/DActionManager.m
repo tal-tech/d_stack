@@ -226,8 +226,9 @@
     if (!currentNodeList || currentNodeList.count < 1) {return;}
     DNode *preNode = nil;
     DNode *target = nodeList.firstObject;
+    if (!target) {return;}
     NSInteger index = [currentNodeList indexOfObject:target];
-    if (index >= 1 && index != NSNotFound) {
+    if (index >= 1 && index < currentNodeList.count) {
         preNode = [currentNodeList objectAtIndex:index - 1];
     }
     if (preNode && preNode.isRootPage) {
