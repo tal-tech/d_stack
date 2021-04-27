@@ -306,18 +306,4 @@ public class DStackActivityManager {
         }
         return false;
     }
-
-    /**
-     * 此方法在栈顶Flutter控制器onDestroy刚刚执行，还没有结束时调用
-     * 如果当前栈列表有2个以上Flutter控制器，证明栈里存在Flutter控制器
-     */
-    public boolean judgeFlutterContainer() {
-        int i = 0;
-        for (Activity activity : activities) {
-            if (isFlutterActivity(activity)) {
-                i++;
-            }
-        }
-        return i >= 2;
-    }
 }
