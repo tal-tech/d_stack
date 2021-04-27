@@ -263,14 +263,6 @@ public class DStack {
     }
 
     /**
-     * 在FlutterActivity的onBackPressed()方法内调用
-     * 监听flutter控制器的返回键，处理多个flutter控制器，根节点无法返回的问题
-     */
-    public void listenBackPressed() {
-
-    }
-
-    /**
      * 设置节点操作监听
      */
     public void setNodeOperation(INodeOperation nodeOperation) {

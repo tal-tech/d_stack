@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import io.flutter.embedding.android.DFlutterActivity;
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.android.FlutterFragmentActivity;
 import tal.com.d_stack.node.DNode;
@@ -148,8 +149,8 @@ public class DStackActivityManager {
         if (topActivity == null) {
             return;
         }
-        if (topActivity instanceof FlutterActivity ||
-                topActivity.getParent() instanceof FlutterActivity ||
+        if (topActivity instanceof DFlutterActivity ||
+                topActivity.getParent() instanceof DFlutterActivity ||
                 topActivity instanceof FlutterFragmentActivity ||
                 topActivity.getParent() instanceof FlutterFragmentActivity) {
             topActivity.finish();
@@ -260,16 +261,19 @@ public class DStackActivityManager {
      * 判断是否是FlutterActivity
      */
     public boolean isFlutterActivity(Activity activity) {
-        return activity instanceof FlutterActivity || activity instanceof FlutterFragmentActivity;
+        if (activity instanceof DFlutterActivity) {
+            return true;
+        }
+        return false;
     }
 
     /**
      * 关闭过一个flutterActivity，并且栈里还有flutterActivity，需要重新attach引擎
      */
     public void handleReAttachEngine(Activity activity) {
-        if (activity instanceof FlutterActivity || activity instanceof FlutterFragmentActivity) {
+        if (activity instanceof DFlutterActivity || activity instanceof FlutterFragmentActivity) {
             for (Activity tempActivity : activities) {
-                if (tempActivity instanceof FlutterActivity || tempActivity instanceof FlutterFragmentActivity) {
+                if (tempActivity instanceof DFlutterActivity || tempActivity instanceof FlutterFragmentActivity) {
                     needReAttachEngine = true;
                     break;
                 }
@@ -301,5 +305,19 @@ public class DStackActivityManager {
             }
         }
         return false;
+    }
+
+    /**
+     * 此方法在栈顶Flutter控制器onDestroy刚刚执行，还没有结束时调用
+     * 如果当前栈列表有2个以上Flutter控制器，证明栈里存在Flutter控制器
+     */
+    public boolean judgeFlutterContainer() {
+        int i = 0;
+        for (Activity activity : activities) {
+            if (isFlutterActivity(activity)) {
+                i++;
+            }
+        }
+        return i >= 2;
     }
 }

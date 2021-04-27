@@ -4,6 +4,7 @@ import android.app.Activity;
 
 import java.lang.reflect.Field;
 
+import io.flutter.embedding.android.DFlutterActivity;
 import io.flutter.embedding.android.FlutterActivity;
 import io.flutter.embedding.android.FlutterFragmentActivity;
 import io.flutter.embedding.android.FlutterView;
@@ -28,8 +29,8 @@ public class DStackUtils {
         Class c = activity.getClass();
         try {
             // 处理FlutterActivity
-            if (activity instanceof FlutterActivity) {
-                while (c != FlutterActivity.class) {
+            if (activity instanceof DFlutterActivity) {
+                while (c != DFlutterActivity.class) {
                     c = c.getSuperclass();
                 }
                 Field fieldDelegate = c.getDeclaredField("delegate");
