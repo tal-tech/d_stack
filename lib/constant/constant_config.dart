@@ -17,6 +17,7 @@ class DStackConstant {
   static const String popSkip = "popSkip";
   static const String replace = "replace";
   static const String gesture = "gesture";
+  static const String pushAndRemoveUntil = "pushAndRemoveUntil";
 
   /// channel通道
   static const String nodeToFlutter = "sendActionToFlutter";

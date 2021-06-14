@@ -156,6 +156,16 @@ public class DNodeManager {
                 DActionManager.replace(node);
                 DLog.logD("----------replace方法结束----------");
                 break;
+
+            case DNodeActionType.DNodeActionPushAndRemoveUntil:
+                DLog.logD("----------pushAndRemoveUntil方法开始----------");
+                clearNodes();
+                nodeList.add(node);
+                updateNodes();
+                DNode pageNode = currentNode;
+                PageLifecycleManager.pageAppearWithReplace(pageNode, currentNode);
+                DLog.logD("----------pushAndRemoveUntil方法结束----------");
+                break;
             default:
                 break;
         }
@@ -383,6 +393,17 @@ public class DNodeManager {
             nodeList.add(node);
             updateNodes();
         }
+    }
+
+    /**
+     * 移除节点集合
+     */
+    public void clearNodes() {
+        if (nodeList == null) {
+            return;
+        }
+        nodeList.clear();
+        updateNodes();
     }
 
     /**

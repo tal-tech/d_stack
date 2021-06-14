@@ -292,6 +292,13 @@ class TestCase {
       }
     },
     {
+      "text": "【push】pushNamedAndRemoveUntil page1",
+      "clicked": (context) {
+        DStack.pushAndRemoveUntil("page1", PageType.flutter,
+            params: {"name": "flutter 传递的", "id": 1000000});
+      }
+    },
+    {
       "text": "【push】NativePage 无动画",
       "clicked": (context) {
         DStack.push("NativePage", PageType.native,

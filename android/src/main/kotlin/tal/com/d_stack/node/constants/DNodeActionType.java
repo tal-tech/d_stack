@@ -29,4 +29,7 @@ public class DNodeActionType {
 
     //replace
     public static final String DNodeActionTypeReplace = "replace";
+
+    //pushAndRemoveUntil
+    public static final String DNodeActionPushAndRemoveUntil = "pushAndRemoveUntil";
 }
