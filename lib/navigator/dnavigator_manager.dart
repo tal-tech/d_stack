@@ -211,6 +211,12 @@ class DNavigatorManager {
         bool homePage = false,
         bool animated = true,
         bool fullscreenDialog = false}) {
+    var route = DNavigatorManager.materialRoute(
+        routeName: routeName,
+        params: params,
+        maintainState: maintainState,
+        pushAnimated: animated,
+        fullscreenDialog: fullscreenDialog);
     DNavigatorManager.nodeHandle(
       routeName,
       pageType,
@@ -218,13 +224,8 @@ class DNavigatorManager {
       result: params,
       homePage: homePage,
       animated: animated,
+      route: route
     );
-    var route = DNavigatorManager.materialRoute(
-        routeName: routeName,
-        params: params,
-        maintainState: maintainState,
-        pushAnimated: animated,
-        fullscreenDialog: fullscreenDialog);
     return _navigator.pushAndRemoveUntil(route, (route) => route == null);
   }
 

@@ -58,6 +58,7 @@
         case DNodeActionTypeDismiss:{action = @"dismiss";break;}
         case DNodeActionTypeReplace:{action = @"replace";break;}
         case DNodeActionTypeDidPop:{action = @"didPop";break;}
+        case DNodeActionTypePushAndRemoveUntil:{action = @"pushAndRemoveUntil";break;}
         default:break;
     }
     return action;
@@ -114,6 +115,8 @@
         actionType = DNodeActionTypeReplace;
     } else if ([_actionType isEqualToString:@"didPop"]) {
         actionType = DNodeActionTypeDidPop;
+    } else if ([_actionType isEqualToString:@"pushAndRemoveUntil"]) {
+        actionType = DNodeActionTypePushAndRemoveUntil;
     }
     return actionType;
 }

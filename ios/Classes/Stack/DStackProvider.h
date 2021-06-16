@@ -43,6 +43,7 @@ typedef NS_ENUM(NSInteger, DNodeActionType) {
     DNodeActionTypeDismiss,     // dismiss返回
     DNodeActionTypeReplace,     // replace返回
     DNodeActionTypeDidPop,      // didPop确认
+    DNodeActionTypePushAndRemoveUntil,      // pushAndRemoveUntil
 };
 
 // 应用的生命周期

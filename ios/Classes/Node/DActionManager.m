@@ -36,6 +36,7 @@
         case DNodeActionTypePopTo:
         case DNodeActionTypePopToRoot:
         case DNodeActionTypePopSkip:
+        case DNodeActionTypePushAndRemoveUntil:
         {
             [self closePageListWithNode:node willRemovedList:nodeList];
             break;
@@ -274,7 +275,9 @@
     [params setValue:node.actionTypeString forKey:@"action"];
     [params setValue:@(node.animated) forKey:@"animated"];
     DStackLog(@"发送【sendActionToFlutter】消息至Flutter\n参数 == %@", params);
-    [[DStackPlugin sharedInstance] invokeMethod:DStackMethodChannelSendActionToFlutter arguments:params result:nil];
+    [[DStackPlugin sharedInstance] invokeMethod:DStackMethodChannelSendActionToFlutter
+                                      arguments:params
+                                         result:nil];
 }
 
 + (void)closeViewControllerWithNode:(DNode *)node

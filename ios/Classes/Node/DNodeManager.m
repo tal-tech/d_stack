@@ -152,6 +152,20 @@
             if (targetNode) { subArray = @[targetNode]; }
             break;
         }
+        case DNodeActionTypePushAndRemoveUntil:
+        {
+            if (node.fromFlutter && node.pageType == DNodePageTypeFlutter) {
+                NSInteger count = self.nodeList.count;
+                if (count > 1) {
+                    subArray = [self.nodeList subarrayWithRange:NSMakeRange(1, count - 1)];
+                }
+                // 更新更节点
+                DNode *rootNode = [self.nodeList firstObject];
+                [rootNode copyWithNode:node];
+                [self operationNode:rootNode];
+            }
+            break;
+        }
         default: {subArray = @[];}
     }
     return subArray;
@@ -223,6 +237,7 @@
             case DNodeActionTypePopSkip:
             case DNodeActionTypePopToRoot:
             case DNodeActionTypeGesture:
+            case DNodeActionTypePushAndRemoveUntil:
             {
                 [self outStackWithNode:node nodeArray:subArray];
                 break;
