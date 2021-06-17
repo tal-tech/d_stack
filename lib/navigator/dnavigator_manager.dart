@@ -75,20 +75,21 @@ class DNavigatorManager {
   /// animationBuilder 进场动画的builder
   /// pushDuration 进场时间
   /// popDuration 退场时间
-  static Future pushWithAnimation(String routeName,
-      PageType pageType,
-      PushAnimationPageBuilder animationBuilder, {
-        Map params,
-        bool replace,
-        Duration pushDuration,
-        Duration popDuration,
-        bool popGesture = false,
-      }) {
+  static Future pushWithAnimation(
+    String routeName,
+    PageType pageType,
+    PushAnimationPageBuilder animationBuilder, {
+    Map params,
+    bool replace,
+    Duration pushDuration,
+    Duration popDuration,
+    bool popGesture = false,
+  }) {
     if (pageType == PageType.flutter) {
       RouteSettings settings =
-      RouteSettings(name: routeName, arguments: params);
+          RouteSettings(name: routeName, arguments: params);
       DStackWidgetBuilder stackWidgetBuilder =
-      DStack.instance.pageBuilder(routeName);
+          DStack.instance.pageBuilder(routeName);
       WidgetBuilder builder = stackWidgetBuilder(params);
       PageRoute route = DStackPageRouteBuilder(
           pageBuilder: builder,
@@ -114,19 +115,20 @@ class DNavigatorManager {
   }
 
   /// 自定义进场方式
-  static Future animationPage(String routeName,
-      PageType pageType,
-      AnimatedPageBuilder animatedBuilder, [
-        Map params,
-        Duration transitionDuration = defaultPushDuration,
-        bool opaque = true,
-        bool barrierDismissible = false,
-        Color barrierColor,
-        String barrierLabel,
-        bool maintainState = true,
-        bool fullscreenDialog = false,
-        bool replace = false,
-      ]) {
+  static Future animationPage(
+    String routeName,
+    PageType pageType,
+    AnimatedPageBuilder animatedBuilder, [
+    Map params,
+    Duration transitionDuration = defaultPushDuration,
+    bool opaque = true,
+    bool barrierDismissible = false,
+    Color barrierColor,
+    String barrierLabel,
+    bool maintainState = true,
+    bool fullscreenDialog = false,
+    bool replace = false,
+  ]) {
     if (pageType == PageType.flutter) {
       PageRouteBuilder route = DNavigatorManager.animationRoute(
         animatedBuilder: animatedBuilder,
@@ -155,12 +157,12 @@ class DNavigatorManager {
   }
 
   /// 提供外界直接传builder的能力
-  static Future pushBuild(String routeName, PageType pageType,
-      WidgetBuilder builder,
+  static Future pushBuild(
+      String routeName, PageType pageType, WidgetBuilder builder,
       {Map params,
-        bool maintainState,
-        bool fullscreenDialog,
-        bool animated = true}) {
+      bool maintainState,
+      bool fullscreenDialog,
+      bool animated = true}) {
     if (pageType == PageType.flutter) {
       var route = DNavigatorManager.materialRoute(
           routeName: routeName,
@@ -183,10 +185,10 @@ class DNavigatorManager {
   /// 目前只支持flutter使用，替换flutter页面
   static Future replace(String routeName, PageType pageType,
       {Map params,
-        bool maintainState = true,
-        bool homePage = false,
-        bool animated = true,
-        bool fullscreenDialog = false}) {
+      bool maintainState = true,
+      bool homePage = false,
+      bool animated = true,
+      bool fullscreenDialog = false}) {
     if (pageType == PageType.flutter) {
       var route = DNavigatorManager.materialRoute(
           routeName: routeName,
@@ -207,10 +209,10 @@ class DNavigatorManager {
   /// 跳转指定页面并清除剩余所有页面
   static pushAndRemoveUntil(String routeName, PageType pageType,
       {Map params,
-        bool maintainState = true,
-        bool homePage = false,
-        bool animated = true,
-        bool fullscreenDialog = false}) {
+      bool maintainState = true,
+      bool homePage = false,
+      bool animated = true,
+      bool fullscreenDialog = false}) {
     var route = DNavigatorManager.materialRoute(
         routeName: routeName,
         params: params,
@@ -218,14 +220,8 @@ class DNavigatorManager {
         pushAnimated: animated,
         fullscreenDialog: fullscreenDialog);
     DNavigatorManager.nodeHandle(
-      routeName,
-      pageType,
-      DStackConstant.pushAndRemoveUntil,
-      result: params,
-      homePage: homePage,
-      animated: animated,
-      route: route
-    );
+        routeName, pageType, DStackConstant.pushAndRemoveUntil,
+        result: params, homePage: homePage, animated: animated, route: route);
     return _navigator.pushAndRemoveUntil(route, (route) => route == null);
   }
 
@@ -266,9 +262,7 @@ class DNavigatorManager {
       {Map result, bool homePage, bool animated = true, Route route}) {
     Map arguments = {
       'target': target,
-      'pageType': '$pageType'
-          .split('.')
-          .last,
+      'pageType': '$pageType'.split('.').last,
       'params': (result != null) ? result : {},
       'actionType': actionType,
       'homePage': homePage,
@@ -385,11 +379,12 @@ class DNavigatorManager {
           Future pop;
           int length = nodeEntity.nodeList.length - 1;
           for (int i = length; i >= 0; i--) {
+            final DNode node = nodeEntity.nodeList[i];
             bool _animated = i == length;
             if (nodeEntity.animated == false) {
               _animated = nodeEntity.animated;
             }
-            pop = DNavigatorManager.gardPop(null, _animated);
+            pop = DNavigatorManager.gardPop(node.params, _animated);
           }
           return pop;
         }
@@ -453,7 +448,7 @@ class DNavigatorManager {
       pageBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> secondaryAnimation) {
         DStackWidgetBuilder stackWidgetBuilder =
-        DStack.instance.pageBuilder(routeName);
+            DStack.instance.pageBuilder(routeName);
 
         return animatedBuilder(
             context, animation, secondaryAnimation, stackWidgetBuilder(params));
@@ -465,19 +460,20 @@ class DNavigatorManager {
   /// 创建PageRoute
   /// pushAnimated 是否有进场动画
   /// popAnimated 是否有退场动画
-  static PageRoute materialRoute({String routeName,
-    Map params,
-    bool pushAnimated = true,
-    bool popAnimated = true,
-    bool maintainState = true,
-    bool fullscreenDialog = false,
-    WidgetBuilder builder}) {
+  static PageRoute materialRoute(
+      {String routeName,
+      Map params,
+      bool pushAnimated = true,
+      bool popAnimated = true,
+      bool maintainState = true,
+      bool fullscreenDialog = false,
+      WidgetBuilder builder}) {
     RouteSettings userSettings =
-    RouteSettings(name: routeName, arguments: params);
+        RouteSettings(name: routeName, arguments: params);
 
     if (builder == null) {
       DStackWidgetBuilder stackWidgetBuilder =
-      DStack.instance.pageBuilder(routeName);
+          DStack.instance.pageBuilder(routeName);
       builder = stackWidgetBuilder(params);
     }
 

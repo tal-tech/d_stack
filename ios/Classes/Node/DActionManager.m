@@ -267,6 +267,7 @@
         for (DNode *x in flutterNodes) {
             // homePage 页面不能pop，不然会黑屏
             if (!(x.isFlutterHomePage && x.boundary)) {
+                x.params = node.params;
                 [nodeList addObject:wrap(x)];
             }
         }

@@ -208,7 +208,9 @@ class TestCase {
     {
       "text": "打开 flutter page3",
       "clicked": (context) {
-        DStack.push('page3', PageType.flutter);
+        DStack.push('page3', PageType.flutter).then((value) {
+          print("value ==== ${value}");
+        });
       }
     },
     {

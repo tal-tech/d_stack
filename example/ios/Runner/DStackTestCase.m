@@ -100,7 +100,12 @@
                                                                    route:@"page6"];
             }
         },
-        
+        @{
+            @"text": @"popTo Flutter page2",
+            @"clicked": ^(UIViewController *controller) {
+                [[DStack sharedInstance] popToPageWithFlutterRoute:@"page2" params:@{@"test": @"携带参数"} animated:YES];
+            }
+        },
     ];
     
     _fourVCSource = @[
