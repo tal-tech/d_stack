@@ -1,3 +1,5 @@
+## 1.3.3
+* 添加pushAndRemoveUntil方法，iOS修复bug
 ## 1.3.2
 * Android支持flutter2.0
 ## 1.3.1+2
