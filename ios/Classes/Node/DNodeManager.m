@@ -469,6 +469,19 @@
     return targetNode;
 }
 
+- (DNode *)nodeWithIdentifier:(NSString *)identifier
+{
+    DNode *targetNode = nil;
+    if (!identifier || [identifier isEqual:NSNull.null]) {return targetNode;}
+    for (NSInteger i = self.nodeList.count - 1; i >= 0; i --) {
+        DNode *node = self.nodeList[i];
+        if ([node.identifier isEqualToString:identifier]) {
+            targetNode = node; break;
+        }
+    }
+    return targetNode;
+}
+
 - (DNode *)nodeWithNode:(DNode *)messageNode
 {
     DNode *targetNode = nil;

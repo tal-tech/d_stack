@@ -612,6 +612,10 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
         SEL newPush = @selector(d_stackPushViewController:animated:);
         dStackSelectorSwizzling([self class], push, newPush);
         
+        SEL setViewControllers = @selector(setViewControllers:animated:);
+        SEL newSetViewControllers = @selector(d_stackSetViewControllers:animated:);
+        dStackSelectorSwizzling([self class], setViewControllers, newSetViewControllers);
+        
         SEL pop = @selector(popViewControllerAnimated:);
         SEL newPop = @selector(d_stackPopViewControllerAnimated:);
         dStackSelectorSwizzling([self class], pop, newPop);
@@ -651,7 +655,89 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
     return [self d_StackInitWithRootViewController:rootViewController];
 }
 
+- (void)d_stackSetViewControllers:(NSArray<UIViewController *> *)viewControllers
+                         animated:(BOOL)animated
+{
+    DNode *(^_targetNode)(UIViewController *x) = ^DNode *(UIViewController *x) {
+        NSString *identifier = [NSString stringWithFormat:@"%@_%p",
+                            NSStringFromClass(x.class), x];
+        return [[DNodeManager sharedInstance] nodeWithIdentifier:identifier];
+    };
+    
+    NSArray<UIViewController *> *oldViewControllers = self.viewControllers;
+    for (UIViewController *controller in oldViewControllers) {
+        // 检查一下是不是有出栈的节点
+        if (![viewControllers containsObject:controller]) {
+            if (_targetNode(controller)) {
+                // 有需要移除的节点
+                [self d_stackCheckPopViewControler:controller];
+            }
+        }
+    }
+    for (UIViewController *controller in viewControllers) {
+        if (!_targetNode(controller)) {
+            // 检查不在栈里的controller，需要入栈
+            [self d_stackCheckPushViewControler:controller];
+        }
+    }
+    [self d_stackSetViewControllers:viewControllers animated:animated];
+}
+
 - (void)d_stackPushViewController:(UIViewController *)controller animated:(BOOL)animated
+{
+    [self d_stackCheckPushViewControler:controller];
+    [self d_stackPushViewController:controller animated:animated];
+}
+
+- (UIViewController *)d_stackPopViewControllerAnimated:(BOOL)animated
+{
+    // 出栈管理，触发pop动作
+    // 手势返回也会触发这个函数注意手势返回的情况，手势一开始滑动就会触发，这时有可能手势滑动了一部分就停掉了
+    // 这时该页面并没有被pop出去，要注意这种情况，这情况在d_stackViewDidDisappear处理
+    UIViewController *controller = [self d_stackPopViewControllerAnimated:animated];
+    [self d_stackCheckPopViewControler:controller];
+    return controller;
+}
+
+- (NSArray<UIViewController *> *)d_stackPopToViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+    // 出栈管理，要注意移除掉当前controller到viewController之间的controller
+    if ([viewController isCustomClass]) {
+        if (![self.dStackFlutterNodeMessage boolValue]) {
+            checkNode(viewController, DNodeActionTypePopTo);
+        }
+    }
+    if (viewController) {
+        return [self d_stackPopToViewController:viewController animated:animated];
+    }
+    DStackError(@"PopTo的controller为空");
+    return @[];
+}
+
+- (NSArray<UIViewController *> *)d_stackPopToRootViewControllerAnimated:(BOOL)animated
+{
+    // 出栈管理，要注意移除掉当前controller到RootViewController之间的controller
+    if (![self.dStackFlutterNodeMessage boolValue]) {
+        checkNode(self.viewControllers.firstObject, DNodeActionTypePopToRoot);
+    }
+    return [self d_stackPopToRootViewControllerAnimated:animated];
+}
+
+- (void)d_stackCheckPopViewControler:(UIViewController *)controller
+{
+    if ([controller isCustomClass]) {
+        if (![self.dStackFlutterNodeMessage boolValue]) {
+            // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
+            if (!controller.isGesturePoped) {
+                // 手势返回的需要特殊处理，手势返回的在 viewDidDisappear 里面处理了
+                checkNode(controller, DNodeActionTypePop);
+            }
+        }
+    }
+    controller.isBeginPoped = YES;
+}
+
+- (void)d_stackCheckPushViewControler:(UIViewController *)controller
 {
     // 入栈管理
     if ([controller isCustomClass]) {
@@ -680,50 +766,6 @@ UIViewController *_DStackCurrentController(UIViewController *controller)
             checkNode(controller, DNodeActionTypePush);
         }
     }
-    [self d_stackPushViewController:controller animated:animated];
-}
-
-- (UIViewController *)d_stackPopViewControllerAnimated:(BOOL)animated
-{
-    // 出栈管理，触发pop动作
-    // 手势返回也会触发这个函数注意手势返回的情况，手势一开始滑动就会触发，这时有可能手势滑动了一部分就停掉了
-    // 这时该页面并没有被pop出去，要注意这种情况，这情况在d_stackViewDidDisappear处理
-    UIViewController *controller = [self d_stackPopViewControllerAnimated:animated];
-    if ([controller isCustomClass]) {
-        if (![self.dStackFlutterNodeMessage boolValue]) {
-            // 如果是FlutterController，则不需要checkNode，因为FlutterViewController已经checkNode了，要去重
-            if (!controller.isGesturePoped) {
-                // 手势返回的需要特殊处理，手势返回的在 viewDidDisappear 里面处理了
-                checkNode(controller, DNodeActionTypePop);
-            }
-        }
-    }
-    controller.isBeginPoped = YES;
-    return controller;
-}
-
-- (NSArray<UIViewController *> *)d_stackPopToViewController:(UIViewController *)viewController animated:(BOOL)animated
-{
-    // 出栈管理，要注意移除掉当前controller到viewController之间的controller
-    if ([viewController isCustomClass]) {
-        if (![self.dStackFlutterNodeMessage boolValue]) {
-            checkNode(viewController, DNodeActionTypePopTo);
-        }
-    }
-    if (viewController) {
-        return [self d_stackPopToViewController:viewController animated:animated];
-    }
-    DStackError(@"PopTo的controller为空");
-    return @[];
-}
-
-- (NSArray<UIViewController *> *)d_stackPopToRootViewControllerAnimated:(BOOL)animated
-{
-    // 出栈管理，要注意移除掉当前controller到RootViewController之间的controller
-    if (![self.dStackFlutterNodeMessage boolValue]) {
-        checkNode(self.viewControllers.firstObject, DNodeActionTypePopToRoot);
-    }
-    return [self d_stackPopToRootViewControllerAnimated:animated];
 }
 
 - (BOOL)d_stackGestureRecognizerShouldBegin:(UIPanGestureRecognizer *)gestureRecognizer

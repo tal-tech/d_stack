@@ -47,6 +47,10 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param target target
 - (nullable DNode *)nodeWithTarget:(NSString *)target;
 
+/// 根据identifier从nodeLlist获取，倒序查找
+/// @param target target
+- (nullable DNode *)nodeWithIdentifier:(NSString *)identifier;
+
 /// 原生页面的pop返回手势能否响应
 /// 判断逻辑
 /// NodeList的最后一个节点就是当前页面正在显示的页面
