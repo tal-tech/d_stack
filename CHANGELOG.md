@@ -1,3 +1,5 @@
+## 1.3.3+1
+* android修复根节点返回键问题
 ## 1.3.3
 * 添加pushAndRemoveUntil方法，iOS修复bug
 ## 1.3.2
