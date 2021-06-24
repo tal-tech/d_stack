@@ -636,6 +636,15 @@ public class DFlutterActivity extends Activity
         }
     }
 
+    /**
+     * flutter根节点点击返回时，如果需要拦截事件，可在自己的flutter控制器onBackPress调用此方法
+     */
+    public void onRootPressed() {
+        if (stillAttachedForEvent("onBackPressed")) {
+            delegate.onBackPressed();
+        }
+    }
+
     @Override
     public void onBackPressed() {
         if (stillAttachedForEvent("onBackPressed")) {
