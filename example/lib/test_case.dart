@@ -209,7 +209,7 @@ class TestCase {
       "text": "打开 flutter page3",
       "clicked": (context) {
         DStack.push('page3', PageType.flutter).then((value) {
-          print("value ==== ${value}");
+          print("value ==== $value");
         });
       }
     },
@@ -232,7 +232,7 @@ class TestCase {
                       children: [
                         Text("dialog",
                             style: TextStyle(decoration: TextDecoration.none)),
-                        RaisedButton(
+                        ElevatedButton(
                           onPressed: () {
                             DStack.push('page3', PageType.flutter);
                           },
@@ -240,7 +240,7 @@ class TestCase {
                               style:
                                   TextStyle(decoration: TextDecoration.none)),
                         ),
-                        RaisedButton(
+                        ElevatedButton(
                           onPressed: () {
                             Navigator.pop(cxt);
                           },
@@ -401,7 +401,7 @@ class TestCase {
                       children: [
                         Text("dialog",
                             style: TextStyle(decoration: TextDecoration.none)),
-                        RaisedButton(
+                        ElevatedButton(
                           onPressed: () {
                             DStack.push('page3', PageType.flutter);
                           },
@@ -409,7 +409,7 @@ class TestCase {
                               style:
                                   TextStyle(decoration: TextDecoration.none)),
                         ),
-                        RaisedButton(
+                        ElevatedButton(
                           onPressed: () {
                             Navigator.pop(cxt);
                           },

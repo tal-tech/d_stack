@@ -16,16 +16,16 @@ import 'dnavigator_manager.dart';
 // 路由监听
 class DStackNavigatorObserver extends NavigatorObserver {
   // 单例
-  factory DStackNavigatorObserver() => _getInstance();
+  factory DStackNavigatorObserver() => _getInstance()!;
 
-  static DStackNavigatorObserver get instance => _getInstance();
-  static DStackNavigatorObserver _instance;
+  static DStackNavigatorObserver? get instance => _getInstance();
+  static DStackNavigatorObserver? _instance;
   // 避免过度pop
   int routerCount = 0;
 
   DStackNavigatorObserver._internal();
 
-  static DStackNavigatorObserver _getInstance() {
+  static DStackNavigatorObserver? _getInstance() {
     if (_instance == null) {
       _instance = new DStackNavigatorObserver._internal();
     }
@@ -33,9 +33,9 @@ class DStackNavigatorObserver extends NavigatorObserver {
   }
 
   // 标识手势引起的pop事件
-  String _gesturingRouteName;
-  String get gesturingRouteName => this._gesturingRouteName;
-  void setGesturingRouteName(String gesturingRouteName) {
+  String? _gesturingRouteName;
+  String? get gesturingRouteName => this._gesturingRouteName;
+  void setGesturingRouteName(String? gesturingRouteName) {
     this._gesturingRouteName = gesturingRouteName;
   }
 
@@ -43,7 +43,7 @@ class DStackNavigatorObserver extends NavigatorObserver {
   /// route 路由目标页面
   /// previousRoute 目标页面的上一个页面
   @override
-  void didPush(Route route, Route previousRoute) {
+  void didPush(Route route, Route? previousRoute) {
     super.didPush(route, previousRoute);
     debugPrint(
         ' 【didPush】${route.settings.name}【didPush】');
@@ -60,7 +60,7 @@ class DStackNavigatorObserver extends NavigatorObserver {
   /// route 当前操作页面
   /// previousRoute 操作页面的上一个页面
   @override
-  void didPop(Route route, Route previousRoute) {
+  void didPop(Route route, Route? previousRoute) {
     super.didPop(route, previousRoute);
     routerCount -= 1;
     debugPrint(
@@ -77,7 +77,7 @@ class DStackNavigatorObserver extends NavigatorObserver {
       } else if (gesturingRouteName != null &&
           gesturingRouteName == DStackConstant.nativeDidPopGesture) {
         // native手势引起的didPop，native侧已经删除节点，flutter侧不再removeFlutterNode
-        DStackNavigatorObserver.instance.setGesturingRouteName(null);
+        DStackNavigatorObserver.instance!.setGesturingRouteName(null);
       } else {
         if (route.settings.name != null) {
           DNavigatorManager.removeFlutterNode(route.settings.name,
@@ -91,15 +91,16 @@ class DStackNavigatorObserver extends NavigatorObserver {
   /// previousRoute 目标页面的上一个页面
   // 滑动手势开始
   @override
-  void didStartUserGesture(Route route, Route previousRoute) {
+  void didStartUserGesture(Route route, Route? previousRoute) {
     super.didStartUserGesture(route, previousRoute);
-    DStackNavigatorObserver.instance.setGesturingRouteName(route.settings.name);
+    DStackNavigatorObserver.instance!
+        .setGesturingRouteName(route.settings.name);
   }
 
   // 滑动手势结束
   @override
   void didStopUserGesture() {
     super.didStopUserGesture();
-    DStackNavigatorObserver.instance.setGesturingRouteName(null);
+    DStackNavigatorObserver.instance!.setGesturingRouteName(null);
   }
 }

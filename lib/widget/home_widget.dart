@@ -10,12 +10,12 @@ import 'package:flutter/material.dart';
 /// DStack入口Widget
 class DStackWidget extends StatelessWidget {
   /// 默认的homePage
-  final Widget homePage;
+  final Widget? homePage;
 
   /// homepage的route
-  final String homePageRoute;
+  final String? homePageRoute;
 
-  DStackWidget({Key key, this.homePage, this.homePageRoute}) : super(key: key);
+  DStackWidget({Key? key, this.homePage, this.homePageRoute}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

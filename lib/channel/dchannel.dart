@@ -18,14 +18,14 @@ import 'package:flutter/services.dart';
 import '../d_stack.dart';
 
 class DChannel {
-  MethodChannel _methodChannel;
+  late MethodChannel _methodChannel;
 
   DChannel(MethodChannel methodChannel) {
     _methodChannel = methodChannel;
     _methodChannel.setMethodCallHandler((MethodCall call) {
       // sendActionToFlutter 处理Native发过来的指令
       if (DStackConstant.nodeToFlutter == call.method) {
-        return DNavigatorManager.handleActionToFlutter(call.arguments);
+        return DNavigatorManager.handleActionToFlutter(call.arguments)!;
       } else if (DStackConstant.lifeCycle == call.method) {
         return LifeCycleHandler.handleLifecycleMessage(call.arguments);
       } else if (DStackConstant.sendOperationNodeToFlutter == call.method) {
@@ -62,11 +62,11 @@ class DChannel {
         });
         return Future.value(nodeList);
       }
-      return null;
+      return Future.value([]);
     });
   }
 
-  Future sendHomePageRoute(String route) {
+  Future sendHomePageRoute(String? route) {
     return _methodChannel.invokeMethod(
         DStackConstant.sendHomePageRoute, {"homePageRoute": route});
   }

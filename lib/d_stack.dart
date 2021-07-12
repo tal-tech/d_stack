@@ -20,7 +20,7 @@ enum PageType { native, flutter }
 const Duration defaultPushDuration = Duration(milliseconds: 300);
 const Duration defaultPopDuration = Duration(milliseconds: 250);
 
-typedef DStackWidgetBuilder = WidgetBuilder Function(Map params);
+typedef DStackWidgetBuilder = WidgetBuilder Function(Map? params);
 typedef AnimatedPageBuilder = AnimatedWidget Function(
     BuildContext context,
     Animation<double> animation,
@@ -34,7 +34,7 @@ typedef PushAnimationPageBuilder = AnimatedWidget Function(
     Widget child);
 
 class DStack {
-  static DChannel _stackChannel;
+  static DChannel? _stackChannel;
   static final DStack _instance = DStack();
 
   static DStack get instance {
@@ -43,16 +43,16 @@ class DStack {
     return _instance;
   }
 
-  DChannel get channel => _stackChannel;
+  DChannel? get channel => _stackChannel;
 
-  String _homePageRoute;
+  String? _homePageRoute;
 
-  String get homeRoute => _homePageRoute;
+  String? get homeRoute => _homePageRoute;
 
-  set homePageRoute(String route) {
+  set homePageRoute(String? route) {
     _homePageRoute = route;
     if (_homePageRoute != null) {
-      channel.sendHomePageRoute(_homePageRoute);
+      channel!.sendHomePageRoute(_homePageRoute);
     }
   }
 
@@ -61,25 +61,26 @@ class DStack {
 
   /// 路由observer
   final DStackNavigatorObserver dStackNavigatorObserver =
-  DStackNavigatorObserver();
+      DStackNavigatorObserver();
 
   /// 用来监听 应用生命周期
-  DLifeCycleObserver dLifeCycleObserver;
+  DLifeCycleObserver? dLifeCycleObserver;
 
   /// 用来监听节点操作
-  DNodeObserver dNodeObserver;
+  DNodeObserver? dNodeObserver;
 
   final Map<String, DStackWidgetBuilder> _pageBuilders =
-  <String, DStackWidgetBuilder>{};
+      <String, DStackWidgetBuilder>{};
 
   /// 注册DStack
   /// builders 路由的builder
   /// observer 生命周期监听者
-  void register({Map<String, DStackWidgetBuilder> builders,
-    DLifeCycleObserver observer,
-    DNodeObserver nodeObserver}) {
+  void register(
+      {Map<String, DStackWidgetBuilder>? builders,
+      DLifeCycleObserver? observer,
+      DNodeObserver? nodeObserver}) {
     if (builders?.isNotEmpty == true) {
-      _pageBuilders.addAll(builders);
+      _pageBuilders.addAll(builders!);
     }
     dLifeCycleObserver = observer;
     dNodeObserver = nodeObserver;
@@ -87,8 +88,8 @@ class DStack {
 
   /// 获取一个 DStackWidgetBuilder
   /// pageName 路由
-  DStackWidgetBuilder pageBuilder(String pageName) {
-    DStackWidgetBuilder builder = _pageBuilders[pageName];
+  DStackWidgetBuilder pageBuilder(String? pageName) {
+    DStackWidgetBuilder? builder = _pageBuilders[pageName!];
     if (builder != null) {
       return builder;
     } else {
@@ -97,7 +98,7 @@ class DStack {
   }
 
   /// 获取节点列表
-  Future<List<DStackNode>> nodeList() => channel.getNodeList();
+  Future<List<DStackNode>> nodeList() => channel!.getNodeList();
 
   /// 推出一个页面
   /// routeName 路由名，
@@ -105,7 +106,7 @@ class DStack {
   /// params 参数
   /// animated 是否有进场动画
   static Future push(String routeName, PageType pageType,
-      {Map params, bool maintainState = true, bool animated = true}) {
+      {Map? params, bool maintainState = true, bool animated = true}) {
     return DNavigatorManager.push(routeName, pageType,
         params: params, maintainState: maintainState, animated: animated);
   }
@@ -113,7 +114,7 @@ class DStack {
   /// 弹出一个页面
   /// animated 是否有进场动画
   static Future present(String routeName, PageType pageType,
-      {Map params, bool maintainState = true, bool animated = true}) {
+      {Map? params, bool maintainState = true, bool animated = true}) {
     return DNavigatorManager.present(routeName, pageType,
         params: params, maintainState: maintainState, animated: animated);
   }
@@ -126,15 +127,16 @@ class DStack {
   /// 只有是popGesture为true并且
   /// MaterialApp(ThemeData(platform: TargetPlatform.iOS);
   /// popGesture 才有效
-  static Future pushWithAnimation(String routeName,
-      PageType pageType,
-      PushAnimationPageBuilder animationBuilder, {
-        Map params,
-        bool replace = false,
-        bool popGesture = false,
-        Duration pushDuration = defaultPushDuration,
-        Duration popDuration = defaultPopDuration,
-      }) {
+  static Future pushWithAnimation(
+    String routeName,
+    PageType pageType,
+    PushAnimationPageBuilder animationBuilder, {
+    Map? params,
+    bool replace = false,
+    bool popGesture = false,
+    Duration pushDuration = defaultPushDuration,
+    Duration popDuration = defaultPopDuration,
+  }) {
     return DNavigatorManager.pushWithAnimation(
         routeName, pageType, animationBuilder,
         params: params,
@@ -147,12 +149,12 @@ class DStack {
   /// 等同push
   /// builder 页面builder
   /// animated 是否有进场动画
-  static Future pushBuild(String routeName, PageType pageType,
-      WidgetBuilder builder,
-      {Map params,
-        bool maintainState = true,
-        bool fullscreenDialog = false,
-        bool animated = true}) {
+  static Future pushBuild(
+      String routeName, PageType pageType, WidgetBuilder builder,
+      {Map? params,
+      bool maintainState = true,
+      bool fullscreenDialog = false,
+      bool animated = true}) {
     return DNavigatorManager.pushBuild(routeName, pageType, builder,
         params: params,
         maintainState: maintainState,
@@ -162,14 +164,15 @@ class DStack {
 
   /// 只支持flutter使用，替换flutter页面
   /// animated 是否有进场动画
-  static Future replace(String routeName,
-      PageType pageType, {
-        Map params,
-        bool maintainState = true,
-        bool fullscreenDialog = false,
-        bool animated = true,
-        bool homePage = false,
-      }) {
+  static Future replace(
+    String routeName,
+    PageType pageType, {
+    Map? params,
+    bool maintainState = true,
+    bool fullscreenDialog = false,
+    bool animated = true,
+    bool homePage = false,
+  }) {
     return DNavigatorManager.replace(routeName, pageType,
         params: params,
         maintainState: maintainState,
@@ -179,14 +182,15 @@ class DStack {
   }
 
   /// 跳转指定页面并清除剩余所有页面
-  static  pushAndRemoveUntil(String routeName,
-      PageType pageType, {
-        Map params,
-        bool maintainState = true,
-        bool fullscreenDialog = false,
-        bool animated = true,
-        bool homePage = false,
-      }) {
+  static pushAndRemoveUntil(
+    String routeName,
+    PageType pageType, {
+    Map? params,
+    bool maintainState = true,
+    bool fullscreenDialog = false,
+    bool animated = true,
+    bool homePage = false,
+  }) {
     return DNavigatorManager.pushAndRemoveUntil(routeName, pageType,
         params: params,
         maintainState: maintainState,
@@ -198,7 +202,7 @@ class DStack {
   /// pop
   /// 可以不传路由信息
   /// result 返回值，可为空
-  static void pop({Map result, bool animated = true}) {
+  static void pop({Map? result, bool animated = true}) {
     DNavigatorManager.pop(result: result, animated: animated);
   }
 
@@ -206,20 +210,20 @@ class DStack {
   /// 无法popTo到根页面
   /// 要popTo到根页面请调用popToRoot
   static void popTo(String routeName, PageType pageType,
-      {Map result, bool animated = true}) {
+      {Map? result, bool animated = true}) {
     DNavigatorManager.popTo(routeName, pageType,
         result: result, animated: animated);
   }
 
   /// pop同一组页面
-  static void popSkip(String skipName, {Map result, bool animated = true}) {
+  static void popSkip(String skipName, {Map? result, bool animated = true}) {
     DNavigatorManager.popSkip(skipName, result: result, animated: animated);
   }
 
   /// 关闭一个页面
   /// 如果是push进入的，等同pop
   /// 如果是present进入的，效果是从上往下缩回去
-  static void dismiss({Map result, bool animated = true}) {
+  static void dismiss({Map? result, bool animated = true}) {
     DNavigatorManager.dismiss(result: result, animated: animated);
   }
 
@@ -239,19 +243,20 @@ class DStack {
   /// replace：true flutter的pushReplacement实现
   /// replace：false flutter的push实现
   @Deprecated('已废弃，请使用pushWithAnimation')
-  static Future animationPage(String routeName,
-      PageType pageType,
-      AnimatedPageBuilder animatedBuilder, {
-        Map params,
-        Duration transitionDuration,
-        bool opaque = true,
-        bool barrierDismissible = false,
-        Color barrierColor,
-        String barrierLabel,
-        bool maintainState = true,
-        bool fullscreenDialog = false,
-        bool replace = false,
-      }) {
+  static Future animationPage(
+    String routeName,
+    PageType pageType,
+    AnimatedPageBuilder animatedBuilder, {
+    Map? params,
+    Duration? transitionDuration,
+    bool opaque = true,
+    bool barrierDismissible = false,
+    Color? barrierColor,
+    String? barrierLabel,
+    bool maintainState = true,
+    bool fullscreenDialog = false,
+    bool replace = false,
+  }) {
     return DNavigatorManager.animationPage(
         routeName,
         pageType,
@@ -269,8 +274,8 @@ class DStack {
 }
 
 class DStackNode {
-  final String route;
-  final String pageType;
+  final String? route;
+  final String? pageType;
 
   DStackNode({this.route, this.pageType});
 }

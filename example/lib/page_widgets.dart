@@ -12,12 +12,12 @@ import 'package:d_stack_example/test_case.dart';
 import 'package:flutter/material.dart';
 
 class Student {
-  String name;
-  int age;
-  String address;
+  String? name;
+  int? age;
+  String? address;
 }
 
-Widget _caseWidget(List<Map> items, {BuildContext context}) {
+Widget _caseWidget(List<Map> items, {BuildContext? context}) {
   return Center(
     child: ListView.builder(
       itemExtent: 60,
@@ -52,7 +52,8 @@ class Page1 extends StatefulWidget {
 class _Page1 extends State<Page1> {
   @override
   Widget build(BuildContext context) {
-    final Map args = ModalRoute.of(context).settings.arguments;
+    final Map? args =
+        ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>?;
     debugPrint('page1收到前一个页面传来的参数 ==> $args');
     return Scaffold(
       appBar: AppBar(title: Text('flutter page1'), leading: Container()),
@@ -65,13 +66,14 @@ class _Page1 extends State<Page1> {
 class Page2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final Map args = ModalRoute.of(context).settings.arguments;
+    final Map? args =
+        ModalRoute.of(context)!.settings.arguments as Map<dynamic, dynamic>?;
     debugPrint('page2收到前一个页面传来的参数 ==> $args');
 
     return Scaffold(
       appBar: AppBar(
           title: Text('flutter page2'),
-          leading: RaisedButton(
+          leading: ElevatedButton(
             child: Text('返回'),
             onPressed: () {
               DStack.pop();
@@ -88,7 +90,7 @@ class Page3 extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
           title: Text('flutter page3'),
-          leading: RaisedButton(
+          leading: ElevatedButton(
             child: Text('返回'),
             onPressed: () {
               DStack.pop();
@@ -105,7 +107,7 @@ class Page4 extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('flutter page4'),
-        leading: RaisedButton(
+        leading: ElevatedButton(
           child: Text('返回'),
           onPressed: () {
             DStack.pop();
@@ -123,7 +125,7 @@ class Page5 extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('flutter page5'),
-        leading: RaisedButton(
+        leading: ElevatedButton(
           child: Text('返回'),
           onPressed: () {
             DStack.pop();
@@ -141,7 +143,7 @@ class Page6 extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('flutter page6'),
-        leading: RaisedButton(
+        leading: ElevatedButton(
           child: Text('返回'),
           onPressed: () {
             DStack.pop();
@@ -159,7 +161,7 @@ class Page7 extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('flutter page7'),
-        leading: RaisedButton(
+        leading: ElevatedButton(
           child: Text('返回'),
           onPressed: () {
             DStack.pop();

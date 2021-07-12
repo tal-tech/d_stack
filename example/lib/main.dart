@@ -24,12 +24,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance!.addObserver(this);
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    WidgetsBinding.instance!.removeObserver(this);
     super.dispose();
   }
 
@@ -68,43 +68,43 @@ class RouterBuilder {
     return builders;
   }
 
-  static DStackWidgetBuilder page1Builder = (Map params) {
+  static DStackWidgetBuilder page1Builder = (Map? params) {
     return (BuildContext context) {
       return Page1();
     };
   };
 
-  static DStackWidgetBuilder page2Builder = (Map params) {
+  static DStackWidgetBuilder page2Builder = (Map? params) {
     return (BuildContext context) {
       return Page2();
     };
   };
 
-  static DStackWidgetBuilder page3Builder = (Map params) {
+  static DStackWidgetBuilder page3Builder = (Map? params) {
     return (BuildContext context) {
       return Page3();
     };
   };
 
-  static DStackWidgetBuilder page4Builder = (Map params) {
+  static DStackWidgetBuilder page4Builder = (Map? params) {
     return (BuildContext context) {
       return Page4();
     };
   };
 
-  static DStackWidgetBuilder page5Builder = (Map params) {
+  static DStackWidgetBuilder page5Builder = (Map? params) {
     return (BuildContext context) {
       return Page5();
     };
   };
 
-  static DStackWidgetBuilder page6Builder = (Map params) {
+  static DStackWidgetBuilder page6Builder = (Map? params) {
     return (BuildContext context) {
       return Page6();
     };
   };
 
-  static DStackWidgetBuilder page7Builder = (Map params) {
+  static DStackWidgetBuilder page7Builder = (Map? params) {
     return (BuildContext context) {
       return Page7();
     };
