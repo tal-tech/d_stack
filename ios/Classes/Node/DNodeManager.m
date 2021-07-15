@@ -37,6 +37,16 @@
 - (NSArray<DNode *> *)checkNode:(DNode *)node
 {
     if (!node) { return @[];}
+    if (node.action == DNodeActionTypePush ||
+        node.action == DNodeActionTypePresent) {
+        /// 判断一下是否在栈中已存在了相同的node
+        DNode *checkNode = [[DNodeManager sharedInstance] nodeWithIdentifier:node.identifier];
+        if (checkNode) {
+            /// 节点已存在栈中，不在入栈
+            DStackLog(@"【当前节点id】== %@，【已存在于栈中不再重复入栈，栈列表为】== %@", node.identifier, [DNodeManager sharedInstance].currentNodeList);
+            return @[];
+        }
+    }
     NSArray *subArray = [self subArrayWithNode:node];
     // 这里要调用DActionManager去处理跳转
     [DActionManager handlerActionWithNodeList:subArray node:node];
@@ -535,6 +545,24 @@
 
 #pragma mark - 日志记录
 
+- (nullable NSArray<NSString *> *)logFiles
+{
+    if ([[DStack sharedInstance] debugMode]) {
+        NSFileManager *manager = [NSFileManager defaultManager];
+        NSArray *temps = [manager contentsOfDirectoryAtPath:self.logFileDirectoryPath
+                                                      error:nil];
+        NSMutableArray *files = [[NSMutableArray alloc] init];
+        for (NSString *file in temps) {
+            if ([file hasSuffix:@"-debug.txt"]) {
+                NSString *path = [NSString stringWithFormat:@"%@/%@", self.logFileDirectoryPath, file];
+                [files addObject:path];
+            }
+        }
+        return files;
+    }
+    return nil;
+}
+
 - (void)configLogFileWithDebugMode:(BOOL)debugMode
 {
     NSString *logFilePath = [self logFileDirectoryPath];
@@ -608,10 +636,10 @@
         NSString *jsonString = [[NSString alloc] initWithData:jsonData
                                                      encoding:NSUTF8StringEncoding];
         if (jsonString) {
-        [jsonString writeToFile:self.logPath
-                     atomically:YES
-                       encoding:NSUTF8StringEncoding
-                          error:nil];
+            [jsonString writeToFile:self.logPath
+                         atomically:YES
+                           encoding:NSUTF8StringEncoding
+                              error:nil];
         }
         
         if (self.debugLogPath) {

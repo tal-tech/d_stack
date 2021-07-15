@@ -39,6 +39,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param enable enable
 - (void)logEnable:(BOOL)enable;
 
+/// 获取日志文件
+- (nullable NSArray<NSString *> *)logFiles;
+
 /// push打开一个flutter页面
 /// @param cls 当前DFlutterViewController的class或它的子类
 /// @param route flutter页面的route

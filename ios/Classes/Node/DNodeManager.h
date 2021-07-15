@@ -48,7 +48,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable DNode *)nodeWithTarget:(NSString *)target;
 
 /// 根据identifier从nodeLlist获取，倒序查找
-/// @param target target
+/// @param identifier identifier
 - (nullable DNode *)nodeWithIdentifier:(NSString *)identifier;
 
 /// 原生页面的pop返回手势能否响应
@@ -79,6 +79,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// 更新根节点信息
 /// @param node node
 - (BOOL)updateRootNode:(DNode *)node;
+
+/// 获取日志文件内容
+- (nullable NSArray<NSString *> *)logFiles;
 
 @end
 

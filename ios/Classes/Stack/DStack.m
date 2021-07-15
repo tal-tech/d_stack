@@ -50,6 +50,11 @@
     [[DNodeManager sharedInstance] configLogFileWithDebugMode:enable];
 }
 
+- (NSArray<NSString *> *)logFiles
+{
+    return [[DNodeManager sharedInstance] logFiles];
+}
+
 - (BOOL)debugMode
 {
     return self.logEnable;
