@@ -1,3 +1,5 @@
+## 1.3.4+2-nullsafety
+* Android侧添加打开透明Flutter控制器方法
 ## 1.3.4+1-nullsafety
 * iOS侧加入防止同一节点重复入栈的容错
 ## 1.3.4-nullsafety
