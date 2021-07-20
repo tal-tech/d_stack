@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.flutter.embedding.android.FlutterActivity;
+import io.flutter.embedding.android.FlutterActivityLaunchConfigs;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.embedding.engine.FlutterEngineCache;
 import io.flutter.embedding.engine.dart.DartExecutor;
@@ -163,6 +164,46 @@ public class DStack {
         // 先给flutter发消息再打开flutter容器activity，避免短暂白屏问题
         if (!isSameActivity) {
             Intent intent = FlutterActivity.withCachedEngine(ENGINE_ID).build(context);
+            intent.setClass(context, containerCls);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        }
+    }
+
+    /**
+     * native侧打开flutter页面，背景透明
+     *
+     * @param pageRouter   页面路由地址
+     * @param params       参数
+     * @param containerCls flutter页面容器activity的类对象
+     */
+    public void pushFlutterPageWithTransparent(String pageRouter, Map<String, Object> params, Class<?> containerCls) {
+        DLog.logD("要打开的flutter页面路由是：" + pageRouter);
+        DNode node = new DNode.Builder()
+                .target(pageRouter)
+                .params(params)
+                .pageType(DNodePageType.DNodePageTypeFlutter)
+                .action(DNodeActionType.DNodeActionTypePush)
+                .boundary(true)
+                .build();
+
+        if (!DStack.getInstance().isFlutterApp()) {
+            //原生工程
+            if (!DStackActivityManager.getInstance().haveFlutterContainer()) {
+                //第一次打开flutter页面，设置flutter页面的homepage为true
+                node.setHomePage(true);
+            }
+        }
+
+
+        // 如果连续打开同一个Flutter控制器，则做个判断，只打开一次activity
+        boolean isSameActivity = DStackActivityManager.getInstance().isSameActivity(containerCls);
+        DNodeManager.getInstance().checkNode(node);
+        // 先给flutter发消息再打开flutter容器activity，避免短暂白屏问题
+        if (!isSameActivity) {
+            Intent intent = FlutterActivity.withCachedEngine(ENGINE_ID)
+                    .backgroundMode(FlutterActivityLaunchConfigs.BackgroundMode.transparent)
+                    .build(context);
             intent.setClass(context, containerCls);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
