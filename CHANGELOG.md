@@ -1,3 +1,5 @@
+## 1.3.4+3-nullsafety
+* Android侧修改判断appStart条件
 ## 1.3.4+2-nullsafety
 * Android侧添加打开透明Flutter控制器方法
 ## 1.3.4+1-nullsafety
