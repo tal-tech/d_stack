@@ -37,6 +37,13 @@ public class FilterActivityManager {
 
     private List<String> filterActivities = new ArrayList<>();
 
+    private List<String> androidStack = new ArrayList<>();
+
+    /**
+     * 判断是否可以添加到混合栈
+     * @param activity
+     * @return
+     */
     public boolean canAdd(Activity activity) {
         if (activity == null) {
             return false;
