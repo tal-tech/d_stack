@@ -8,6 +8,7 @@
  */
 
 import 'dart:ui';
+import 'dart:io';
 
 import 'package:d_stack/constant/constant_config.dart';
 import 'package:d_stack/d_stack.dart';
@@ -51,6 +52,25 @@ class DNavigatorManager {
     }
   }
 
+  static Future animatedFlutterPage(String routeName, { 
+    Map? params,
+    TransitionType? transition,
+    Duration transitionDuration = const Duration(milliseconds: 250),
+    RouteTransitionsBuilder? transitionsBuilder
+  }) {
+    var route = routeCreator(routeName,
+        params: params, 
+        transition: transition, 
+        transitionDuration: 
+        transitionDuration, 
+        transitionsBuilder: transitionsBuilder);
+
+    DNavigatorManager.nodeHandle(routeName, PageType.flutter, DStackConstant.push,
+        result: {}, route: route);
+    
+    return _navigator!.push(route);
+  }
+  
   /// 弹出页面
   static Future present(String routeName, PageType pageType,
       {Map? params, bool? maintainState, bool animated = true}) {
@@ -487,4 +507,102 @@ class DNavigatorManager {
     );
     return route;
   }
+
+  static Route routeCreator(String routeName, {
+    Map? params,
+    TransitionType? transition,
+    Duration transitionDuration = const Duration(milliseconds: 250),
+    RouteTransitionsBuilder? transitionsBuilder
+  }) {
+    RouteSettings routeSettings = RouteSettings(name: routeName, arguments: params);
+
+    bool isNativeTransition = (transition == TransitionType.native || transition == TransitionType.nativeModal);
+    DStackWidgetBuilder stackWidgetBuilder = DStack.instance.pageBuilder(routeName);
+    WidgetBuilder builder = stackWidgetBuilder(params);
+    if (isNativeTransition) {
+      if (Platform.isIOS) {
+        return CupertinoPageRoute<dynamic>(
+            settings: routeSettings,
+            fullscreenDialog: transition == TransitionType.nativeModal,
+            builder: builder);
+      } else {
+        return MaterialPageRoute<dynamic>(
+            settings: routeSettings,
+            fullscreenDialog: transition == TransitionType.nativeModal,
+            builder: builder);
+      }
+    } else if (transition == TransitionType.material || transition == TransitionType.materialFullScreenDialog) {
+      return MaterialPageRoute<dynamic>(
+          settings: routeSettings,
+          fullscreenDialog: transition == TransitionType.materialFullScreenDialog,
+          builder: builder);
+    } else if (transition == TransitionType.cupertino || transition == TransitionType.cupertinoFullScreenDialog) {
+      return CupertinoPageRoute<dynamic>(
+          settings: routeSettings,
+          fullscreenDialog: transition == TransitionType.cupertinoFullScreenDialog,
+          builder: builder);
+    } else if (transition == TransitionType.fadeOpaque) {
+      return PageRouteBuilder<dynamic>(
+        opaque: false,
+        settings: routeSettings,
+        pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+          return builder(context);
+        },
+        transitionDuration: transitionDuration,
+        transitionsBuilder: _standardTransitionsBuilder(transition),
+      );
+    } else {
+      var routeTransitionsBuilder;
+      if (transition == TransitionType.custom) {
+        routeTransitionsBuilder = transitionsBuilder;
+      } else {
+        routeTransitionsBuilder = _standardTransitionsBuilder(transition);
+      }
+      return PageRouteBuilder<dynamic>(
+        settings: routeSettings,
+        pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+          return builder(context);
+        },
+        transitionDuration: transitionDuration,
+        transitionsBuilder: routeTransitionsBuilder,
+      );
+    }
+  }
+
+  static RouteTransitionsBuilder _standardTransitionsBuilder(TransitionType? transitionType) {
+    return (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation, Widget child) {
+      if (transitionType == TransitionType.fadeIn || transitionType == TransitionType.fadeOpaque) {
+        return FadeTransition(opacity: animation, child: child);
+      } else if (transitionType == TransitionType.fadeAndScale) {
+        return ScaleTransition(
+          child: FadeTransition(opacity: animation, child: child),
+          scale: Tween<double>(begin: 0.4, end: 1.0).animate(animation),
+        );
+      } else if (transitionType == TransitionType.none) {
+        return child;
+      } else {
+        const Offset topLeft = const Offset(0.0, 0.0);
+        const Offset topRight = const Offset(1.0, 0.0);
+        const Offset bottomLeft = const Offset(0.0, 1.0);
+        Offset startOffset = bottomLeft;
+        Offset endOffset = topLeft;
+        if (transitionType == TransitionType.inFromLeft) {
+          startOffset = const Offset(-1.0, 0.0);
+          endOffset = topLeft;
+        } else if (transitionType == TransitionType.inFromRight) {
+          startOffset = topRight;
+          endOffset = topLeft;
+        }
+
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: startOffset,
+            end: endOffset,
+          ).animate(animation),
+          child: child,
+        );
+      }
+    };
+  }
+
 }

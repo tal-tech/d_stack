@@ -17,6 +17,27 @@ import 'package:flutter/services.dart';
 
 enum PageType { native, flutter }
 
+/// The type of transition to use when pushing/popping a route.
+///
+/// [TransitionType.custom] must also provide a transition when used.
+enum TransitionType {
+  native,
+  nativeModal,
+  inFromLeft,
+  inFromTop,
+  inFromRight,
+  inFromBottom,
+  fadeIn, // 渐变
+  custom, // 自定义，需要传transitionsBuilder
+  material,
+  materialFullScreenDialog,
+  cupertino,
+  cupertinoFullScreenDialog,
+  fadeOpaque, // 透明
+  fadeAndScale, // 透明缩放
+  none, // 无动画
+}
+
 const Duration defaultPushDuration = Duration(milliseconds: 300);
 const Duration defaultPopDuration = Duration(milliseconds: 250);
 
@@ -117,6 +138,19 @@ class DStack {
       {Map? params, bool maintainState = true, bool animated = true}) {
     return DNavigatorManager.present(routeName, pageType,
         params: params, maintainState: maintainState, animated: animated);
+  }
+
+  static Future animatedFlutterPage(String routeName, {
+    Map? params,
+    TransitionType? transition,
+    Duration transitionDuration = const Duration(milliseconds: 250),
+    RouteTransitionsBuilder? transitionsBuilder
+  }) {
+    return DNavigatorManager.animatedFlutterPage(routeName,
+        params: params,
+        transition: transition, 
+        transitionDuration: transitionDuration,
+        transitionsBuilder: transitionsBuilder);
   }
 
   /// 自定义进场动画

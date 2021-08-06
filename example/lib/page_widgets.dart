@@ -49,6 +49,21 @@ class Page1 extends StatefulWidget {
   }
 }
 
+// native,
+// nativeModal,
+// inFromLeft,
+// inFromTop,
+// inFromRight,
+// inFromBottom,
+// fadeIn,
+// custom,
+// material,
+// materialFullScreenDialog,
+// cupertino,
+// cupertinoFullScreenDialog,
+// fadeOpaque, ///透明路由类型
+// fadeAndScale,
+// none,
 class _Page1 extends State<Page1> {
   @override
   Widget build(BuildContext context) {
@@ -59,6 +74,14 @@ class _Page1 extends State<Page1> {
       appBar: AppBar(title: Text('flutter page1'), leading: Container()),
       backgroundColor: Colors.white,
       body: _caseWidget(TestCase.openFlutterPageCase),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          DStack.animatedFlutterPage('page2', transition: TransitionType.fadeAndScale);
+        },
+        label: const Text('animation'),
+        icon: const Icon(Icons.touch_app_outlined),
+        backgroundColor: Colors.pink,
+      ),
     );
   }
 }
