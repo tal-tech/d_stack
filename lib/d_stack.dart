@@ -144,7 +144,9 @@ class DStack {
     Map? params,
     TransitionType? transition,
     Duration transitionDuration = const Duration(milliseconds: 250),
-    RouteTransitionsBuilder? transitionsBuilder
+    RouteTransitionsBuilder? transitionsBuilder,
+    bool replace = false,
+    bool clearStack = false
   }) {
     return DNavigatorManager.animatedFlutterPage(routeName,
         params: params,

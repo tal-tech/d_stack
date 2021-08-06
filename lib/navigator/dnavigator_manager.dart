@@ -56,7 +56,9 @@ class DNavigatorManager {
     Map? params,
     TransitionType? transition,
     Duration transitionDuration = const Duration(milliseconds: 250),
-    RouteTransitionsBuilder? transitionsBuilder
+    RouteTransitionsBuilder? transitionsBuilder,
+    bool replace = false,
+    bool clearStack = false
   }) {
     var route = routeCreator(routeName,
         params: params, 
@@ -64,11 +66,22 @@ class DNavigatorManager {
         transitionDuration: 
         transitionDuration, 
         transitionsBuilder: transitionsBuilder);
-
-    DNavigatorManager.nodeHandle(routeName, PageType.flutter, DStackConstant.push,
-        result: {}, route: route);
     
-    return _navigator!.push(route);
+    if (clearStack) {
+      DNavigatorManager.nodeHandle(
+          routeName, PageType.flutter, DStackConstant.pushAndRemoveUntil,
+          result: params, animated: true, route: route);
+      return _navigator!.pushAndRemoveUntil(route, (route) => route == null);
+    } else if (replace) {
+      DNavigatorManager.nodeHandle(
+          routeName, PageType.flutter, DStackConstant.replace,
+          result: {}, route: route);
+      return _navigator!.pushReplacement(route);
+    } else {
+      DNavigatorManager.nodeHandle(routeName, PageType.flutter, DStackConstant.push,
+          result: {}, route: route);
+      return _navigator!.push(route);
+    }
   }
   
   /// 弹出页面
