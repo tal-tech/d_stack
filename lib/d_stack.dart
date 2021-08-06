@@ -152,7 +152,10 @@ class DStack {
         params: params,
         transition: transition, 
         transitionDuration: transitionDuration,
-        transitionsBuilder: transitionsBuilder);
+        transitionsBuilder: transitionsBuilder,
+        replace: replace,
+        clearStack: clearStack
+    );
   }
 
   /// 自定义进场动画
