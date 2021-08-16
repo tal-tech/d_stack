@@ -59,7 +59,19 @@ void _checkNodeParams(UIViewController *targetVC, DNodeActionType action, BOOL i
 
 void checkNode(UIViewController *targetVC, DNodeActionType action)
 {
-    _checkNodeParams(targetVC, action, NO);
+    if (action == DNodeActionTypePop ||
+        action == DNodeActionTypePopTo ||
+        action == DNodeActionTypePopToRoot) {
+        if ([targetVC isKindOfClass:DFlutterViewController.class]) {
+            DNode *node = [(DFlutterViewController *)targetVC currentNode];
+            node.action = action;
+            [[DNodeManager sharedInstance] checkNode:node];
+        } else {
+            _checkNodeParams(targetVC, action, NO);
+        }
+    } else {
+        _checkNodeParams(targetVC, action, NO);
+    }
 }
 
 UIViewController *_DStackCurrentController(UIViewController *controller)

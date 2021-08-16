@@ -28,6 +28,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// 每次被移除的节点列表
 @property (nonatomic, strong, nullable) NSArray <DNode *>*removedNodes;
 
+/// 当前被显示的FlutterViewControllerID
+@property (nonatomic, copy, nullable) NSString *currentFlutterViewControllerID;
+
 + (instancetype)sharedInstance;
 
 + (instancetype)new NS_UNAVAILABLE;

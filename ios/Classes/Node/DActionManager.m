@@ -9,6 +9,7 @@
 #import "DActionManager.h"
 #import "DNodeManager.h"
 #import "DStackPlugin.h"
+#import "DFlutterViewController.h"
 
 @implementation DActionManager
 
@@ -20,6 +21,7 @@
         case DNodeActionTypePresent:
         {
             [self enterPageWithNode:node];
+            [self bingdingNodeToFlutterViewController:nodeList.lastObject];
             break;
         }
         case DNodeActionTypePop:
@@ -39,6 +41,12 @@
         case DNodeActionTypePushAndRemoveUntil:
         {
             [self closePageListWithNode:node willRemovedList:nodeList];
+            [self bingdingNodeToFlutterViewController:node];
+            break;
+        }
+        case DNodeActionTypeReplace:
+        {
+            [self bingdingNodeToFlutterViewController:node];
             break;
         }
         default:break;
@@ -311,6 +319,20 @@
     stackNode.actionType = node.action;
     stackNode.animated = node.animated;
     return stackNode;
+}
+
+/// 把最新的Node绑定到FlutterViewController
++ (void)bingdingNodeToFlutterViewController:(DNode *)node
+{
+    UIViewController *controller = [self currentController];
+    if ([controller isKindOfClass:DFlutterViewController.class] &&
+        node.pageType == DNodePageTypeFlutter) {
+        DFlutterViewController *flutter = (DFlutterViewController *)controller;
+        NSString *identifier = [NSString stringWithFormat:@"%p", flutter];
+        if ([[DNodeManager sharedInstance].currentFlutterViewControllerID isEqualToString:identifier]) {
+            [flutter updateCurrentNode:node];
+        }
+    }
 }
 
 

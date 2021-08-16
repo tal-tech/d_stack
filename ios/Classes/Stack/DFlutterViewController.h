@@ -15,6 +15,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)willUpdateView;
 - (void)didUpdateView;
+- (void)updateCurrentNode:(id)node;
+- (id)currentNode;
 
 @end
 

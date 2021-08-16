@@ -12,6 +12,13 @@
 #import "DNavigator.h"
 #import "DStack.h"
 
+@interface DFlutterViewController ()
+
+/// 当前正在被显示的Node
+@property (nonatomic, strong) DNode *currentShowNode;
+
+@end
+
 @implementation DFlutterViewController
 
 - (instancetype)init
@@ -55,13 +62,20 @@
         self.dStackFlutterEngine.viewController = self;
     }
     [self checkSelfIsInTabBarController];
+    NSString *identifier = [NSString stringWithFormat:@"%p", self];
+    [DNodeManager sharedInstance].currentFlutterViewControllerID = identifier;
     [super viewWillAppear:animated];
+    self.navigationController.navigationBarHidden = YES;
 }
 
 - (void)viewDidAppear:(BOOL)animated
 {
     // 刷新一下FlutterViewController的页面，保证当前显示的view是最新的
     [self _surfaceUpdated:YES];
+    DNode *topNode = [DNodeManager sharedInstance].currentNode;
+    if (topNode.pageType == DNodePageTypeFlutter) {
+        [self updateCurrentNode:topNode];
+    }
     [super viewDidAppear:animated];
 }
 
@@ -89,6 +103,16 @@
     /// 因为在非全屏present页面时，该页面是没有状态栏的
     /// 所以在dismiss的时候，需要重新展示状态栏，就需要刷新flutter的页面
     [super viewDidLayoutSubviews];
+}
+
+- (void)updateCurrentNode:(DNode *)node
+{
+    _currentShowNode = [node copy];
+}
+
+- (id)currentNode
+{
+    return _currentShowNode;
 }
 
 - (void)checkSelfIsInTabBarController
