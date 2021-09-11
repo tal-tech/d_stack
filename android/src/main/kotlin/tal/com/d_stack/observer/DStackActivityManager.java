@@ -224,10 +224,10 @@ public class DStackActivityManager {
      * 判断是否是FlutterActivity
      */
     public boolean isFlutterActivity(Activity activity) {
-        if (activity instanceof DFlutterActivity) {
+        if (activity instanceof FlutterActivity) {
             return true;
         }
-        if (activity instanceof FlutterActivity) {
+        if (activity instanceof DFlutterActivity) {
             return true;
         }
         return false;

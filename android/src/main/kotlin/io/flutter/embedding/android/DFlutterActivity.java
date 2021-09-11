@@ -24,23 +24,22 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleRegistry;
-
 import io.flutter.Log;
 import io.flutter.embedding.android.FlutterActivityLaunchConfigs.BackgroundMode;
 import io.flutter.embedding.engine.FlutterEngine;
@@ -48,7 +47,7 @@ import io.flutter.embedding.engine.FlutterShellArgs;
 import io.flutter.embedding.engine.plugins.activity.ActivityControlSurface;
 import io.flutter.embedding.engine.plugins.util.GeneratedPluginRegister;
 import io.flutter.plugin.platform.PlatformPlugin;
-import tal.com.d_stack.node.DNodeManager;
+import io.flutter.util.ViewUtils;
 import tal.com.d_stack.observer.DStackActivityManager;
 
 /**
@@ -68,7 +67,8 @@ import tal.com.d_stack.observer.DStackActivityManager;
  *   <li>Chooses the Dart execution app bundle path and entrypoint.
  *   <li>Chooses Flutter's initial route.
  *   <li>Renders {@code Activity} transparently, if desired.
- *   <li>Offers hooks for subclasses to provide and configure a {@link FlutterEngine}.
+ *   <li>Offers hooks for subclasses to provide and configure a {@link
+ *       io.flutter.embedding.engine.FlutterEngine}.
  *   <li>Save and restore instance state, see {@code #shouldRestoreAndSaveState()};
  * </ul>
  *
@@ -101,36 +101,41 @@ import tal.com.d_stack.observer.DStackActivityManager;
  *
  * <p><strong>Using a cached FlutterEngine</strong>
  *
- * <p>{@code FlutterActivity} can be used with a cached {@link FlutterEngine} instead of creating a
- * new one. Use {@link #withCachedEngine(String)} to build a {@code FlutterActivity} {@code Intent}
- * that is configured to use an existing, cached {@link FlutterEngine}. {@link
+ * <p>{@code FlutterActivity} can be used with a cached {@link
+ * io.flutter.embedding.engine.FlutterEngine} instead of creating a new one. Use {@link
+ * #withCachedEngine(String)} to build a {@code FlutterActivity} {@code Intent} that is configured
+ * to use an existing, cached {@link io.flutter.embedding.engine.FlutterEngine}. {@link
  * io.flutter.embedding.engine.FlutterEngineCache} is the cache that is used to obtain a given
- * cached {@link FlutterEngine}. You must create and put a {@link FlutterEngine} into the {@link
+ * cached {@link io.flutter.embedding.engine.FlutterEngine}. You must create and put a {@link
+ * io.flutter.embedding.engine.FlutterEngine} into the {@link
  * io.flutter.embedding.engine.FlutterEngineCache} yourself before using the {@link
  * #withCachedEngine(String)} builder. An {@code IllegalStateException} will be thrown if a cached
  * engine is requested but does not exist in the cache.
  *
- * <p>When using a cached {@link FlutterEngine}, that {@link FlutterEngine} should already be
- * executing Dart code, which means that the Dart entrypoint and initial route have already been
- * defined. Therefore, {@link CachedEngineIntentBuilder} does not offer configuration of these
- * properties.
+ * <p>When using a cached {@link io.flutter.embedding.engine.FlutterEngine}, that {@link
+ * io.flutter.embedding.engine.FlutterEngine} should already be executing Dart code, which means
+ * that the Dart entrypoint and initial route have already been defined. Therefore, {@link
+ * CachedEngineIntentBuilder} does not offer configuration of these properties.
  *
- * <p>It is generally recommended to use a cached {@link FlutterEngine} to avoid a momentary delay
- * when initializing a new {@link FlutterEngine}. The two exceptions to using a cached {@link
+ * <p>It is generally recommended to use a cached {@link io.flutter.embedding.engine.FlutterEngine}
+ * to avoid a momentary delay when initializing a new {@link
+ * io.flutter.embedding.engine.FlutterEngine}. The two exceptions to using a cached {@link
  * FlutterEngine} are:
  *
  * <p>
  *
  * <ul>
  *   <li>When {@code FlutterActivity} is the first {@code Activity} displayed by the app, because
- *       pre-warming a {@link FlutterEngine} would have no impact in this situation.
+ *       pre-warming a {@link io.flutter.embedding.engine.FlutterEngine} would have no impact in
+ *       this situation.
  *   <li>When you are unsure when/if you will need to display a Flutter experience.
  * </ul>
  *
  * <p>See https://flutter.dev/docs/development/add-to-app/performance for additional performance
  * explorations on engine loading.
  *
- * <p>The following illustrates how to pre-warm and cache a {@link FlutterEngine}:
+ * <p>The following illustrates how to pre-warm and cache a {@link
+ * io.flutter.embedding.engine.FlutterEngine}:
  *
  * <pre>{@code
  * // Create and pre-warm a FlutterEngine.
@@ -191,8 +196,8 @@ import tal.com.d_stack.observer.DStackActivityManager;
  * windowBackground} as the launch theme discussed previously. To use that splash screen, include
  * the following metadata in AndroidManifest.xml for this {@code FlutterActivity}:
  *
- * <p>{@code <meta-data android:name="io.flutter.app.android.SplashScreenUntilFirstFrame"
- * android:value="true" /> }
+ * <p>{@code <meta-data android:name="io.flutter.embedding.android.SplashScreenDrawable"
+ * android:resource="@drawable/launch_background" /> }
  *
  * <p><strong>Alternative Activity</strong> {@link FlutterFragmentActivity} is also available, which
  * is similar to {@code FlutterActivity} but it extends {@code FragmentActivity}. You should use
@@ -207,12 +212,20 @@ public class DFlutterActivity extends Activity
     private static final String TAG = "FlutterActivity";
 
     /**
+     * The ID of the {@code FlutterView} created by this activity.
+     *
+     * <p>This ID can be used to lookup {@code FlutterView} in the Android view hierarchy. For more,
+     * see {@link android.view.View#findViewById}.
+     */
+    public static final int FLUTTER_VIEW_ID = ViewUtils.generateViewId(0xF1F2);
+
+    /**
      * Creates an {@link Intent} that launches a {@code FlutterActivity}, which creates a {@link
      * FlutterEngine} that executes a {@code main()} Dart entrypoint, and displays the "/" route as
      * Flutter's initial route.
      *
      * <p>Consider using the {@link #withCachedEngine(String)} {@link Intent} builder to control when
-     * the {@link FlutterEngine} should be created in your application.
+     * the {@link io.flutter.embedding.engine.FlutterEngine} should be created in your application.
      */
     @NonNull
     public static Intent createDefaultIntent(@NonNull Context launchContext) {
@@ -221,8 +234,9 @@ public class DFlutterActivity extends Activity
 
     /**
      * Creates an {@link NewEngineIntentBuilder}, which can be used to configure an {@link Intent} to
-     * launch a {@code FlutterActivity} that internally creates a new {@link FlutterEngine} using the
-     * desired Dart entrypoint, initial route, etc.
+     * launch a {@code FlutterActivity} that internally creates a new {@link
+     * io.flutter.embedding.engine.FlutterEngine} using the desired Dart entrypoint, initial route,
+     * etc.
      */
     @NonNull
     public static NewEngineIntentBuilder withNewEngine() {
@@ -299,8 +313,9 @@ public class DFlutterActivity extends Activity
 
     /**
      * Creates a {@link CachedEngineIntentBuilder}, which can be used to configure an {@link Intent}
-     * to launch a {@code FlutterActivity} that internally uses an existing {@link FlutterEngine} that
-     * is cached in {@link io.flutter.embedding.engine.FlutterEngineCache}.
+     * to launch a {@code FlutterActivity} that internally uses an existing {@link
+     * io.flutter.embedding.engine.FlutterEngine} that is cached in {@link
+     * io.flutter.embedding.engine.FlutterEngineCache}.
      */
     public static CachedEngineIntentBuilder withCachedEngine(@NonNull String cachedEngineId) {
         return new CachedEngineIntentBuilder(FlutterActivity.class, cachedEngineId);
@@ -308,7 +323,8 @@ public class DFlutterActivity extends Activity
 
     /**
      * Builder to create an {@code Intent} that launches a {@code FlutterActivity} with an existing
-     * {@link FlutterEngine} that is cached in {@link io.flutter.embedding.engine.FlutterEngineCache}.
+     * {@link io.flutter.embedding.engine.FlutterEngine} that is cached in {@link
+     * io.flutter.embedding.engine.FlutterEngineCache}.
      */
     public static class CachedEngineIntentBuilder {
         private final Class<? extends FlutterActivity> activityClass;
@@ -321,6 +337,10 @@ public class DFlutterActivity extends Activity
          * {@code FlutterActivity}.
          *
          * <p>Subclasses of {@code FlutterActivity} should provide their own static version of {@link
+         * FlutterActivity#withCachedEngine(String)}, which returns an instance of {@code
+         * CachedEngineIntentBuilder} constructed with a {@code Class} reference to the {@code
+         * FlutterActivity} subclass, e.g.:
+         *
          * <p>{@code return new CachedEngineIntentBuilder(MyFlutterActivity.class, engineId); }
          */
         public CachedEngineIntentBuilder(
@@ -330,8 +350,8 @@ public class DFlutterActivity extends Activity
         }
 
         /**
-         * Returns true if the cached {@link FlutterEngine} should be destroyed and removed from the
-         * cache when this {@code FlutterActivity} is destroyed.
+         * Returns true if the cached {@link io.flutter.embedding.engine.FlutterEngine} should be
+         * destroyed and removed from the cache when this {@code FlutterActivity} is destroyed.
          *
          * <p>The default value is {@code false}.
          */
@@ -378,13 +398,9 @@ public class DFlutterActivity extends Activity
     // Delegate that runs all lifecycle and OS hook logic that is common between
     // FlutterActivity and FlutterFragment. See the FlutterActivityAndFragmentDelegate
     // implementation for details about why it exists.
-    @VisibleForTesting
-    protected DFlutterPageDelegate delegate;
+    @VisibleForTesting protected DFlutterPageDelegate delegate;
 
-    @NonNull
-    private LifecycleRegistry lifecycle;
-
-    private boolean criticalDestroy = false;
+    @NonNull private LifecycleRegistry lifecycle;
 
     public DFlutterActivity() {
         lifecycle = new LifecycleRegistry(this);
@@ -418,7 +434,9 @@ public class DFlutterActivity extends Activity
         lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
 
         configureWindowForTransparency();
+
         setContentView(createFlutterView());
+
         configureStatusBarForFullscreenFlutterExperience();
     }
 
@@ -441,7 +459,7 @@ public class DFlutterActivity extends Activity
      *       "io.flutter.embedding.android.NormalTheme" and set the resource to your normal theme,
      *       e.g., {@code android:resource="@style/MyNormalTheme}.
      * </ol>
-     * <p>
+     *
      * With the above settings, your launch theme will be used when loading the app, and then the
      * theme will be switched to your normal theme once the app has initialized.
      *
@@ -488,16 +506,16 @@ public class DFlutterActivity extends Activity
      * to be used in a manifest file.
      */
     @Nullable
-    @SuppressWarnings("deprecation")
     private Drawable getSplashScreenFromManifest() {
         try {
             Bundle metaData = getMetaData();
             int splashScreenId = metaData != null ? metaData.getInt(SPLASH_SCREEN_META_DATA_KEY) : 0;
             return splashScreenId != 0
-                    ? Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP
-                    ? getResources().getDrawable(splashScreenId, getTheme())
-                    : getResources().getDrawable(splashScreenId)
+                    ? ResourcesCompat.getDrawable(getResources(), splashScreenId, getTheme())
                     : null;
+        } catch (Resources.NotFoundException e) {
+            Log.e(TAG, "Splash screen not found. Ensure the drawable exists and that it's valid.");
+            throw e;
         } catch (PackageManager.NameNotFoundException e) {
             // This is never expected to happen.
             return null;
@@ -522,7 +540,11 @@ public class DFlutterActivity extends Activity
     @NonNull
     private View createFlutterView() {
         return delegate.onCreateView(
-                null /* inflater */, null /* container */, null /* savedInstanceState */);
+                /* inflater=*/ null,
+                /* container=*/ null,
+                /* savedInstanceState=*/ null,
+                /*flutterViewId=*/ FLUTTER_VIEW_ID,
+                /*shouldDelayFirstAndroidViewDraw=*/ getRenderMode() == RenderMode.surface);
     }
 
     private void configureStatusBarForFullscreenFlutterExperience() {
@@ -538,26 +560,34 @@ public class DFlutterActivity extends Activity
     protected void onStart() {
         super.onStart();
         lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_START);
-        delegate.onStart();
+        if (stillAttachedForEvent("onStart")) {
+            delegate.onStart();
+        }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
-        delegate.onResume();
+        if (stillAttachedForEvent("onResume")) {
+            delegate.onResume();
+        }
     }
 
     @Override
     public void onPostResume() {
         super.onPostResume();
-        delegate.onPostResume();
+        if (stillAttachedForEvent("onPostResume")) {
+            delegate.onPostResume();
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        delegate.onPause();
+        if (stillAttachedForEvent("onPause")) {
+            delegate.onPause();
+        }
         lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE);
     }
 
@@ -579,8 +609,8 @@ public class DFlutterActivity extends Activity
     }
 
     /**
-     * Irreversibly release this activity's control of the {@link FlutterEngine} and its
-     * subcomponents.
+     * Irreversibly release this activity's control of the {@link
+     * io.flutter.embedding.engine.FlutterEngine} and its subcomponents.
      *
      * <p>Calling will disconnect this activity's view from the Flutter renderer, disconnect this
      * activity from plugins' {@link ActivityControlSurface}, and stop system channel messages from
@@ -600,7 +630,7 @@ public class DFlutterActivity extends Activity
 
     @Override
     public void detachFromFlutterEngine() {
-        Log.v(
+        Log.w(
                 TAG,
                 "FlutterActivity "
                         + this
@@ -612,7 +642,6 @@ public class DFlutterActivity extends Activity
 
     @Override
     protected void onDestroy() {
-        criticalDestroy = true;
         super.onDestroy();
         if (stillAttachedForEvent("onDestroy")) {
             release();
@@ -636,31 +665,10 @@ public class DFlutterActivity extends Activity
         }
     }
 
-    /**
-     * flutter根节点点击返回时，如果需要拦截事件，可在自己的flutter控制器onBackPress调用此方法
-     */
-    public void onRootPressed() {
-        if (stillAttachedForEvent("onBackPressed")) {
-            delegate.onBackPressed();
-        }
-    }
-
     @Override
     public void onBackPressed() {
         if (stillAttachedForEvent("onBackPressed")) {
             delegate.onBackPressed();
-        }
-        //连续打开多个flutter控制器，当栈里的flutter控制器onResume的时候，返回键根节点失灵，需要手动操作关闭控制器
-        boolean isCritical = DNodeManager.getInstance().isCritical(DNodeManager.getInstance().getCurrentNode());
-        if (isCritical) {
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (!criticalDestroy) {
-                        DStackActivityManager.getInstance().closeTopFlutterActivity();
-                    }
-                }
-            }, 300);
         }
     }
 
@@ -732,9 +740,9 @@ public class DFlutterActivity extends Activity
     }
 
     /**
-     * Returns the ID of a statically cached {@link FlutterEngine} to use within this {@code
-     * FlutterActivity}, or {@code null} if this {@code FlutterActivity} does not want to use a cached
-     * {@link FlutterEngine}.
+     * Returns the ID of a statically cached {@link io.flutter.embedding.engine.FlutterEngine} to use
+     * within this {@code FlutterActivity}, or {@code null} if this {@code FlutterActivity} does not
+     * want to use a cached {@link io.flutter.embedding.engine.FlutterEngine}.
      */
     @Override
     @Nullable
@@ -743,13 +751,13 @@ public class DFlutterActivity extends Activity
     }
 
     /**
-     * Returns false if the {@link FlutterEngine} backing this {@code FlutterActivity} should outlive
-     * this {@code FlutterActivity}, or true to be destroyed when the {@code FlutterActivity} is
-     * destroyed.
+     * Returns false if the {@link io.flutter.embedding.engine.FlutterEngine} backing this {@code
+     * FlutterActivity} should outlive this {@code FlutterActivity}, or true to be destroyed when the
+     * {@code FlutterActivity} is destroyed.
      *
      * <p>The default value is {@code true} in cases where {@code FlutterActivity} created its own
-     * {@link FlutterEngine}, and {@code false} in cases where a cached {@link FlutterEngine} was
-     * provided.
+     * {@link io.flutter.embedding.engine.FlutterEngine}, and {@code false} in cases where a cached
+     * {@link io.flutter.embedding.engine.FlutterEngine} was provided.
      */
     @Override
     public boolean shouldDestroyEngineWithHost() {
@@ -798,7 +806,7 @@ public class DFlutterActivity extends Activity
      *       FlutterActivityLaunchConfigs#INITIAL_ROUTE_META_DATA_KEY} for this {@code Activity} in
      *       the Android manifest.
      * </ol>
-     * <p>
+     *
      * If both preferences are set, the {@code Intent} preference takes priority.
      *
      * <p>The reason that a {@code <meta-data>} preference is supported is because this {@code
@@ -833,6 +841,7 @@ public class DFlutterActivity extends Activity
      * the launching {@code Intent}, that data String is interpreted as an app bundle path.
      *
      * <p>When otherwise unspecified, the value is null, which defaults to the app bundle path defined
+     * in {@link io.flutter.embedding.engine.loader.FlutterLoader#findAppBundlePath()}.
      *
      * <p>Subclasses may override this method to return a custom app bundle path.
      */
@@ -899,10 +908,11 @@ public class DFlutterActivity extends Activity
     }
 
     /**
-     * Hook for subclasses to easily provide a custom {@link FlutterEngine}.
+     * Hook for subclasses to easily provide a custom {@link
+     * io.flutter.embedding.engine.FlutterEngine}.
      *
-     * <p>This hook is where a cached {@link FlutterEngine} should be provided, if a cached {@link
-     * FlutterEngine} is desired.
+     * <p>This hook is where a cached {@link io.flutter.embedding.engine.FlutterEngine} should be
+     * provided, if a cached {@link FlutterEngine} is desired.
      */
     @Nullable
     @Override
@@ -912,17 +922,15 @@ public class DFlutterActivity extends Activity
     }
 
     /**
-     * Hook for subclasses to obtain a reference to the {@link FlutterEngine} that is owned by this
-     * {@code FlutterActivity}.
+     * Hook for subclasses to obtain a reference to the {@link
+     * io.flutter.embedding.engine.FlutterEngine} that is owned by this {@code FlutterActivity}.
      */
     @Nullable
     protected FlutterEngine getFlutterEngine() {
         return delegate.getFlutterEngine();
     }
 
-    /**
-     * Retrieves the meta data specified in the AndroidManifest.xml.
-     */
+    /** Retrieves the meta data specified in the AndroidManifest.xml. */
     @Nullable
     protected Bundle getMetaData() throws PackageManager.NameNotFoundException {
         ActivityInfo activityInfo =
@@ -943,12 +951,21 @@ public class DFlutterActivity extends Activity
      * <p>This method is called after {@link #provideFlutterEngine(Context)}.
      *
      * <p>All plugins listed in the app's pubspec are registered in the base implementation of this
-     * method. To avoid automatic plugin registration, override this method without invoking super().
-     * To keep automatic plugin registration and further configure the flutterEngine, override this
-     * method, invoke super(), and then configure the flutterEngine as desired.
+     * method unless the FlutterEngine for this activity was externally created. To avoid the
+     * automatic plugin registration for implicitly created FlutterEngines, override this method
+     * without invoking super(). To keep automatic plugin registration and further configure the
+     * FlutterEngine, override this method, invoke super(), and then configure the FlutterEngine as
+     * desired.
      */
     @Override
     public void configureFlutterEngine(@NonNull FlutterEngine flutterEngine) {
+        if (delegate.isFlutterEngineFromHost()) {
+            // If the FlutterEngine was explicitly built and injected into this FlutterActivity, the
+            // builder should explicitly decide whether to automatically register plugins via the
+            // FlutterEngine's construction parameter or via the AndroidManifest metadata.
+            return;
+        }
+
         GeneratedPluginRegister.registerGeneratedPlugins(flutterEngine);
     }
 
@@ -965,37 +982,43 @@ public class DFlutterActivity extends Activity
 
     /**
      * Hook for subclasses to control whether or not the {@link FlutterFragment} within this {@code
-     * Activity} automatically attaches its {@link FlutterEngine} to this {@code Activity}.
+     * Activity} automatically attaches its {@link io.flutter.embedding.engine.FlutterEngine} to this
+     * {@code Activity}.
      *
      * <p>This property is controlled with a protected method instead of an {@code Intent} argument
      * because the only situation where changing this value would help, is a situation in which {@code
-     * FlutterActivity} is being subclassed to utilize a custom and/or cached {@link FlutterEngine}.
+     * FlutterActivity} is being subclassed to utilize a custom and/or cached {@link
+     * io.flutter.embedding.engine.FlutterEngine}.
      *
      * <p>Defaults to {@code true}.
      *
      * <p>Control surfaces are used to provide Android resources and lifecycle events to plugins that
-     * are attached to the {@link FlutterEngine}. If {@code shouldAttachEngineToActivity} is true then
-     * this {@code FlutterActivity} will connect its {@link FlutterEngine} to itself, along with any
-     * plugins that are registered with that {@link FlutterEngine}. This allows plugins to access the
-     * {@code Activity}, as well as receive {@code Activity}-specific calls, e.g., {@link
+     * are attached to the {@link io.flutter.embedding.engine.FlutterEngine}. If {@code
+     * shouldAttachEngineToActivity} is true, then this {@code FlutterActivity} will connect its
+     * {@link io.flutter.embedding.engine.FlutterEngine} to itself, along with any plugins that are
+     * registered with that {@link io.flutter.embedding.engine.FlutterEngine}. This allows plugins to
+     * access the {@code Activity}, as well as receive {@code Activity}-specific calls, e.g. {@link
      * Activity#onNewIntent(Intent)}. If {@code shouldAttachEngineToActivity} is false, then this
      * {@code FlutterActivity} will not automatically manage the connection between its {@link
      * FlutterEngine} and itself. In this case, plugins will not be offered a reference to an {@code
      * Activity} or its OS hooks.
      *
-     * <p>Returning false from this method does not preclude a {@link FlutterEngine} from being
-     * attaching to a {@code FlutterActivity} - it just prevents the attachment from happening
-     * automatically. A developer can choose to subclass {@code FlutterActivity} and then invoke
-     * {@link ActivityControlSurface#attachToActivity(ExclusiveAppComponent, Lifecycle)} and {@link
+     * <p>Returning false from this method does not preclude a {@link
+     * io.flutter.embedding.engine.FlutterEngine} from being attaching to a {@code FlutterActivity} -
+     * it just prevents the attachment from happening automatically. A developer can choose to
+     * subclass {@code FlutterActivity} and then invoke {@link
+     * ActivityControlSurface#attachToActivity(ExclusiveAppComponent, Lifecycle)} and {@link
      * ActivityControlSurface#detachFromActivity()} at the desired times.
      *
      * <p>One reason that a developer might choose to manually manage the relationship between the
-     * {@code Activity} and {@link FlutterEngine} is if the developer wants to move the {@link
-     * FlutterEngine} somewhere else. For example, a developer might want the {@link FlutterEngine} to
-     * outlive this {@code FlutterActivity} so that it can be used later in a different {@code
-     * Activity}. To accomplish this, the {@link FlutterEngine} may need to be disconnected from this
-     * {@code FluttterActivity} at an unusual time, preventing this {@code FlutterActivity} from
-     * correctly managing the relationship between the {@link FlutterEngine} and itself.
+     * {@code Activity} and {@link io.flutter.embedding.engine.FlutterEngine} is if the developer
+     * wants to move the {@link FlutterEngine} somewhere else. For example, a developer might want the
+     * {@link io.flutter.embedding.engine.FlutterEngine} to outlive this {@code FlutterActivity} so
+     * that it can be used later in a different {@code Activity}. To accomplish this, the {@link
+     * io.flutter.embedding.engine.FlutterEngine} may need to be disconnected from this {@code
+     * FluttterActivity} at an unusual time, preventing this {@code FlutterActivity} from correctly
+     * managing the relationship between the {@link io.flutter.embedding.engine.FlutterEngine} and
+     * itself.
      */
     @Override
     public boolean shouldAttachEngineToActivity() {
@@ -1068,7 +1091,7 @@ public class DFlutterActivity extends Activity
 
     private boolean stillAttachedForEvent(String event) {
         if (delegate == null) {
-            Log.v(TAG, "FlutterActivity " + hashCode() + " " + event + " called after release.");
+            Log.w(TAG, "FlutterActivity " + hashCode() + " " + event + " called after release.");
             return false;
         }
         return true;
