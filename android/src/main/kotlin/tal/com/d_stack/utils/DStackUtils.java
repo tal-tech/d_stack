@@ -29,7 +29,17 @@ public class DStackUtils {
         Class c = activity.getClass();
         try {
             // 处理FlutterActivity
-            if (activity instanceof DFlutterActivity) {
+            if (activity instanceof FlutterActivity) {
+                while (c != FlutterActivity.class) {
+                    c = c.getSuperclass();
+                }
+                Field fieldDelegate = c.getDeclaredField("delegate");
+                fieldDelegate.setAccessible(true);
+                Object objectDelegate = fieldDelegate.get(activity);
+                Field flutterViewDelegate = objectDelegate.getClass().getDeclaredField("flutterView");
+                flutterViewDelegate.setAccessible(true);
+                flutterView = (FlutterView) flutterViewDelegate.get(objectDelegate);
+            } else if (activity instanceof DFlutterActivity) {
                 while (c != DFlutterActivity.class) {
                     c = c.getSuperclass();
                 }
