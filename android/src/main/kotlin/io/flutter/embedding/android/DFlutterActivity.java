@@ -47,7 +47,6 @@ import io.flutter.embedding.engine.FlutterShellArgs;
 import io.flutter.embedding.engine.plugins.activity.ActivityControlSurface;
 import io.flutter.embedding.engine.plugins.util.GeneratedPluginRegister;
 import io.flutter.plugin.platform.PlatformPlugin;
-import io.flutter.util.ViewUtils;
 import tal.com.d_stack.observer.DStackActivityManager;
 
 /**
@@ -217,7 +216,7 @@ public class DFlutterActivity extends Activity
      * <p>This ID can be used to lookup {@code FlutterView} in the Android view hierarchy. For more,
      * see {@link android.view.View#findViewById}.
      */
-    public static final int FLUTTER_VIEW_ID = ViewUtils.generateViewId(0xF1F2);
+    public static final int FLUTTER_VIEW_ID = DViewUtils.generateViewId(0xF1F2);
 
     /**
      * Creates an {@link Intent} that launches a {@code FlutterActivity}, which creates a {@link

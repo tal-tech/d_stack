@@ -28,7 +28,6 @@ import io.flutter.embedding.engine.FlutterShellArgs;
 import io.flutter.embedding.engine.dart.DartExecutor;
 import io.flutter.embedding.engine.renderer.FlutterUiDisplayListener;
 import io.flutter.plugin.platform.PlatformPlugin;
-import io.flutter.util.ViewUtils;
 import java.util.Arrays;
 
 /**
@@ -326,7 +325,7 @@ import java.util.Arrays;
                     "A splash screen was provided to Flutter, but this is deprecated. See"
                             + " flutter.dev/go/android-splash-migration for migration steps.");
             FlutterSplashView flutterSplashView = new FlutterSplashView(host.getContext());
-            flutterSplashView.setId(ViewUtils.generateViewId(FLUTTER_SPLASH_VIEW_FALLBACK_ID));
+            flutterSplashView.setId(DViewUtils.generateViewId(FLUTTER_SPLASH_VIEW_FALLBACK_ID));
             flutterSplashView.displayFlutterViewWithSplash(flutterView, splashScreen);
 
             return flutterSplashView;
