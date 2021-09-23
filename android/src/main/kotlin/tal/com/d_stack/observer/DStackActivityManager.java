@@ -44,8 +44,6 @@ public class DStackActivityManager {
     private boolean executeStack;
     //是否需要重新attach引擎
     private boolean needReAttachEngine = false;
-    //完整android acivity栈
-    private List<String> androidStack = new ArrayList<>();
 
     private DStackActivityManager() {
         activities = new ArrayList<>();
@@ -199,6 +197,15 @@ public class DStackActivityManager {
     }
 
     /**
+     * 获取栈内Activity数量
+     */
+    public int getActivitiesSize() {
+        if (activities == null) {
+            return 0;
+        }
+        return activities.size();
+    }
+    /**
      * 判断当前工程是否是一个纯Flutter工程
      */
     public boolean isFlutterApp() {
@@ -278,27 +285,4 @@ public class DStackActivityManager {
         return false;
     }
 
-    /**
-     * 添加android的栈视图
-     */
-    public void addStack(String stackName) {
-        androidStack.add(stackName);
-    }
-
-    /**
-     * 移除完整android的栈视图
-     */
-    public void removeStack(String stackName) {
-        androidStack.remove(stackName);
-    }
-
-    /**
-     * 获取栈内Activity数量
-     */
-    public int getStackSize() {
-        if (androidStack == null) {
-            return 0;
-        }
-        return androidStack.size();
-    }
 }
