@@ -33,13 +33,12 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
-        DStackActivityManager.getInstance().addStack(activity.getClass().getName());
         if (!FilterActivityManager.getInstance().canAdd(activity)) {
             return;
         }
         DStackActivityManager.getInstance().addActivity(activity);
         activeActivity = activity;
-        appStart = DStackActivityManager.getInstance().getStackSize() == 1;
+        appStart = DStackActivityManager.getInstance().getActivitiesSize() == 1;
         if (appStart) {
             DNode node;
             //应用刚刚启动时
@@ -137,7 +136,6 @@ public class DStackLifecycleObserver implements Application.ActivityLifecycleCal
 
     @Override
     public void onActivityDestroyed(@NonNull Activity activity) {
-        DStackActivityManager.getInstance().removeStack(activity.getClass().getName());
         if (!FilterActivityManager.getInstance().canAdd(activity)) {
             return;
         }
