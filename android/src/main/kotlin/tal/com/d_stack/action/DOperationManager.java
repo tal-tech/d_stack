@@ -1,5 +1,8 @@
 package tal.com.d_stack.action;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import tal.com.d_stack.DStack;
 import tal.com.d_stack.channel.DStackMethodHandler;
 import tal.com.d_stack.node.DNode;
@@ -14,6 +17,9 @@ import tal.com.d_stack.utils.DLog;
  * 节点操作行为记录
  */
 public class DOperationManager {
+
+    private static Map<String, Map<String, Object>> popParams = new HashMap<>();
+
     public static void operation(DNode node) {
         if (!DStack.getInstance().isOpenNodeOperation()) {
             return;
@@ -35,6 +41,10 @@ public class DOperationManager {
                 //不是临界页面
                 if (node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
                     //操作一个flutter页面，不记录操作，等didPop消息
+                    //如果返回待参数，需要保留
+                    if (node.getParams() != null && !node.getParams().isEmpty()) {
+                        popParams.put(node.getIdentifier(), node.getParams());
+                    }
                     return;
                 }
             }
@@ -43,6 +53,15 @@ public class DOperationManager {
         DLog.logE("$$$$$节点操作$$$$$");
         DLog.logE(nodeResponse.action + "-----" + nodeResponse.target);
         DLog.logE("$$$$$节点操作$$$$$");
+        if (node.getPageType().equals(DNodePageType.DNodePageTypeFlutter)) {
+            if (nodeResponse.params == null || nodeResponse.params.isEmpty()) {
+                if (popParams.containsKey(nodeResponse.identifier)) {
+                    nodeResponse.params = popParams.get(nodeResponse.identifier);
+                    popParams.clear();
+                }
+            }
+        }
+
         DStackMethodHandler.sendNodeOperation(nodeResponse);
         INodeOperation nodeOperation = DStack.getInstance().getNodeOperation();
         if (nodeOperation != null) {

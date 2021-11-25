@@ -99,7 +99,7 @@ class Page2 extends StatelessWidget {
           leading: ElevatedButton(
             child: Text('返回'),
             onPressed: () {
-              DStack.pop();
+              DStack.pop(result: {"test":"测试page2数据返回"});
             },
           )),
       body: _caseWidget(TestCase.closeFlutterPage, context: context),
@@ -133,7 +133,7 @@ class Page4 extends StatelessWidget {
         leading: ElevatedButton(
           child: Text('返回'),
           onPressed: () {
-            DStack.pop();
+            DStack.pop(result: {"test":"测试page4数据返回"});
           },
         ),
       ),
