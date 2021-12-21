@@ -6,12 +6,10 @@
  * target: 测试用例
  */
 
-import 'dart:ui';
-
 import 'package:d_stack/d_stack.dart';
-import 'package:d_stack_example/page_widgets.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'page_widgets.dart';
 
 class TestCase {
   /// 打开flutter页面用例

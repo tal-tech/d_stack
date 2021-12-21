@@ -265,6 +265,26 @@ class DNavigatorManager {
         result: result, animated: animated);
   }
 
+  /// result 返回值，可为空
+  /// maybePop
+  static Future<bool> maybePop({Map? result, bool animated = true}) async {
+    Route? _route =  DStackNavigatorObserver.instance?.currentRoute;
+    final RoutePopDisposition? disposition = await _route?.willPop();
+    switch (disposition) {
+      case RoutePopDisposition.bubble:
+        print('maybePop bubble false');
+        return false;
+      case RoutePopDisposition.pop:
+        print('maybePop pop true');
+        DNavigatorManager.pop(result: result, animated: animated);
+        return true;
+      case RoutePopDisposition.doNotPop:
+        print('maybePop doNotPop true');
+        return true;
+    }
+    return false;
+  }
+
   static void popWithGesture(Route route) {
     DNavigatorManager.nodeHandle(null, null, DStackConstant.gesture,
         route: route);

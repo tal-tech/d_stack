@@ -245,6 +245,10 @@ class DStack {
     DNavigatorManager.pop(result: result, animated: animated);
   }
 
+  static Future<bool> maybePop({Map? result, bool animated = true}) {
+    return DNavigatorManager.maybePop(result: result, animated: animated);
+  }
+
   /// popTo指定页面
   /// 无法popTo到根页面
   /// 要popTo到根页面请调用popToRoot

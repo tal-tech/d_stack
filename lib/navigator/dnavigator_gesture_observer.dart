@@ -39,6 +39,9 @@ class DStackNavigatorObserver extends NavigatorObserver {
     this._gesturingRouteName = gesturingRouteName;
   }
 
+  Route? _currentRoute;
+  Route? get currentRoute => _currentRoute;
+
   /// 页面进入了
   /// route 路由目标页面
   /// previousRoute 目标页面的上一个页面
@@ -48,6 +51,7 @@ class DStackNavigatorObserver extends NavigatorObserver {
     debugPrint(
         ' 【didPush】${route.settings.name}【didPush】');
     routerCount += 1;
+    _currentRoute = route;
     if (route is PopupRoute) {
       /// dialog进栈
       DNavigatorManager.nodeHandle(
@@ -63,6 +67,7 @@ class DStackNavigatorObserver extends NavigatorObserver {
   void didPop(Route route, Route? previousRoute) {
     super.didPop(route, previousRoute);
     routerCount -= 1;
+    _currentRoute = previousRoute;
     debugPrint(
         ' 【didPop】${route.settings.name} 【didPop】');
     if (route is PopupRoute) {
@@ -85,6 +90,12 @@ class DStackNavigatorObserver extends NavigatorObserver {
         }
       }
     }
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+    _currentRoute = newRoute;
   }
 
   /// route 路由目标页面
